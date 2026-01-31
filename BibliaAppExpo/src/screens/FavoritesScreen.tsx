@@ -27,6 +27,7 @@ type Favorite = {
   bookId: string;
   chapter: number;
   verseNumber: number;
+  verseEnd?: number; // Versículo final si es un rango
 };
 
 const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
@@ -54,16 +55,32 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
       const response = await favoritesService.getFavorites({ testament });
 
       // Transformar al formato local
-      const transformedFavorites: Favorite[] = response.favorites.map((fav: ApiFavorite) => ({
-        id: fav.id,
-        verse: fav.reference, // El backend ya devuelve la referencia correcta
-        date: new Date(fav.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-        text: fav.verseText,
-        tags: fav.tags || [],
-        bookId: fav.bookId,
-        chapter: fav.chapterNumber,
-        verseNumber: fav.verseNumber,
-      }));
+      const transformedFavorites: Favorite[] = response.favorites.map((fav: ApiFavorite) => {
+        // Extraer verseEnd del tag "Versículos X-Y" si existe
+        let verseEnd: number | undefined;
+        const rangeTag = fav.tags?.find(tag => tag.startsWith('Versículos '));
+        if (rangeTag) {
+          const range = rangeTag.replace('Versículos ', '');
+          const parts = range.split('-');
+          if (parts.length === 2) {
+            verseEnd = parseInt(parts[1], 10);
+          }
+        }
+        // Si es "Capítulo completo", marcar con un número muy alto para cargar todo
+        const isFullChapter = fav.tags?.includes('Capítulo completo');
+
+        return {
+          id: fav.id,
+          verse: fav.reference,
+          date: new Date(fav.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+          text: fav.verseText,
+          tags: fav.tags || [],
+          bookId: fav.bookId,
+          chapter: fav.chapterNumber,
+          verseNumber: fav.verseNumber,
+          verseEnd: isFullChapter ? 999 : verseEnd, // 999 = cargar todo el capítulo
+        };
+      });
 
       setFavorites(transformedFavorites);
     } catch (err: any) {
@@ -146,13 +163,22 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
   };
 
   // =====================================================
-  // ✅ NAVEGACIÓN - Ver favorito en contexto
+  // ✅ NAVEGACIÓN - Ver favorito (solo versículos guardados)
   // =====================================================
   const handleViewFavorite = (favorite: Favorite) => {
+    // Si verseEnd es 999, significa "capítulo completo" - mostrar todo pero sin navegación
+    const isFullChapter = favorite.verseEnd === 999;
+
     navigation.navigate('ChapterReading', {
       bookId: favorite.bookId,
       bookName: favorite.verse.split(' ')[0],
       chapter: favorite.chapter,
+      // Siempre indicar que viene de favoritos (para ocultar navegación)
+      fromFavorite: true,
+      // Si es capítulo completo, no filtrar versículos (undefined)
+      // Si no, pasar el rango para filtrar
+      favoriteVerseNumber: isFullChapter ? undefined : favorite.verseNumber,
+      favoriteVerseEnd: isFullChapter ? undefined : (favorite.verseEnd || favorite.verseNumber),
     });
   };
 

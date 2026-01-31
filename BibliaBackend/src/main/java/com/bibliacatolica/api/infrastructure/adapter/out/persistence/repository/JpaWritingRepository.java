@@ -27,8 +27,8 @@ public interface JpaWritingRepository extends JpaRepository<WritingEntity, UUID>
             @Param("userId") UUID userId,
             @Param("searchText") String searchText);
 
-    @Query("SELECT w FROM WritingEntity w WHERE w.userId = :userId " +
-           "AND w.verseReference LIKE CONCAT(:bookId, '%')")
+    @Query(value = "SELECT * FROM writings w WHERE w.user_id = :userId " +
+           "AND w.verse_reference->>'bookId' = :bookId", nativeQuery = true)
     List<WritingEntity> findByUserIdAndVerseReferenceLike(
             @Param("userId") UUID userId,
             @Param("bookId") String bookId);

@@ -100,9 +100,22 @@ echo -e "${BLUE}🐘 Iniciando PostgreSQL...${NC}"
 
 cd "$BACKEND_DIR"
 
-# Verificar si PostgreSQL ya está corriendo
+# Verificar si PostgreSQL ya está corriendo y healthy
 if docker ps | grep -q biblia-postgres; then
-    echo -e "${GREEN}✓ PostgreSQL ya está corriendo${NC}"
+    if docker-compose ps postgres 2>/dev/null | grep -q "healthy"; then
+        echo -e "${GREEN}✓ PostgreSQL ya está corriendo y healthy${NC}"
+    else
+        echo -e "${YELLOW}⏳ PostgreSQL existe pero esperando a que esté healthy...${NC}"
+        for i in {1..30}; do
+            if docker-compose ps postgres 2>/dev/null | grep -q "healthy"; then
+                echo -e "${GREEN}✓ PostgreSQL está listo${NC}"
+                break
+            fi
+            sleep 1
+            echo -n "."
+        done
+        echo ""
+    fi
 else
     echo -e "${YELLOW}⚡ Levantando PostgreSQL...${NC}"
     docker-compose up -d postgres
@@ -110,7 +123,7 @@ else
     # Esperar a que esté healthy
     echo -e "${YELLOW}⏳ Esperando a que PostgreSQL esté listo...${NC}"
     for i in {1..30}; do
-        if docker-compose ps postgres | grep -q "healthy"; then
+        if docker-compose ps postgres 2>/dev/null | grep -q "healthy"; then
             echo -e "${GREEN}✓ PostgreSQL está listo${NC}"
             break
         fi
@@ -120,6 +133,16 @@ else
     echo ""
 fi
 
+# Verificación final: asegurar que PostgreSQL responde antes de continuar
+echo -e "${YELLOW}⚡ Verificando conexión a PostgreSQL...${NC}"
+for i in {1..10}; do
+    if docker exec biblia-postgres pg_isready -U biblia_user -d biblia_db > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ PostgreSQL responde correctamente${NC}"
+        break
+    fi
+    sleep 1
+    echo -n "."
+done
 echo ""
 
 # =====================================================
@@ -199,10 +222,31 @@ echo ""
 
 cd "$BACKEND_DIR"
 
+# Primero, verificar y detener contenedor Docker de la API si existe
+echo -e "${YELLOW}⚡ Verificando contenedores Docker...${NC}"
+if docker ps -a --format '{{.Names}}' | grep -q "biblia-api"; then
+    echo -e "${YELLOW}   Deteniendo contenedor Docker de la API...${NC}"
+    docker-compose stop api 2>/dev/null || true
+    docker-compose rm -f api 2>/dev/null || true
+    echo -e "${GREEN}✓ Contenedor Docker detenido${NC}"
+fi
+
+# Matar cualquier proceso que esté usando el puerto 8080
+echo -e "${YELLOW}⚡ Liberando puerto 8080...${NC}"
+# Matar procesos Java/Maven
+pkill -9 -f "spring-boot:run" 2>/dev/null || true
+pkill -9 -f "BibliaApiApplication" 2>/dev/null || true
+# Intentar con lsof (timeout de 2 segundos)
+timeout 2 bash -c 'lsof -ti:8080 2>/dev/null | xargs kill -9 2>/dev/null' || true
+sleep 1
+echo -e "${GREEN}✓ Puerto 8080 liberado${NC}"
+
 # Iniciar API en background con logs
+echo -e "${YELLOW}⚡ Iniciando API en modo local...${NC}"
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev > "$STATE_DIR/api.log" 2>&1 &
 API_PID=$!
 echo $API_PID > "$STATE_DIR/api.pid"
+echo -e "${GREEN}✓ API iniciándose (PID: $API_PID)${NC}"
 
 # Esperar a que la API esté lista
 echo -e "${YELLOW}⏳ Esperando a que la API esté lista...${NC}"

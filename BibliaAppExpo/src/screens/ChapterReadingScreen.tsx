@@ -13,9 +13,19 @@ import {colors} from '../theme/colors';
 import {ChapterReadingScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Chapter} from '../services/bible.service';
 import {favoritesService} from '../services/favorites.service';
+import {highlightService, Highlight, HighlightColor, getHighlightHex, HIGHLIGHT_COLORS} from '../services/highlights.service';
+import {getChapterTitle} from '../data/chapterTitles';
 
 const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, route}) => {
-  const { bookId, bookName, chapter: initialChapter } = route.params;
+  const {
+    bookId,
+    bookName,
+    chapter: initialChapter,
+    // Parámetros desde favoritos
+    fromFavorite = false, // Si viene de favoritos, ocultar navegación
+    favoriteVerseNumber,  // Versículo inicial para filtrar
+    favoriteVerseEnd,     // Versículo final si es un rango (ej: 1-5)
+  } = route.params;
 
   const [selectedVerses, setSelectedVerses] = useState<number[]>([]); // Array de versículos seleccionados
   const [selectionMode, setSelectionMode] = useState(false); // Modo selección múltiple
@@ -23,6 +33,12 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   const [currentChapter, setCurrentChapter] = useState(initialChapter);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Estado para subrayados
+  const [highlights, setHighlights] = useState<Map<number, Highlight>>(new Map());
+
+  // Determinar si debemos filtrar versículos (solo si hay rango específico)
+  const shouldFilterVerses = favoriteVerseNumber !== undefined;
 
   // =====================================================
   // ✅ CONECTADO A API - Cargar capítulo
@@ -35,8 +51,33 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     try {
       setIsLoading(true);
       setError(null);
+
+      // Cargar el capítulo completo desde la API
       const data = await bibleService.getChapter(bookId, currentChapter);
-      setChapterData(data);
+
+      // Si hay versículos específicos para mostrar, filtrar
+      if (shouldFilterVerses && data) {
+        const startVerse = favoriteVerseNumber!;
+        const endVerse = favoriteVerseEnd || startVerse;
+
+        // Filtrar los versículos en cada sección
+        const filteredSections = data.sections.map(section => ({
+          ...section,
+          verses: section.verses.filter(
+            verse => verse.number >= startVerse && verse.number <= endVerse
+          ),
+        })).filter(section => section.verses.length > 0); // Eliminar secciones vacías
+
+        setChapterData({
+          ...data,
+          sections: filteredSections,
+          // Ocultar navegación en modo favorito
+          previousChapter: undefined,
+          nextChapter: undefined,
+        });
+      } else {
+        setChapterData(data);
+      }
     } catch (err: any) {
       console.error('Error cargando capítulo:', err);
       setError('No se pudo cargar el capítulo. Verifica tu conexión.');
@@ -44,6 +85,26 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       setIsLoading(false);
     }
   };
+
+  // Cargar subrayados del capítulo
+  const loadHighlights = async () => {
+    try {
+      const response = await highlightService.getChapterHighlights(bookId, currentChapter);
+      const highlightMap = new Map<number, Highlight>();
+      response.highlights.forEach(h => highlightMap.set(h.verseNumber, h));
+      setHighlights(highlightMap);
+    } catch (err) {
+      // Si falla, simplemente no mostramos subrayados (no es crítico)
+      console.log('No se pudieron cargar subrayados:', err);
+    }
+  };
+
+  // Cargar subrayados cuando cambia el capítulo
+  useEffect(() => {
+    if (!isLoading && chapterData) {
+      loadHighlights();
+    }
+  }, [currentChapter, isLoading]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -103,18 +164,77 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Acciones de versículo (toolbar flotante)
+  // ✅ CONECTADO A API - Subrayados
   // =====================================================
-  const handleHighlight = (color: string) => {
-    const verseRef = selectedVerses.length === 1
-      ? `versículo ${selectedVerses[0]}`
-      : `versículos ${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`;
+  const handleHighlight = async (color: HighlightColor) => {
+    try {
+      // Subrayar cada versículo seleccionado
+      for (const verseNumber of selectedVerses) {
+        const highlight = await highlightService.highlightVerse({
+          bookId,
+          chapterNumber: currentChapter,
+          verseNumber,
+          color,
+        });
+        // Actualizar el estado local
+        setHighlights(prev => new Map(prev).set(verseNumber, highlight));
+      }
 
-    Alert.alert(
-      '🎨 Resaltar',
-      `Funcionalidad mockeada para demo.\n\nEn producción, ${verseRef} se resaltará con color ${color}.`,
-      [{text: 'Entendido'}]
-    );
+      const verseRef = selectedVerses.length === 1
+        ? `Versículo ${selectedVerses[0]}`
+        : `Versículos ${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`;
+
+      Alert.alert('✅ Subrayado', `${verseRef} subrayado correctamente.`);
+    } catch (err) {
+      console.error('Error subrayando:', err);
+      Alert.alert('Error', 'No se pudo subrayar el versículo.');
+    }
+    cancelSelection();
+  };
+
+  const handleRemoveHighlight = async (verseNumber: number) => {
+    const highlight = highlights.get(verseNumber);
+    if (!highlight) return;
+
+    try {
+      await highlightService.removeHighlight(highlight.id);
+      setHighlights(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(verseNumber);
+        return newMap;
+      });
+    } catch (err) {
+      console.error('Error eliminando subrayado:', err);
+    }
+  };
+
+  // Eliminar subrayados de los versículos seleccionados
+  const handleRemoveSelectedHighlights = async () => {
+    try {
+      let removedCount = 0;
+      for (const verseNumber of selectedVerses) {
+        const highlight = highlights.get(verseNumber);
+        if (highlight) {
+          await highlightService.removeHighlight(highlight.id);
+          setHighlights(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(verseNumber);
+            return newMap;
+          });
+          removedCount++;
+        }
+      }
+
+      if (removedCount > 0) {
+        const verseRef = removedCount === 1
+          ? `Versículo ${selectedVerses[0]}`
+          : `${removedCount} versículos`;
+        Alert.alert('✅ Subrayado eliminado', `${verseRef} sin subrayado.`);
+      }
+    } catch (err) {
+      console.error('Error eliminando subrayados:', err);
+      Alert.alert('Error', 'No se pudieron eliminar los subrayados.');
+    }
     cancelSelection();
   };
 
@@ -125,7 +245,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
     Alert.alert(
       '📝 Agregar Nota',
-      `Funcionalidad mockeada para demo.\n\nEn producción, aquí podrás escribir una nota personal para ${verseRef}.`,
+      `Funcionalidad en desarrollo.\n\nPróximamente podrás escribir una nota para ${verseRef}.`,
       [{text: 'Entendido'}]
     );
     cancelSelection();
@@ -326,12 +446,16 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
         {/* Content */}
         <View style={styles.content}>
-          {chapterData.sections.map((section, sectionIndex) => (
+          {chapterData.sections.map((section, sectionIndex) => {
+            // Obtener título: usar el de la sección o buscar uno predefinido
+            const displayTitle = section.title || getChapterTitle(bookId, currentChapter);
+
+            return (
             <View key={sectionIndex} style={styles.section}>
               {/* Section Title */}
-              {section.title && (
+              {displayTitle && (
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <Text style={styles.sectionTitle}>{displayTitle}</Text>
                 <View style={styles.sectionDivider} />
               </View>
               )}
@@ -340,6 +464,8 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               <View style={styles.versesContainer}>
                 {section.verses.map((verse) => {
                   const isSelected = selectedVerses.includes(verse.number);
+                  const highlight = highlights.get(verse.number);
+                  const highlightBg = highlight ? getHighlightHex(highlight.color) : undefined;
 
                   return (
                   <TouchableOpacity
@@ -347,8 +473,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                     style={[
                       styles.verseRow,
                       isSelected && styles.verseRowSelected,
+                      highlightBg && { backgroundColor: highlightBg },
                     ]}
                     onPress={() => handleVersePress(verse.number)}
+                    onLongPress={() => highlight && handleRemoveHighlight(verse.number)}
                     activeOpacity={0.7}>
                     <Text style={[
                       styles.verseNumber,
@@ -373,32 +501,35 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                 })}
               </View>
             </View>
-          ))}
+            );
+          })}
 
-          {/* Navigation Buttons */}
-          <View style={styles.navigationButtons}>
-            <TouchableOpacity
-              style={styles.navButton}
-              onPress={handlePreviousChapter}
-              activeOpacity={0.7}>
-              <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.muted} />
-              <View style={styles.navButtonText}>
-                <Text style={styles.navButtonLabel}>ANTERIOR</Text>
-                <Text style={styles.navButtonTitle}>Malaquías</Text>
-              </View>
-            </TouchableOpacity>
+          {/* Navigation Buttons - Solo mostrar si NO viene desde favoritos */}
+          {!fromFavorite && (
+            <View style={styles.navigationButtons}>
+              <TouchableOpacity
+                style={styles.navButton}
+                onPress={handlePreviousChapter}
+                activeOpacity={0.7}>
+                <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.muted} />
+                <View style={styles.navButtonText}>
+                  <Text style={styles.navButtonLabel}>ANTERIOR</Text>
+                  <Text style={styles.navButtonTitle}>Malaquías</Text>
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.navButton, styles.navButtonRight]}
-              onPress={handleNextChapter}
-              activeOpacity={0.7}>
-              <View style={[styles.navButtonText, styles.navButtonTextRight]}>
-                <Text style={styles.navButtonLabel}>SIGUIENTE</Text>
-                <Text style={styles.navButtonTitle}>San Mateo 2</Text>
-              </View>
-              <MaterialIcons name="arrow-forward" size={20} color={colors.charcoal.muted} />
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={[styles.navButton, styles.navButtonRight]}
+                onPress={handleNextChapter}
+                activeOpacity={0.7}>
+                <View style={[styles.navButtonText, styles.navButtonTextRight]}>
+                  <Text style={styles.navButtonLabel}>SIGUIENTE</Text>
+                  <Text style={styles.navButtonTitle}>San Mateo 2</Text>
+                </View>
+                <MaterialIcons name="arrow-forward" size={20} color={colors.charcoal.muted} />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -408,41 +539,54 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
           <View style={styles.toolbarInfo}>
             <Text style={styles.toolbarText}>
               {selectedVerses.length === 1
-                ? `Versículo ${selectedVerses[0]}`
-                : `Versículos ${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`}
+                ? `v.${selectedVerses[0]}`
+                : `v.${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`}
             </Text>
           </View>
 
           <View style={styles.toolbarDivider} />
 
+          {/* Botones de colores para subrayar */}
+          <View style={styles.colorButtons}>
+            {HIGHLIGHT_COLORS.slice(0, 4).map((colorOption) => (
+              <TouchableOpacity
+                key={colorOption.name}
+                style={[styles.colorButton, { backgroundColor: colorOption.hex }]}
+                onPress={() => handleHighlight(colorOption.name)}
+                activeOpacity={0.7}
+              />
+            ))}
+          </View>
+
+          {/* Botón de borrador para quitar subrayado */}
           <TouchableOpacity
             style={styles.toolbarButton}
-            onPress={handleAddNote}
+            onPress={handleRemoveSelectedHighlights}
             activeOpacity={0.7}>
-            <MaterialIcons name="edit-note" size={20} color="#FFFFFF" />
+            <MaterialIcons name="format-color-reset" size={18} color="#FFFFFF" />
           </TouchableOpacity>
+
+          <View style={styles.toolbarDivider} />
 
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={handleAddFavorite}
             activeOpacity={0.7}>
-            <MaterialIcons name="favorite" size={20} color="#FFFFFF" />
+            <MaterialIcons name="favorite" size={18} color="#FFFFFF" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={handleShare}
             activeOpacity={0.7}>
-            <MaterialIcons name="share" size={20} color="#FFFFFF" />
+            <MaterialIcons name="share" size={18} color="#FFFFFF" />
           </TouchableOpacity>
-
-          <View style={styles.toolbarDivider} />
 
           <TouchableOpacity
             style={styles.toolbarButton}
             onPress={cancelSelection}
             activeOpacity={0.7}>
-            <MaterialIcons name="close" size={20} color="#FFFFFF" />
+            <MaterialIcons name="close" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       )}
@@ -578,7 +722,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: colors.burgundy.accent,
+    color: colors.burgundy.DEFAULT, // #903040 - Rojo burgundy como en la imagen
     fontStyle: 'italic',
     textAlign: 'center',
     marginBottom: 8,
@@ -675,19 +819,21 @@ const styles = StyleSheet.create({
     color: colors.charcoal.dark,
   },
 
+
   // Floating Toolbar
   floatingToolbar: {
     position: 'absolute',
     top: 80,
-    left: '50%',
-    transform: [{translateX: -150}],
+    left: 12,
+    right: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.charcoal.dark,
-    borderRadius: 24,
-    paddingHorizontal: 16,
+    borderRadius: 20,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    gap: 12,
+    gap: 8,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
@@ -696,16 +842,27 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   toolbarInfo: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   toolbarText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
   toolbarButton: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  colorButtons: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  colorButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   colorDot: {
     width: 16,

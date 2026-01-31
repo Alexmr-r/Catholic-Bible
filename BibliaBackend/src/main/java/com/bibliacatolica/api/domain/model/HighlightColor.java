@@ -2,13 +2,15 @@ package com.bibliacatolica.api.domain.model;
 
 /**
  * Enum que representa los colores disponibles para resaltado de versículos
+ * Colores suaves/pastel para mejor legibilidad
  */
 public enum HighlightColor {
-    GOLD("gold", "#D4AF37"),
-    PRIMARY("primary", "#36454F"),
-    SECONDARY("secondary", "#A65E6E"),
-    BURGUNDY("burgundy", "#722F37"),
-    SKY("sky", "#6B9AC4");
+    YELLOW("yellow", "#FEF08A"),    // Amarillo pastel
+    GREEN("green", "#BBF7D0"),      // Verde pastel
+    BLUE("blue", "#BFDBFE"),        // Azul pastel
+    PINK("pink", "#FBCFE8"),        // Rosa pastel
+    ORANGE("orange", "#FED7AA"),    // Naranja pastel
+    PURPLE("purple", "#DDD6FE");    // Morado pastel
 
     private final String name;
     private final String hexCode;

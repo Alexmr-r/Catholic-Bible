@@ -34,61 +34,598 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.5)
 
-2026-01-19T23:32:21.945+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Starting BibliaApiApplication using Java 21.0.9 with PID 96474 (/Users/mrrobot/IdeaProjects/Biblia/BibliaBackend/target/classes started by mrrobot in /Users/mrrobot/IdeaProjects/Biblia/BibliaBackend)
-2026-01-19T23:32:21.946+01:00 DEBUG 96474 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Running with Spring Boot v3.2.5, Spring v6.1.6
-2026-01-19T23:32:21.946+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : The following 1 profile is active: "dev"
-2026-01-19T23:32:21.958+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2026-01-19T23:32:21.959+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2026-01-19T23:32:22.313+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-01-19T23:32:22.342+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 26 ms. Found 9 JPA repository interfaces.
-2026-01-19T23:32:22.642+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2026-01-19T23:32:22.646+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-01-19T23:32:22.646+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
-2026-01-19T23:32:22.659+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring embedded WebApplicationContext
-2026-01-19T23:32:22.660+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 700 ms
-2026-01-19T23:32:22.818+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-01-19T23:32:22.888+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@601dc2b1
-2026-01-19T23:32:22.889+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-01-19T23:32:22.901+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/biblia_db (PostgreSQL 16.11)
-2026-01-19T23:32:22.927+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.015s)
-2026-01-19T23:32:22.951+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 4
-2026-01-19T23:32:22.952+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2026-01-19T23:32:22.992+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-01-19T23:32:23.010+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
-2026-01-19T23:32:23.021+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-01-19T23:32:23.093+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-01-19T23:32:23.116+01:00  WARN 96474 --- [Biblia Católica API] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-01-19T23:32:23.538+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-01-19T23:32:23.566+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-01-19T23:32:23.699+01:00 DEBUG 96474 --- [Biblia Católica API] [  restartedMain] c.b.a.i.c.s.JwtAuthenticationFilter      : Filter 'jwtAuthenticationFilter' configured for use
-2026-01-19T23:32:23.739+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-01-19T23:32:24.451+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoint(s) beneath base path '/actuator'
-2026-01-19T23:32:24.506+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@296180f, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@441253f9, org.springframework.security.web.context.SecurityContextHolderFilter@153e9ff4, org.springframework.security.web.header.HeaderWriterFilter@12aa65a2, org.springframework.web.filter.CorsFilter@313ab78, org.springframework.security.web.authentication.logout.LogoutFilter@3a2ec7b5, com.bibliacatolica.api.infrastructure.config.security.JwtAuthenticationFilter@63ea2e0d, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@31c11db5, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@6f554d83, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@79229bf5, org.springframework.security.web.session.SessionManagementFilter@5bffcfa9, org.springframework.security.web.access.ExceptionTranslationFilter@477061cc, org.springframework.security.web.access.intercept.AuthorizationFilter@5ec38001]
-2026-01-19T23:32:24.719+01:00  WARN 96474 --- [Biblia Católica API] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : Unable to start LiveReload server
-2026-01-19T23:32:24.741+01:00  WARN 96474 --- [Biblia Católica API] [  restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
-2026-01-19T23:32:24.744+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-01-19T23:32:24.745+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2026-01-19T23:32:24.746+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
-2026-01-19T23:32:24.754+01:00  INFO 96474 --- [Biblia Católica API] [  restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
-
-Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2026-01-19T23:32:24.759+01:00 ERROR 96474 --- [Biblia Católica API] [  restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
-
-***************************
-APPLICATION FAILED TO START
-***************************
-
-Description:
-
-Web server failed to start. Port 8080 was already in use.
-
-Action:
-
-Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
-
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  3.527 s
-[INFO] Finished at: 2026-01-19T23:32:24+01:00
-[INFO] ------------------------------------------------------------------------
+2026-01-31T20:01:21.837+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Starting BibliaApiApplication using Java 21.0.9 with PID 22858 (/Users/mrrobot/IdeaProjects/Biblia/BibliaBackend/target/classes started by mrrobot in /Users/mrrobot/IdeaProjects/Biblia/BibliaBackend)
+2026-01-31T20:01:21.838+01:00 DEBUG 22858 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-01-31T20:01:21.838+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : The following 1 profile is active: "dev"
+2026-01-31T20:01:21.851+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-01-31T20:01:21.851+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-01-31T20:01:22.215+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-31T20:01:22.242+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 24 ms. Found 9 JPA repository interfaces.
+2026-01-31T20:01:22.542+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-31T20:01:22.546+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-31T20:01:22.546+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-01-31T20:01:22.566+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring embedded WebApplicationContext
+2026-01-31T20:01:22.566+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 714 ms
+2026-01-31T20:01:22.703+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-31T20:01:22.761+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5753c13b
+2026-01-31T20:01:22.761+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-31T20:01:22.770+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/biblia_db (PostgreSQL 16.11)
+2026-01-31T20:01:22.791+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.011s)
+2026-01-31T20:01:22.809+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 4
+2026-01-31T20:01:22.810+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-01-31T20:01:22.847+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-31T20:01:22.865+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-01-31T20:01:22.875+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-31T20:01:22.940+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-31T20:01:22.958+01:00  WARN 22858 --- [Biblia Católica API] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-31T20:01:23.349+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-31T20:01:23.374+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-31T20:01:23.503+01:00 DEBUG 22858 --- [Biblia Católica API] [  restartedMain] c.b.a.i.c.s.JwtAuthenticationFilter      : Filter 'jwtAuthenticationFilter' configured for use
+2026-01-31T20:01:23.541+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-31T20:01:24.213+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoint(s) beneath base path '/actuator'
+2026-01-31T20:01:24.257+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@4da11452, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7cabaa7b, org.springframework.security.web.context.SecurityContextHolderFilter@4efe5ba8, org.springframework.security.web.header.HeaderWriterFilter@7d4de5b3, org.springframework.web.filter.CorsFilter@5f5076b8, org.springframework.security.web.authentication.logout.LogoutFilter@17879347, com.bibliacatolica.api.infrastructure.config.security.JwtAuthenticationFilter@498102d9, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@6e80e090, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@92be3b9, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@2e2e6aa4, org.springframework.security.web.session.SessionManagementFilter@358f19a3, org.springframework.security.web.access.ExceptionTranslationFilter@53c456df, org.springframework.security.web.access.intercept.AuthorizationFilter@62b7303d]
+2026-01-31T20:01:24.483+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-01-31T20:01:24.513+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/api/v1'
+2026-01-31T20:01:24.521+01:00  INFO 22858 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Started BibliaApiApplication in 2.807 seconds (process running for 2.94)
+2026-01-31T20:01:24.601+01:00  INFO 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-01-31T20:01:24.601+01:00  INFO 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-01-31T20:01:24.602+01:00  INFO 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-01-31T20:01:24.609+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /actuator/health
+2026-01-31T20:01:24.613+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.615+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /actuator/health
+2026-01-31T20:01:24.742+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui.html
+2026-01-31T20:01:24.743+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.744+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui.html
+2026-01-31T20:01:24.755+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/index.html
+2026-01-31T20:01:24.755+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.756+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/index.html
+2026-01-31T20:01:24.764+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui.css
+2026-01-31T20:01:24.765+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui.css
+2026-01-31T20:01:24.765+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/index.css
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui-bundle.js
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui-standalone-preset.js
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui-bundle.js
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-initializer.js
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/index.css
+2026-01-31T20:01:24.766+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.767+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.767+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui-standalone-preset.js
+2026-01-31T20:01:24.767+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-initializer.js
+2026-01-31T20:01:24.825+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /api-docs/swagger-config
+2026-01-31T20:01:24.826+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.826+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /api-docs/swagger-config
+2026-01-31T20:01:24.836+01:00 DEBUG 22858 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api-docs
+2026-01-31T20:01:24.837+01:00 DEBUG 22858 --- [Biblia Católica API] [.0-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:24.837+01:00 DEBUG 22858 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api-docs
+2026-01-31T20:01:25.028+01:00  INFO 22858 --- [Biblia Católica API] [.0-8080-exec-10] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 187 ms
+2026-01-31T20:01:50.598+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing POST /auth/login
+2026-01-31T20:01:50.599+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-01-31T20:01:50.600+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured POST /auth/login
+2026-01-31T20:01:50.641+01:00  INFO 22858 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.a.i.r.controller.AuthController  : Solicitud de login para: zelzeusyt2002@gmail.com
+2026-01-31T20:01:50.644+01:00  INFO 22858 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.a.service.AuthenticationService    : Intento de login para: zelzeusyt2002@gmail.com
+2026-01-31T20:01:50.675+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:01:50.773+01:00  INFO 22858 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.a.service.AuthenticationService    : Login exitoso para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-01-31T20:01:50.956+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /daily-reading/today
+2026-01-31T20:01:50.998+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:01:51.001+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-01-31T20:01:51.001+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /daily-reading/today
+2026-01-31T20:01:51.001+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.a.i.r.c.DailyReadingController   : Obteniendo lectura del día
+2026-01-31T20:01:51.002+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.a.service.DailyReadingService      : Obteniendo lectura del día
+2026-01-31T20:01:51.002+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.a.service.DailyReadingService      : Obteniendo lectura para fecha: 2026-01-31
+2026-01-31T20:01:51.003+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        dre1_0.id,
+        dre1_0.badge,
+        dre1_0.book_id,
+        dre1_0.book_name,
+        dre1_0.chapter_number,
+        dre1_0.date,
+        dre1_0.image_url,
+        dre1_0.official_reflection,
+        dre1_0.reading_text,
+        dre1_0.title,
+        dre1_0.verse_numbers 
+    from
+        daily_readings dre1_0 
+    where
+        dre1_0.date=?
+Hibernate: 
+    select
+        dre1_0.id,
+        dre1_0.badge,
+        dre1_0.book_id,
+        dre1_0.book_name,
+        dre1_0.chapter_number,
+        dre1_0.date,
+        dre1_0.image_url,
+        dre1_0.official_reflection,
+        dre1_0.reading_text,
+        dre1_0.title,
+        dre1_0.verse_numbers 
+    from
+        daily_readings dre1_0 
+    where
+        dre1_0.date=?
+2026-01-31T20:01:51.008+01:00  WARN 22858 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.a.i.r.e.GlobalExceptionHandler   : Recurso no encontrado: Lectura diaria no encontrado con identificador: 2026-01-31
+2026-01-31T20:01:51.009+01:00  WARN 22858 --- [Biblia Católica API] [0.0-8080-exec-2] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [com.bibliacatolica.api.domain.exception.ResourceNotFoundException: Lectura diaria no encontrado con identificador: 2026-01-31]
+2026-01-31T20:01:58.100+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /writings?sortBy=recent
+2026-01-31T20:01:58.105+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:01:58.106+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /writings?sortBy=recent
+2026-01-31T20:01:58.110+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:01:58.111+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-01-31T20:01:58.111+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /writings?sortBy=recent
+2026-01-31T20:01:58.114+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:01:58.116+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-01-31T20:01:58.116+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.i.a.i.r.c.WritingController        : Obteniendo escritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-01-31T20:01:58.116+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /writings?sortBy=recent
+2026-01-31T20:01:58.117+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.a.service.WritingService           : Obteniendo escritos del usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 con filtro
+2026-01-31T20:01:58.117+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:01:58.118+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+Hibernate: 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+2026-01-31T20:01:58.119+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.a.i.r.c.WritingController        : Obteniendo escritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-01-31T20:01:58.119+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.a.service.WritingService           : Obteniendo escritos del usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 con filtro
+2026-01-31T20:01:58.120+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+Hibernate: 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+2026-01-31T20:01:59.664+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/psalms/chapters/23
+2026-01-31T20:01:59.668+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:01:59.672+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-01-31T20:01:59.673+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/psalms/chapters/23
+2026-01-31T20:01:59.675+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.i.a.i.r.c.BibleController          : Obteniendo capítulo 23 de psalms
+2026-01-31T20:01:59.676+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.application.service.BibleService   : Obteniendo capítulo psalms.23
+2026-01-31T20:01:59.681+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+    select
+        ce1_0.id,
+        ce1_0.book_id,
+        ce1_0.chapter_number,
+        ce1_0.version 
+    from
+        chapters ce1_0 
+    where
+        ce1_0.book_id=? 
+        and ce1_0.chapter_number=?
+Hibernate: 
+    select
+        ce1_0.id,
+        ce1_0.book_id,
+        ce1_0.chapter_number,
+        ce1_0.version 
+    from
+        chapters ce1_0 
+    where
+        ce1_0.book_id=? 
+        and ce1_0.chapter_number=?
+2026-01-31T20:01:59.698+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.id=?
+Hibernate: 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.id=?
+2026-01-31T20:01:59.704+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+    select
+        s1_0.chapter_id,
+        s1_0.id,
+        s1_0.order_index,
+        s1_0.title 
+    from
+        sections s1_0 
+    where
+        s1_0.chapter_id=? 
+    order by
+        s1_0.order_index
+Hibernate: 
+    select
+        s1_0.chapter_id,
+        s1_0.id,
+        s1_0.order_index,
+        s1_0.title 
+    from
+        sections s1_0 
+    where
+        s1_0.chapter_id=? 
+    order by
+        s1_0.order_index
+2026-01-31T20:01:59.708+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+    select
+        v1_0.section_id,
+        v1_0.id,
+        v1_0.has_note,
+        v1_0.note_text,
+        v1_0.text,
+        v1_0.verse_number 
+    from
+        verses v1_0 
+    where
+        v1_0.section_id=? 
+    order by
+        v1_0.verse_number
+Hibernate: 
+    select
+        v1_0.section_id,
+        v1_0.id,
+        v1_0.has_note,
+        v1_0.note_text,
+        v1_0.text,
+        v1_0.verse_number 
+    from
+        verses v1_0 
+    where
+        v1_0.section_id=? 
+    order by
+        v1_0.verse_number
+2026-01-31T20:02:09.057+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /writings?sortBy=recent
+2026-01-31T20:02:09.064+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:02:09.072+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-01-31T20:02:09.074+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /writings?sortBy=recent
+2026-01-31T20:02:09.076+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-01-31T20:02:09.079+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.a.i.r.c.WritingController        : Obteniendo escritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-01-31T20:02:09.079+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.a.service.WritingService           : Obteniendo escritos del usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 con filtro
+2026-01-31T20:02:09.080+01:00 DEBUG 22858 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+Hibernate: 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc

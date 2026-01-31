@@ -18,6 +18,7 @@ import GenesisReadingScreen from "../screens/GenesisReadingScreen";
 import MatthewChaptersScreen from "../screens/MatthewChaptersScreen";
 import ChapterReadingScreen from "../screens/ChapterReadingScreen";
 import BookChaptersScreen from "../screens/BookChaptersScreen";
+import WritingDetailScreen from "../screens/WritingDetailScreen";
 
 // =====================================================
 // 🎯 TIPOS DE NAVEGACIÓN - Mejores Prácticas
@@ -42,6 +43,23 @@ export type RootStackParamList = {
     bookId: string;
     bookName: string;
     chapter: number;
+    // Desde favoritos: ocultar navegación
+    fromFavorite?: boolean;
+    // Opcional: para mostrar versículos específicos (desde favoritos)
+    favoriteVerseNumber?: number;  // Versículo inicial
+    favoriteVerseEnd?: number;     // Versículo final (para rangos como 1-5)
+  };
+  WritingDetail: {            // Pantalla de detalle de escrito
+    writingId: string;
+    title: string;
+    content: string;
+    bookId?: string;
+    bookName?: string;
+    chapter?: number;
+    verse?: number;
+    tags?: string[];
+    createdAt: string;
+    isFavorite: boolean;
   };
 };
 
@@ -82,8 +100,14 @@ export type BibleSearchScreenProps = CompositeScreenProps<
   BottomTabScreenProps<MainTabsParamList, 'BibleSearch'>,
   NativeStackScreenProps<RootStackParamList>
 >;
-export type WritingsScreenProps = BottomTabScreenProps<MainTabsParamList, 'Writings'>;
-export type FavoritesScreenProps = BottomTabScreenProps<MainTabsParamList, 'Favorites'>;
+export type WritingsScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<MainTabsParamList, 'Writings'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
+export type FavoritesScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<MainTabsParamList, 'Favorites'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 // Stack Screens (navegación modal/stack desde tabs)
 export type OldTestamentScreenProps = NativeStackScreenProps<RootStackParamList, 'OldTestament'>;
@@ -240,6 +264,13 @@ const AppNavigator: React.FC = () => {
         <RootStack.Screen
           name="ChapterReading"
           component={ChapterReadingScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="WritingDetail"
+          component={WritingDetailScreen}
           options={{
             animation: 'slide_from_right',
           }}

@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
  */
 
 // ⚠️ CAMBIA ESTA IP SI CAMBIAS DE RED WIFI
-const LOCAL_IP = '192.168.1.42';
+const LOCAL_IP = '192.168.1.45';
 
 
 // Detectar el entorno y seleccionar la URL correcta

@@ -4,8 +4,6 @@ import com.bibliacatolica.api.domain.model.Writing;
 import com.bibliacatolica.api.domain.port.out.WritingRepositoryPort;
 import com.bibliacatolica.api.infrastructure.adapter.out.persistence.entity.WritingEntity;
 import com.bibliacatolica.api.infrastructure.adapter.out.persistence.repository.JpaWritingRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
 public class WritingPersistenceAdapter implements WritingRepositoryPort {
 
     private final JpaWritingRepository jpaWritingRepository;
-    private final ObjectMapper objectMapper;
 
     @Override
     public Writing save(Writing writing) {
@@ -105,13 +103,13 @@ public class WritingPersistenceAdapter implements WritingRepositoryPort {
     // ========== Mappers ==========
 
     private WritingEntity toEntity(Writing writing) {
-        String verseRefJson = null;
+        Map<String, Object> verseRefMap = null;
         if (writing.getVerseReference() != null) {
-            try {
-                verseRefJson = objectMapper.writeValueAsString(writing.getVerseReference());
-            } catch (JsonProcessingException e) {
-                log.error("Error serializing verse reference", e);
-            }
+            verseRefMap = new java.util.HashMap<>();
+            verseRefMap.put("bookId", writing.getVerseReference().getBookId());
+            verseRefMap.put("bookName", writing.getVerseReference().getBookName());
+            verseRefMap.put("chapter", writing.getVerseReference().getChapter());
+            verseRefMap.put("verse", writing.getVerseReference().getVerse());
         }
 
         return WritingEntity.builder()
@@ -119,7 +117,7 @@ public class WritingPersistenceAdapter implements WritingRepositoryPort {
                 .userId(writing.getUserId())
                 .title(writing.getTitle())
                 .content(writing.getContent())
-                .verseReference(verseRefJson)
+                .verseReference(verseRefMap)
                 .tags(writing.getTags() != null ? writing.getTags().toArray(new String[0]) : null)
                 .isFavorite(writing.isFavorite())
                 .createdAt(writing.getCreatedAt())
@@ -130,11 +128,13 @@ public class WritingPersistenceAdapter implements WritingRepositoryPort {
     private Writing toDomain(WritingEntity entity) {
         Writing.VerseReference verseRef = null;
         if (entity.getVerseReference() != null) {
-            try {
-                verseRef = objectMapper.readValue(entity.getVerseReference(), Writing.VerseReference.class);
-            } catch (JsonProcessingException e) {
-                log.error("Error deserializing verse reference", e);
-            }
+            Map<String, Object> map = entity.getVerseReference();
+            verseRef = Writing.VerseReference.builder()
+                    .bookId((String) map.get("bookId"))
+                    .bookName((String) map.get("bookName"))
+                    .chapter(map.get("chapter") != null ? ((Number) map.get("chapter")).intValue() : 0)
+                    .verse(map.get("verse") != null ? ((Number) map.get("verse")).intValue() : 0)
+                    .build();
         }
 
         return Writing.builder()

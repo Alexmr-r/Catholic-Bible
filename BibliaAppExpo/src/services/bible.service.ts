@@ -21,6 +21,7 @@ export interface Verse {
   number: number;
   text: string;
   hasNote: boolean;
+  hasHighlight?: boolean;
 }
 
 export interface Section {

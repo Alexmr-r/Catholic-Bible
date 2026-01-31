@@ -3,9 +3,12 @@ package com.bibliacatolica.api.infrastructure.adapter.out.persistence.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -33,8 +36,9 @@ public class WritingEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "verse_reference", columnDefinition = "JSONB")
-    private String verseReference;
+    @Column(name = "verse_reference", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, Object> verseReference;
 
     @Column(columnDefinition = "TEXT[]")
     private String[] tags;
