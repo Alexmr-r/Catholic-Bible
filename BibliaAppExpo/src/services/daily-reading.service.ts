@@ -2,25 +2,19 @@ import { apiClient } from './api.client';
 
 // ========== Types ==========
 
-export interface DailyReadingVerse {
-  bookId: string;
-  bookName: string;
-  chapter: number;
-  verseStart: number;
-  verseEnd: number;
-  text: string;
-}
-
 export interface DailyReading {
   id: string;
   date: string;
-  liturgicalDay: string;
-  liturgicalColor: string;
-  firstReading: DailyReadingVerse;
-  psalm: DailyReadingVerse;
-  secondReading?: DailyReadingVerse;
-  gospel: DailyReadingVerse;
-  reflection?: string;
+  title: string;
+  badge: string;
+  imageUrl: string | null;
+  bookId: string;
+  bookName: string;
+  chapterNumber: number;
+  verseNumbers: number[];
+  readingText: string;
+  biblicalReference: string;
+  officialReflection: string | null;
 }
 
 export interface WeekReadings {

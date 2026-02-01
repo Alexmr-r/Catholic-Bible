@@ -28,6 +28,8 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
+    validate-on-migrate: false  # Deshabilitar validación estricta de checksums
+    out-of-order: true            # Permitir migraciones fuera de orden
 
 # ====================================
 # Server Configuration

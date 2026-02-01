@@ -115,17 +115,29 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
           </View>
         </View>
 
-        {/* Contenido de la reflexión */}
-        <Text style={styles.contentText} numberOfLines={2}>
-          {item.content}
-        </Text>
-      </View>
+        {/* Reflexión con barra a la izquierda (título + contenido) */}
+        <View style={styles.textContainer}>
+          <View style={styles.quoteLine} />
+          <View style={styles.reflexionContent}>
+            {/* Título del escrito - solo si existe */}
+            {item.title && (
+              <Text style={styles.writingTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+            )}
+            {/* Contenido de la reflexión */}
+            <Text style={styles.contentText} numberOfLines={2}>
+              {item.content}
+            </Text>
+          </View>
+        </View>
 
-      {/* Footer con botón Ver */}
-      <View style={styles.cardFooter}>
-        <View style={styles.viewButton}>
-          <MaterialIcons name="visibility" size={18} color={colors.primary.DEFAULT} />
-          <Text style={styles.viewButtonText}>Ver Escrito y Versículo</Text>
+        {/* Footer con botón Ver */}
+        <View style={styles.cardFooter}>
+          <View style={styles.viewButton}>
+            <MaterialIcons name="visibility" size={18} color={colors.primary.DEFAULT} />
+            <Text style={styles.viewButtonText}>Ver Escrito y Versículo</Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -447,6 +459,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.charcoal.muted,
+  },
+  textContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 14,
+  },
+  quoteLine: {
+    width: 3,
+    backgroundColor: `${colors.primary.DEFAULT}66`,
+    borderRadius: 2,
+  },
+  reflexionContent: {
+    flex: 1,
+  },
+  writingTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.charcoal.DEFAULT,
+    marginBottom: 8,
   },
   contentText: {
     fontSize: 14,

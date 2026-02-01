@@ -19,6 +19,8 @@ import MatthewChaptersScreen from "../screens/MatthewChaptersScreen";
 import ChapterReadingScreen from "../screens/ChapterReadingScreen";
 import BookChaptersScreen from "../screens/BookChaptersScreen";
 import WritingDetailScreen from "../screens/WritingDetailScreen";
+import EditWritingScreen from "../screens/EditWritingScreen";
+import ReadingCalendarScreen from "../screens/ReadingCalendarScreen";
 
 // =====================================================
 // 🎯 TIPOS DE NAVEGACIÓN - Mejores Prácticas
@@ -49,7 +51,7 @@ export type RootStackParamList = {
     favoriteVerseNumber?: number;  // Versículo inicial
     favoriteVerseEnd?: number;     // Versículo final (para rangos como 1-5)
   };
-  WritingDetail: {            // Pantalla de detalle de escrito
+  WritingDetail: {
     writingId: string;
     title: string;
     content: string;
@@ -61,6 +63,17 @@ export type RootStackParamList = {
     createdAt: string;
     isFavorite: boolean;
   };
+  EditWriting: {
+    writingId: string;
+    initialTitle: string;
+    initialContent: string;
+    bookName?: string;
+    chapter?: number;
+    verse?: number;
+    verseText?: string;
+    createdAt: string;
+  };
+  ReadingCalendar: undefined;
 };
 
 // Auth Stack (Login, Register, ForgotPassword)
@@ -271,6 +284,20 @@ const AppNavigator: React.FC = () => {
         <RootStack.Screen
           name="WritingDetail"
           component={WritingDetailScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="EditWriting"
+          component={EditWritingScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="ReadingCalendar"
+          component={ReadingCalendarScreen}
           options={{
             animation: 'slide_from_right',
           }}

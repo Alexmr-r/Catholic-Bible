@@ -14,14 +14,20 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {writingsService} from '../services/writings.service';
 import {bibleService} from '../services/bible.service';
+import {useFocusEffect} from '@react-navigation/native';
 
 type WritingDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'WritingDetail'>;
 
 const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, route}) => {
-  const {writingId, title, content, bookId, bookName, chapter, verse, createdAt, isFavorite: initialFavorite} = route.params;
+  const {writingId, title: initialTitle, content: initialContent, bookId, bookName, chapter, verse, createdAt, isFavorite: initialFavorite} = route.params;
+
+  // Estados mutables para título y contenido (pueden cambiar tras editar)
+  const [title, setTitle] = useState(initialTitle);
+  const [content, setContent] = useState(initialContent);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [verseText, setVerseText] = useState<string | null>(null);
   const [isLoadingVerse, setIsLoadingVerse] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Debug: ver qué parámetros recibimos
   console.log('WritingDetail params:', { bookId, bookName, chapter, verse });
@@ -54,6 +60,28 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
 
     loadVerse();
   }, [bookId, chapter, verse]);
+
+  // Recargar datos cuando la pantalla recibe el foco (vuelve de EditWriting)
+  useFocusEffect(
+    React.useCallback(() => {
+      const refreshWriting = async () => {
+        try {
+          setIsRefreshing(true);
+          const writing = await writingsService.getWriting(writingId);
+          setTitle(writing.title);
+          setContent(writing.content);
+          setIsFavorite(writing.isFavorite);
+          console.log('✅ Escrito actualizado:', writing.title);
+        } catch (err) {
+          console.error('Error recargando escrito:', err);
+        } finally {
+          setIsRefreshing(false);
+        }
+      };
+
+      refreshWriting();
+    }, [writingId])
+  );
 
   const handleBack = () => {
     navigation.goBack();
@@ -98,7 +126,16 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
   };
 
   const handleEdit = () => {
-    Alert.alert('Editar', 'Funcionalidad próximamente disponible.');
+    navigation.navigate('EditWriting', {
+      writingId,
+      initialTitle: title,
+      initialContent: content,
+      bookName,
+      chapter,
+      verse,
+      verseText: verseText || undefined,
+      createdAt,
+    });
   };
 
   const handleReadChapter = () => {

@@ -16,9 +16,11 @@ import {colors} from '../theme/colors';
 import {DailyReadingScreenProps} from '../navigation/AppNavigator';
 import {dailyReadingService, DailyReading} from '../services/daily-reading.service';
 import {writingsService} from '../services/writings.service';
+import {readingProgressService} from '../services/reading-progress.service';
 
 const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => {
   const [reflection, setReflection] = useState('');
+  const [reflectionTitle, setReflectionTitle] = useState('');
   const [showFab, setShowFab] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -28,95 +30,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
   const [error, setError] = useState<string | null>(null);
   const [isSavingReflection, setIsSavingReflection] = useState(false);
   const [isMarkedAsRead, setIsMarkedAsRead] = useState(false);
-
-  // Lecturas de ejemplo para cuando el backend no tiene datos
-  const SAMPLE_READINGS = [
-    {
-      liturgicalDay: 'Evangelio',
-      bookId: 'john',
-      bookName: 'John',
-      chapter: 1,
-      verseStart: 1,
-      verseEnd: 5,
-      text: 'In the beginning was the Word, and the Word was with God, and the Word was God. He was in the beginning with God. All things were made through him, and without him was not any thing made that was made. In him was life, and the life was the light of men. The light shines in the darkness, and the darkness has not overcome it.',
-    },
-    {
-      liturgicalDay: 'Salmo',
-      bookId: 'psalms',
-      bookName: 'Psalms',
-      chapter: 23,
-      verseStart: 1,
-      verseEnd: 4,
-      text: 'The Lord is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul. He leads me in paths of righteousness for his name\'s sake. Even though I walk through the valley of the shadow of death, I will fear no evil, for you are with me.',
-    },
-    {
-      liturgicalDay: 'Evangelio',
-      bookId: 'matthew',
-      bookName: 'Matthew',
-      chapter: 5,
-      verseStart: 1,
-      verseEnd: 10,
-      text: 'Seeing the crowds, he went up on the mountain, and when he sat down, his disciples came to him. And he opened his mouth and taught them, saying: Blessed are the poor in spirit, for theirs is the kingdom of heaven. Blessed are those who mourn, for they shall be comforted. Blessed are the meek, for they shall inherit the earth.',
-    },
-    {
-      liturgicalDay: 'Primera Lectura',
-      bookId: 'genesis',
-      bookName: 'Genesis',
-      chapter: 1,
-      verseStart: 1,
-      verseEnd: 5,
-      text: 'In the beginning, God created the heavens and the earth. The earth was without form and void, and darkness was over the face of the deep. And the Spirit of God was hovering over the face of the waters. And God said, Let there be light, and there was light. And God saw that the light was good.',
-    },
-    {
-      liturgicalDay: 'Evangelio',
-      bookId: 'luke',
-      bookName: 'Luke',
-      chapter: 15,
-      verseStart: 3,
-      verseEnd: 7,
-      text: 'So he told them this parable: What man of you, having a hundred sheep, if he has lost one of them, does not leave the ninety-nine in the open country, and go after the one that is lost, until he finds it? And when he has found it, he lays it on his shoulders, rejoicing.',
-    },
-  ];
-
-  // Lectura de fallback: selecciona una random basada en la fecha
-  const getFallbackReading = (): DailyReading => {
-    // Usar la fecha como semilla para que sea consistente durante el día
-    const today = new Date();
-    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-    const randomIndex = dayOfYear % SAMPLE_READINGS.length;
-    const sample = SAMPLE_READINGS[randomIndex];
-
-    return {
-      id: 'fallback',
-      date: today.toISOString().split('T')[0],
-      liturgicalDay: sample.liturgicalDay,
-      liturgicalColor: '#903040', // Burgundy
-      firstReading: {
-        bookId: 'genesis',
-        bookName: 'Genesis',
-        chapter: 1,
-        verseStart: 1,
-        verseEnd: 5,
-        text: 'In the beginning, God created heaven and earth.',
-      },
-      psalm: {
-        bookId: 'psalms',
-        bookName: 'Psalms',
-        chapter: 23,
-        verseStart: 1,
-        verseEnd: 6,
-        text: 'The Lord is my shepherd; I shall not want.',
-      },
-      gospel: {
-        bookId: sample.bookId,
-        bookName: sample.bookName,
-        chapter: sample.chapter,
-        verseStart: sample.verseStart,
-        verseEnd: sample.verseEnd,
-        text: sample.text,
-      },
-    };
-  };
+  const [isReadingCompleted, setIsReadingCompleted] = useState(false);
 
   // =====================================================
   // ✅ CONECTADO A API - Cargar lectura del día
@@ -131,11 +45,14 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
       setError(null);
       const reading = await dailyReadingService.getTodayReading();
       setDailyReading(reading);
+
+      // Verificar si ya está marcada como completada
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const completed = await readingProgressService.isDateCompleted(today);
+      setIsReadingCompleted(completed);
     } catch (err: any) {
       console.error('Error cargando lectura del día:', err);
-      // Usar lectura de fallback en lugar de mostrar error
-      console.log('Usando lectura de fallback');
-      setDailyReading(getFallbackReading());
+      setError('No se pudo cargar la lectura del día. Por favor, intenta de nuevo más tarde.');
     } finally {
       setIsLoading(false);
     }
@@ -146,15 +63,10 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Seleccionar fecha de lectura
-  // TODO: Implementar selector de calendario
+  // ✅ CONECTADO - Abrir calendario de constancia
   // =====================================================
   const handleCalendar = () => {
-    Alert.alert(
-      '📅 Calendario',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás seleccionar otra fecha.',
-      [{text: 'Entendido'}]
-    );
+    navigation.navigate('ReadingCalendar');
   };
 
   // =====================================================
@@ -180,26 +92,32 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
   };
 
   // =====================================================
-  // ✅ CONECTADO A API - Marcar como leída
+  // ✅ CONECTADO A API - Marcar/Desmarcar como completada
   // =====================================================
   const handleBookmark = async () => {
     if (!dailyReading) return;
 
-    // Si es fallback, solo marcar localmente
-    if (dailyReading.id === 'fallback') {
-      setIsMarkedAsRead(true);
-      Alert.alert('✅ Lectura completada', 'Marcada como leída.');
-      return;
-    }
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     try {
-      await dailyReadingService.markAsRead(dailyReading.id);
-      setIsMarkedAsRead(true);
-      Alert.alert('✅ Lectura completada', 'Se ha registrado en tu historial.');
+      if (isReadingCompleted) {
+        // Desmarcar
+        await readingProgressService.unmarkAsComplete(today);
+        setIsReadingCompleted(false);
+        Alert.alert('✅ Lectura desmarcada', 'Se ha quitado del registro.');
+      } else {
+        // Marcar como completada
+        await readingProgressService.markAsComplete(
+          today,
+          dailyReading.id !== 'fallback' ? dailyReading.id : undefined
+        );
+        setIsReadingCompleted(true);
+        Alert.alert('✅ Lectura completada', 'Se ha registrado en tu calendario de constancia.');
+      }
     } catch (err) {
-      console.error('Error marcando como leída:', err);
-      // Marcar localmente de todos modos
-      setIsMarkedAsRead(true);
+      console.error('Error marcando lectura:', err);
+      // Intentar marcar localmente de todos modos
+      setIsReadingCompleted(!isReadingCompleted);
     }
   };
 
@@ -215,16 +133,23 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
 
     try {
       setIsSavingReflection(true);
+
+      // Usar el título personalizado solo si lo escribió, sino guardar sin título
+      const title = reflectionTitle.trim()
+        ? reflectionTitle
+        : '';  // Sin título si no lo escribió
+
       await writingsService.createWriting({
-        title: `Reflexión: ${dailyReading.liturgicalDay}`,
+        title: title,
         content: reflection,
-        bookId: dailyReading.gospel.bookId,
-        chapter: dailyReading.gospel.chapter,
-        verse: dailyReading.gospel.verseStart,
+        bookId: dailyReading.bookId,
+        chapter: dailyReading.chapterNumber,
+        verse: dailyReading.verseNumbers[0],
         tags: ['reflexión', 'lectura-diaria'],
       });
       Alert.alert('✅ Reflexión Guardada', 'Tu reflexión se ha guardado en tus escritos.');
       setReflection('');
+      setReflectionTitle('');
     } catch (err: any) {
       console.error('Error guardando reflexión:', err);
       // Mostrar mensaje más descriptivo
@@ -321,7 +246,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
           />
           <View style={styles.heroContent}>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{dailyReading.liturgicalDay}</Text>
+              <Text style={styles.badgeText}>{dailyReading.badge}</Text>
             </View>
           </View>
         </View>
@@ -329,7 +254,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
         {/* Content Section */}
         <View style={styles.contentSection}>
           <Text style={styles.readingTitle}>
-            {dailyReading.gospel.bookName} {dailyReading.gospel.chapter}:{dailyReading.gospel.verseStart}-{dailyReading.gospel.verseEnd}
+            {dailyReading.biblicalReference}
           </Text>
 
           {/* Action Buttons */}
@@ -355,9 +280,9 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
               onPress={handleBookmark}
               activeOpacity={0.7}>
               <MaterialIcons
-                name={isMarkedAsRead ? "bookmark" : "bookmark-border"}
-                size={22}
-                color={isMarkedAsRead ? colors.primary.DEFAULT : colors.ink.light}
+                name={isReadingCompleted ? "check-circle" : "check-circle-outline"}
+                size={24}
+                color={isReadingCompleted ? colors.primary.DEFAULT : colors.ink.light}
               />
             </TouchableOpacity>
           </View>
@@ -365,8 +290,8 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
           {/* Reading Text */}
           <View style={styles.readingContent}>
             <Text style={styles.readingParagraph}>
-              <Text style={styles.firstLetter}>{dailyReading.gospel.text.charAt(0)}</Text>
-              {dailyReading.gospel.text.slice(1)}
+              <Text style={styles.firstLetter}>{dailyReading.readingText.charAt(0)}</Text>
+              {dailyReading.readingText.slice(1)}
             </Text>
           </View>
 
@@ -380,15 +305,32 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
               <Text style={styles.reflectionPrivate}>PRIVADO</Text>
             </View>
 
-            <TextInput
-              style={styles.reflectionInput}
-              placeholder="¿Qué te dice el Señor hoy? Escribe tu reflexión aquí..."
-              placeholderTextColor={`${colors.charcoal.muted}60`}
-              value={reflection}
-              onChangeText={setReflection}
-              multiline
-              textAlignVertical="top"
-            />
+            {/* Título de la reflexión */}
+            <View style={styles.reflectionTitleInputContainer}>
+              <TextInput
+                style={styles.reflectionTitleInput}
+                placeholder="Título de tu reflexión..."
+                placeholderTextColor={`${colors.charcoal.muted}60`}
+                value={reflectionTitle}
+                onChangeText={setReflectionTitle}
+              />
+            </View>
+
+            {/* Divisor */}
+            <View style={styles.reflectionDivider} />
+
+            {/* Contenido de la reflexión */}
+            <View style={styles.reflectionContentContainer}>
+              <TextInput
+                style={styles.reflectionInput}
+                placeholder="Escribe aquí lo que el Señor te inspira hoy..."
+                placeholderTextColor={`${colors.charcoal.muted}60`}
+                value={reflection}
+                onChangeText={setReflection}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
 
             <View style={styles.reflectionFooter}>
               <View style={styles.autoSaveContainer}>
@@ -624,10 +566,29 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     color: colors.ink.light,
   },
+  reflectionTitleInputContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 8,
+  },
+  reflectionTitleInput: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.charcoal.DEFAULT,
+    padding: 0,
+  },
+  reflectionDivider: {
+    height: 1,
+    backgroundColor: colors.ivory.border,
+    marginHorizontal: 20,
+  },
+  reflectionContentContainer: {
+    paddingTop: 16,
+    paddingBottom: 20,
+  },
   reflectionInput: {
     minHeight: 140,
     paddingHorizontal: 20,
-    paddingVertical: 20,
     fontSize: 16,
     lineHeight: 24,
     color: colors.charcoal.DEFAULT,

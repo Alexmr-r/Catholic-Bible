@@ -1,4 +1,18 @@
+/**
+ * ==========================================
+ * SERVICIO DE ESCRITOS (WRITINGS)
+ * ==========================================
+ *
+ * Estrategia de Caché Offline:
+ * 1. CON INTERNET: Fetch desde API → Guardar en caché → Retornar
+ * 2. SIN INTERNET: Leer desde caché → Retornar datos locales
+ * 3. CREAR/EDITAR SIN INTERNET: Guardar en caché con flag "pendiente" → Sincronizar después
+ *
+ * ==========================================
+ */
+
 import { apiClient } from './api.client';
+import { cacheService } from './cache.service';
 
 // ========== Types ==========
 
@@ -92,6 +106,9 @@ function mapApiToWriting(apiWriting: ApiWritingResponse): Writing {
 class WritingsService {
   /**
    * Get all writings for the current user
+   *
+   * CON INTERNET: Fetch desde API → Cachear → Retornar
+   * SIN INTERNET: Leer desde caché → Retornar datos locales
    */
   async getWritings(filter?: WritingFilter): Promise<WritingListResponse> {
     const params = new URLSearchParams();
@@ -102,14 +119,41 @@ class WritingsService {
     if (filter?.search) params.append('search', filter.search);
 
     const queryString = params.toString();
-    const response = await apiClient.get<ApiWritingListResponse>(
-      `/writings${queryString ? `?${queryString}` : ''}`
-    );
 
-    return {
-      writings: response.writings.map(mapApiToWriting),
-      total: response.total,
-    };
+    try {
+      // ✅ Intentar fetch desde API (CON INTERNET)
+      const response = await apiClient.get<ApiWritingListResponse>(
+        `/writings${queryString ? `?${queryString}` : ''}`
+      );
+
+      const writings = response.writings.map(mapApiToWriting);
+
+      // 💾 Guardar en caché para uso offline
+      await cacheService.setWritings(writings);
+      console.log('[Writings] ✅ Datos cargados desde API y cacheados');
+
+      return {
+        writings,
+        total: response.total,
+      };
+    } catch (error) {
+      // ⚠️ Error de red - intentar leer desde caché
+      console.warn('[Writings] ⚠️ Error de red, intentando caché...', error);
+
+      const cachedWritings = await cacheService.getWritings();
+
+      if (cachedWritings) {
+        console.log('[Writings] 📱 Datos cargados desde caché offline');
+        return {
+          writings: cachedWritings,
+          total: cachedWritings.length,
+        };
+      }
+
+      // ❌ No hay datos en caché ni en API
+      console.error('[Writings] ❌ Sin datos en caché ni API');
+      throw new Error('No se pudieron cargar los escritos. Verifica tu conexión.');
+    }
   }
 
   /**
@@ -122,25 +166,154 @@ class WritingsService {
 
   /**
    * Create a new writing
+   *
+   * CON INTERNET: POST a API → Cachear → Retornar
+   * SIN INTERNET: Guardar con ID temporal → Marcar para sincronización → Retornar
    */
   async createWriting(request: CreateWritingRequest): Promise<Writing> {
-    const response = await apiClient.post<ApiWritingResponse>('/writings', request);
-    return mapApiToWriting(response);
+    try {
+      // ✅ Intentar crear en API (CON INTERNET)
+      const response = await apiClient.post<ApiWritingResponse>('/writings', request);
+      const writing = mapApiToWriting(response);
+
+      // 💾 Actualizar caché
+      const cachedWritings = await cacheService.getWritings() || [];
+      cachedWritings.unshift(writing); // Agregar al inicio
+      await cacheService.setWritings(cachedWritings);
+
+      console.log('[Writings] ✅ Escrito creado en API y cacheado');
+      return writing;
+    } catch (error) {
+      // ⚠️ Sin internet - guardar localmente con ID temporal
+      console.warn('[Writings] ⚠️ Sin internet, guardando localmente...', error);
+
+      const tempId = cacheService.generateTempId();
+      const tempWriting: Writing = {
+        id: tempId,
+        title: request.title,
+        content: request.content,
+        bookId: request.bookId,
+        bookName: request.bookId || undefined,
+        chapter: request.chapter,
+        verse: request.verse,
+        tags: request.tags || [],
+        isFavorite: false,
+        wordCount: request.content.split(/\s+/).length,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // 💾 Guardar en caché
+      const cachedWritings = await cacheService.getWritings() || [];
+      cachedWritings.unshift(tempWriting);
+      await cacheService.setWritings(cachedWritings);
+
+      // 📝 Marcar para sincronización cuando haya internet
+      await cacheService.addPendingSync({
+        type: 'create',
+        entity: 'writing',
+        data: request,
+        timestamp: Date.now(),
+        tempId: tempId,
+      });
+
+      console.log('[Writings] 📱 Escrito guardado offline con ID temporal');
+      return tempWriting;
+    }
   }
 
   /**
    * Update an existing writing
+   *
+   * CON INTERNET: PUT a API → Actualizar caché → Retornar
+   * SIN INTERNET: Actualizar solo en caché → Marcar para sincronización → Retornar
    */
   async updateWriting(writingId: string, request: UpdateWritingRequest): Promise<Writing> {
-    const response = await apiClient.put<ApiWritingResponse>(`/writings/${writingId}`, request);
-    return mapApiToWriting(response);
+    try {
+      // ✅ Intentar actualizar en API (CON INTERNET)
+      const response = await apiClient.put<ApiWritingResponse>(`/writings/${writingId}`, request);
+      const updatedWriting = mapApiToWriting(response);
+
+      // 💾 Actualizar en caché
+      const cachedWritings = await cacheService.getWritings() || [];
+      const updated = cachedWritings.map(w => w.id === writingId ? updatedWriting : w);
+      await cacheService.setWritings(updated);
+
+      console.log('[Writings] ✅ Escrito actualizado en API y caché');
+      return updatedWriting;
+    } catch (error) {
+      // ⚠️ Sin internet - actualizar solo en caché
+      console.warn('[Writings] ⚠️ Sin internet, actualizando caché...', error);
+
+      const cachedWritings = await cacheService.getWritings() || [];
+      const existingWriting = cachedWritings.find(w => w.id === writingId);
+
+      if (!existingWriting) {
+        throw new Error('Escrito no encontrado en caché');
+      }
+
+      const updatedWriting: Writing = {
+        ...existingWriting,
+        title: request.title ?? existingWriting.title,
+        content: request.content ?? existingWriting.content,
+        tags: request.tags ?? existingWriting.tags,
+        wordCount: request.content ? request.content.split(/\s+/).length : existingWriting.wordCount,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const updated = cachedWritings.map(w => w.id === writingId ? updatedWriting : w);
+      await cacheService.setWritings(updated);
+
+      // 📝 Marcar para sincronización cuando haya internet
+      await cacheService.addPendingSync({
+        type: 'update',
+        entity: 'writing',
+        data: { writingId, ...request },
+        timestamp: Date.now(),
+      });
+
+      console.log('[Writings] 📱 Escrito actualizado offline');
+      return updatedWriting;
+    }
   }
 
   /**
    * Delete a writing
+   *
+   * CON INTERNET: DELETE en API → Actualizar caché → Éxito
+   * SIN INTERNET: Eliminar de caché → Marcar para sincronización → Éxito
    */
   async deleteWriting(writingId: string): Promise<void> {
-    await apiClient.delete(`/writings/${writingId}`);
+    try {
+      // ✅ Intentar eliminar en API (CON INTERNET)
+      await apiClient.delete(`/writings/${writingId}`);
+
+      // 💾 Eliminar del caché
+      const cachedWritings = await cacheService.getWritings() || [];
+      const updated = cachedWritings.filter(w => w.id !== writingId);
+      await cacheService.setWritings(updated);
+
+      console.log('[Writings] ✅ Escrito eliminado en API y caché');
+    } catch (error) {
+      // ⚠️ Sin internet - eliminar solo del caché
+      console.warn('[Writings] ⚠️ Sin internet, eliminando de caché...', error);
+
+      const cachedWritings = await cacheService.getWritings() || [];
+      const updated = cachedWritings.filter(w => w.id !== writingId);
+      await cacheService.setWritings(updated);
+
+      // 📝 Marcar para sincronización (solo si NO es ID temporal)
+      if (!cacheService.isTempId(writingId)) {
+        await cacheService.addPendingSync({
+          type: 'delete',
+          entity: 'writing',
+          data: { writingId },
+          timestamp: Date.now(),
+        });
+      }
+
+      console.log('[Writings] 📱 Escrito eliminado offline');
+    }
   }
 
   /**
