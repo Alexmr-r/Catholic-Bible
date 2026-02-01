@@ -15,6 +15,8 @@ import {bibleService, Chapter} from '../services/bible.service';
 import {favoritesService} from '../services/favorites.service';
 import {highlightService, Highlight, HighlightColor, getHighlightHex, HIGHLIGHT_COLORS} from '../services/highlights.service';
 import {getChapterTitle} from '../data/chapterTitles';
+import {useTextSettings} from '../contexts/TextSettingsContext';
+import TextSettingsModal from '../components/TextSettingsModal';
 
 const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, route}) => {
   const {
@@ -36,6 +38,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
   // Estado para subrayados
   const [highlights, setHighlights] = useState<Map<number, Highlight>>(new Map());
+
+  // Modal de configuración de texto
+  const [showTextSettings, setShowTextSettings] = useState(false);
+  const {settings} = useTextSettings();
 
   // Determinar si debemos filtrar versículos (solo si hay rango específico)
   const shouldFilterVerses = favoriteVerseNumber !== undefined;
@@ -124,14 +130,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Ajustes de texto
+  // ✅ CONECTADO - Ajustes de texto
   // =====================================================
   const handleTextSettings = () => {
-    Alert.alert(
-      '🔤 Ajustes de Texto',
-      'Funcionalidad mockeada para demo.\n\nEn producción, aquí podrás ajustar el tamaño de letra, tipo de fuente, espaciado, etc.',
-      [{text: 'Entendido'}]
-    );
+    setShowTextSettings(true);
   };
 
   // =====================================================
@@ -455,7 +457,18 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               {/* Section Title */}
               {displayTitle && (
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{displayTitle}</Text>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    {
+                      fontSize: 24 * (settings.fontSize / 100),
+                      // lineHeight mínimo 1.4x para títulos
+                      lineHeight: Math.max(32, 24 * (settings.fontSize / 100) * 1.4),
+                      fontFamily: settings.fontFamily,
+                    },
+                  ]}>
+                  {displayTitle}
+                </Text>
                 <View style={styles.sectionDivider} />
               </View>
               )}
@@ -487,6 +500,12 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                         style={[
                           styles.verseText,
                           isSelected && styles.verseTextSelected,
+                          {
+                            fontSize: 18 * (settings.fontSize / 100),
+                            // lineHeight mínimo 1.7x para buena legibilidad
+                            lineHeight: Math.max(32, 18 * (settings.fontSize / 100) * 1.7),
+                            fontFamily: settings.fontFamily,
+                          },
                         ]}>
                         {verse.text}
                       </Text>
@@ -590,6 +609,12 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Modal de Configuración de Texto */}
+      <TextSettingsModal
+        visible={showTextSettings}
+        onClose={() => setShowTextSettings(false)}
+      />
     </View>
   );
 };
@@ -694,7 +719,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
 
-  // ScrollView
+  // Content
   scrollView: {
     flex: 1,
   },

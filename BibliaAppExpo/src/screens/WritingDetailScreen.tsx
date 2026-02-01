@@ -15,6 +15,8 @@ import {RootStackParamList} from '../navigation/AppNavigator';
 import {writingsService} from '../services/writings.service';
 import {bibleService} from '../services/bible.service';
 import {useFocusEffect} from '@react-navigation/native';
+import {useTextSettings} from '../contexts/TextSettingsContext';
+import TextSettingsModal from '../components/TextSettingsModal';
 
 type WritingDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'WritingDetail'>;
 
@@ -28,6 +30,10 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
   const [verseText, setVerseText] = useState<string | null>(null);
   const [isLoadingVerse, setIsLoadingVerse] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Modal de configuración de texto
+  const [showTextSettings, setShowTextSettings] = useState(false);
+  const {settings} = useTextSettings();
 
   // Debug: ver qué parámetros recibimos
   console.log('WritingDetail params:', { bookId, bookName, chapter, verse });
@@ -167,9 +173,16 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
 
         <Text style={styles.headerTitle}>Detalle del Escrito</Text>
 
-        <TouchableOpacity onPress={handleShare} style={styles.headerButton}>
-          <MaterialIcons name="share" size={24} color={colors.primary.DEFAULT} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => setShowTextSettings(true)}
+            style={styles.headerButton}>
+            <MaterialIcons name="text-fields" size={24} color={colors.charcoal.muted} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleShare} style={styles.headerButton}>
+            <MaterialIcons name="share" size={24} color={colors.primary.DEFAULT} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Content */}
@@ -194,11 +207,33 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
         </View>
 
         {/* Título del Escrito - grande como HTML */}
-        <Text style={styles.mainTitle}>{title}</Text>
+        <Text
+          style={[
+            styles.mainTitle,
+            {
+              fontSize: 28 * (settings.fontSize / 100),
+              // lineHeight mínimo 1.4x para títulos
+              lineHeight: Math.max(36, 28 * (settings.fontSize / 100) * 1.4),
+              fontFamily: settings.fontFamily,
+            },
+          ]}>
+          {title}
+        </Text>
 
         {/* Contenido de la Reflexión - prosa como HTML */}
         <View style={styles.proseContent}>
-          <Text style={styles.proseText}>{content}</Text>
+          <Text
+            style={[
+              styles.proseText,
+              {
+                fontSize: 18 * (settings.fontSize / 100),
+                // lineHeight mínimo 1.6x para texto
+                lineHeight: Math.max(30, 18 * (settings.fontSize / 100) * 1.6),
+                fontFamily: settings.fontFamily,
+              },
+            ]}>
+            {content}
+          </Text>
         </View>
 
         {/* Separador gradient */}
@@ -259,6 +294,12 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
         {/* Espaciado inferior */}
         <View style={{height: 32}} />
       </ScrollView>
+
+      {/* Modal de Configuración de Texto */}
+      <TextSettingsModal
+        visible={showTextSettings}
+        onClose={() => setShowTextSettings(false)}
+      />
     </View>
   );
 };
@@ -286,6 +327,11 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   headerTitle: {
     fontSize: 20,

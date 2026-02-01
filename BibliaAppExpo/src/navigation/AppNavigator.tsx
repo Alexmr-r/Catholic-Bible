@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator, BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
+import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DailyReadingScreen from '../screens/DailyReadingScreen';
@@ -169,8 +170,8 @@ const MainTabsNavigator = () => {
           borderTopWidth: 1,
           borderTopColor: colors.ivory.border,
           paddingTop: 12,
-          paddingBottom: 32,
-          height: 80,
+          paddingBottom: 20, // Reducido de 32 - el safe area se agrega automáticamente
+          height: 90, // Aumentado de 80 para más espacio total
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: {width: 0, height: -5},
@@ -230,6 +231,14 @@ const MainTabsNavigator = () => {
 
 // ✅ Root Navigator (Main App)
 const AppNavigator: React.FC = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Si estamos en splash, mostrar SplashScreen
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
+  // Después del splash, mostrar navegación normal
   return (
     <NavigationContainer>
       <RootStack.Navigator

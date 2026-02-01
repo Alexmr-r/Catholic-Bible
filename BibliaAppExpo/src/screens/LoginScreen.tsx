@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -115,16 +114,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             <View style={[styles.logoContainer, {
               marginBottom: dynamicStyles.logoContainerMarginBottom
             }]}>
-              <View style={styles.logoGlow} />
-              <View style={styles.logoWrapper}>
-                <Image
-                  source={{
-                    uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuANfqk6n2uZUNASbkxDtQTlEqqLeUb76SCdiHeqVDQyMBJWgROYtO8DhPIARfVgT-_k6t6QKF_CkbfCrR6X0AB7O5642cLxj3IaygpMDz606eius6lbiieILxpVc6b5cftgOjUIo8Yb6n9vFPGcGzHz3Au-PaPceKpk535PHbtnEGFIUm6Pxu8vkkBuBO3vhurDFiNEa1Yu2xQ-_U07j2fQiwNPYow6TS_IdOiFKJ6dL7xmZywKkgGqGHuAKKe2_V-zVDcb5uBEoCLg',
-                  }}
-                  style={styles.logoImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.logoOverlay} />
+              {/* Logo circular con icono de cruz + libro */}
+              <View style={styles.logoCircle}>
+                <View style={styles.iconContainer}>
+                  {/* Cruz vertical */}
+                  <View style={styles.crossVertical} />
+                  {/* Cruz horizontal */}
+                  <View style={styles.crossHorizontal} />
+                  {/* Curva del libro */}
+                  <View style={styles.bookCurve} />
+                </View>
               </View>
             </View>
             <Text style={styles.title}>Biblia Católica</Text>
@@ -298,40 +297,56 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     position: 'relative',
   },
-  logoGlow: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    borderRadius: 16,
-    opacity: 0.2,
-    backgroundColor: colors.gold.DEFAULT,
-  },
-  logoWrapper: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 16,
-    overflow: 'hidden',
+  logoCircle: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
-  logoImage: {
-    width: '100%',
-    height: '100%',
+  iconContainer: {
+    width: 62, // Escalado de 80px a 112px (80 * 112/144 = 62)
+    height: 75, // Escalado de 96px a 112px (96 * 112/144 = 75)
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  logoOverlay: {
+  crossVertical: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: `${colors.burgundy.DEFAULT}0D`,
+    width: 6, // Escalado de 8px
+    height: 62, // Escalado de 80px
+    backgroundColor: '#DBCFB0', // champagne-gold
+    borderRadius: 3,
+    zIndex: 10,
+  },
+  crossHorizontal: {
+    position: 'absolute',
+    width: 44, // Escalado de 56px
+    height: 6, // Escalado de 8px
+    backgroundColor: '#DBCFB0', // champagne-gold
+    borderRadius: 3,
+    top: 19, // Escalado de 24px
+    zIndex: 10,
+  },
+  bookCurve: {
+    position: 'absolute',
+    bottom: 3, // Ajustado para que sea proporcional (4 * 112/144 = 3.1)
+    width: 37, // Escalado de 48px
+    height: 9, // Escalado de 12px
+    borderBottomWidth: 2,
+    borderBottomColor: '#DBCFB0', // champagne-gold
+    borderRadius: 19, // 50%
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
   },
   title: {
     fontSize: 30,

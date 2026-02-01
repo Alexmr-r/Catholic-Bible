@@ -17,12 +17,18 @@ import {DailyReadingScreenProps} from '../navigation/AppNavigator';
 import {dailyReadingService, DailyReading} from '../services/daily-reading.service';
 import {writingsService} from '../services/writings.service';
 import {readingProgressService} from '../services/reading-progress.service';
+import {useTextSettings} from '../contexts/TextSettingsContext';
+import TextSettingsModal from '../components/TextSettingsModal';
 
 const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => {
   const [reflection, setReflection] = useState('');
   const [reflectionTitle, setReflectionTitle] = useState('');
   const [showFab, setShowFab] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Modal de configuración de texto
+  const [showTextSettings, setShowTextSettings] = useState(false);
+  const {settings} = useTextSettings();
 
   // ✅ CONECTADO A API - Estados de datos
   const [dailyReading, setDailyReading] = useState<DailyReading | null>(null);
@@ -210,6 +216,12 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity
+            onPress={() => setShowTextSettings(true)}
+            activeOpacity={0.7}
+            style={styles.headerButton}>
+            <MaterialIcons name="text-fields" size={22} color={colors.charcoal.muted} />
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={handleCalendar}
             activeOpacity={0.7}
             style={styles.headerButton}>
@@ -289,8 +301,26 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
 
           {/* Reading Text */}
           <View style={styles.readingContent}>
-            <Text style={styles.readingParagraph}>
-              <Text style={styles.firstLetter}>{dailyReading.readingText.charAt(0)}</Text>
+            <Text
+              style={[
+                styles.readingParagraph,
+                {
+                  fontSize: 18 * (settings.fontSize / 100),
+                  // lineHeight debe ser al menos 1.6x el fontSize para no romper
+                  lineHeight: Math.max(32, 18 * (settings.fontSize / 100) * 1.6),
+                  fontFamily: settings.fontFamily,
+                },
+              ]}>
+              <Text style={[
+                styles.firstLetter,
+                {
+                  fontSize: 48 * (settings.fontSize / 100),
+                  lineHeight: Math.max(40, 48 * (settings.fontSize / 100) * 1.1),
+                  fontFamily: settings.fontFamily,
+                },
+              ]}>
+                {dailyReading.readingText.charAt(0)}
+              </Text>
               {dailyReading.readingText.slice(1)}
             </Text>
           </View>
@@ -365,6 +395,12 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
           <MaterialIcons name="edit-note" size={30} color="#FFFFFF" />
         </TouchableOpacity>
       )}
+
+      {/* Modal de Configuración de Texto */}
+      <TextSettingsModal
+        visible={showTextSettings}
+        onClose={() => setShowTextSettings(false)}
+      />
     </View>
   );
 };
@@ -396,8 +432,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerRight: {
-    width: 40,
-    alignItems: 'flex-end',
+    width: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 4,
   },
   headerButton: {
     width: 40,
@@ -511,15 +550,18 @@ const styles = StyleSheet.create({
   // Reading Content
   readingContent: {
     marginBottom: 32,
+    flexShrink: 1, // Permite que el contenido se adapte
   },
   readingParagraph: {
     fontSize: 18,
     lineHeight: 32,
     color: colors.charcoal.DEFAULT,
     marginBottom: 16,
+    flexWrap: 'wrap', // Permite que el texto se envuelva
   },
   firstLetter: {
     fontSize: 34,
+    lineHeight: 40, // Añadir lineHeight para primera letra
     color: colors.gold.accent,
     fontWeight: '700',
   },
