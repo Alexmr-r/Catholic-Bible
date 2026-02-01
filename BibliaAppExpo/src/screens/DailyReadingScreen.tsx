@@ -9,6 +9,8 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  Share,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -25,6 +27,10 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
   const [reflectionTitle, setReflectionTitle] = useState('');
   const [showFab, setShowFab] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Refs para navegar entre inputs de reflexión
+  const reflectionTitleRef = useRef<TextInput>(null);
+  const reflectionContentRef = useRef<TextInput>(null);
 
   // Modal de configuración de texto
   const [showTextSettings, setShowTextSettings] = useState(false);
@@ -87,14 +93,35 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Compartir lectura
+  // ✅ CONECTADO - Compartir lectura
   // =====================================================
-  const handleShare = () => {
-    Alert.alert(
-      '🔗 Compartir',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás compartir la lectura.',
-      [{text: 'Entendido'}]
-    );
+  const handleShare = async () => {
+    if (!dailyReading) return;
+
+    try {
+      const message = `📖 Lectura del día - ${formatDate(dailyReading.date)}\n\n${dailyReading.biblicalReference}\n\n"${dailyReading.readingText}"\n\n🙏 Compartido desde Biblia App`;
+
+      const result = await Share.share({
+        message: message,
+        title: `Lectura del día - ${dailyReading.biblicalReference}`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Compartido con actividad específica (iOS)
+          console.log('Compartido con:', result.activityType);
+        } else {
+          // Compartido (Android)
+          console.log('Contenido compartido');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Usuario canceló
+        console.log('Compartir cancelado');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+      console.error('Error compartiendo:', error);
+    }
   };
 
   // =====================================================
@@ -236,12 +263,13 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
         onScroll={(event) => {
           const {layoutMeasurement, contentOffset, contentSize} = event.nativeEvent;
           const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 400;
           setShowFab(!isNearBottom);
-        }}
-        scrollEventThrottle={16}>
+        }}>
 
         {/* Hero Image */}
         <View style={styles.heroContainer}>
@@ -306,16 +334,15 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
                 styles.readingParagraph,
                 {
                   fontSize: 18 * (settings.fontSize / 100),
-                  // lineHeight debe ser al menos 1.6x el fontSize para no romper
-                  lineHeight: Math.max(32, 18 * (settings.fontSize / 100) * 1.6),
+                  // lineHeight fijo - solo crece el texto, no el espaciado
                   fontFamily: settings.fontFamily,
                 },
               ]}>
               <Text style={[
                 styles.firstLetter,
                 {
-                  fontSize: 48 * (settings.fontSize / 100),
-                  lineHeight: Math.max(40, 48 * (settings.fontSize / 100) * 1.1),
+                    lineHeight: 34 * (settings.fontSize / 100),
+                  fontSize: 35 * (settings.fontSize / 100),
                   fontFamily: settings.fontFamily,
                 },
               ]}>
@@ -338,11 +365,14 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
             {/* Título de la reflexión */}
             <View style={styles.reflectionTitleInputContainer}>
               <TextInput
+                ref={reflectionTitleRef}
                 style={styles.reflectionTitleInput}
                 placeholder="Título de tu reflexión..."
                 placeholderTextColor={`${colors.charcoal.muted}60`}
                 value={reflectionTitle}
                 onChangeText={setReflectionTitle}
+                returnKeyType="next"
+                onSubmitEditing={() => reflectionContentRef.current?.focus()}
               />
             </View>
 
@@ -352,6 +382,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
             {/* Contenido de la reflexión */}
             <View style={styles.reflectionContentContainer}>
               <TextInput
+                ref={reflectionContentRef}
                 style={styles.reflectionInput}
                 placeholder="Escribe aquí lo que el Señor te inspira hoy..."
                 placeholderTextColor={`${colors.charcoal.muted}60`}
@@ -359,6 +390,8 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
                 onChangeText={setReflection}
                 multiline
                 textAlignVertical="top"
+                returnKeyType="done"
+                onSubmitEditing={() => Keyboard.dismiss()}
               />
             </View>
 
@@ -378,9 +411,6 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
             <MaterialIcons name="save" size={20} color="#FFFFFF" />
             <Text style={styles.saveReflectionButtonText}>GUARDAR REFLEXIÓN</Text>
           </TouchableOpacity>
-
-          {/* Spacer para el tab bar */}
-          <View style={{height: 40}} />
         </View>
       </ScrollView>
 
@@ -463,7 +493,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20, // Espacio mínimo para tab bar
+    paddingBottom: 16, // Mínimo espacio para separación visual, no para scroll
   },
 
   // Hero Image
@@ -550,18 +580,16 @@ const styles = StyleSheet.create({
   // Reading Content
   readingContent: {
     marginBottom: 32,
-    flexShrink: 1, // Permite que el contenido se adapte
+    flexShrink: 0, // ✅ No se encoge - permite scroll completo
   },
   readingParagraph: {
     fontSize: 18,
-    lineHeight: 32,
     color: colors.charcoal.DEFAULT,
     marginBottom: 16,
     flexWrap: 'wrap', // Permite que el texto se envuelva
+    overflow: 'visible', // Asegura que el texto no se corte
   },
   firstLetter: {
-    fontSize: 34,
-    lineHeight: 40, // Añadir lineHeight para primera letra
     color: colors.gold.accent,
     fontWeight: '700',
   },
@@ -627,14 +655,17 @@ const styles = StyleSheet.create({
   reflectionContentContainer: {
     paddingTop: 16,
     paddingBottom: 20,
+    paddingHorizontal: 20,
+    flexGrow: 1,
+    minHeight: 140,
   },
   reflectionInput: {
-    minHeight: 140,
-    paddingHorizontal: 20,
+    flex: 1,
     fontSize: 16,
     lineHeight: 24,
     color: colors.charcoal.DEFAULT,
     fontStyle: 'italic',
+    minHeight: 140,
   },
   reflectionFooter: {
     paddingHorizontal: 16,
@@ -660,7 +691,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.DEFAULT,
     height: 56,
     borderRadius: 12,
-    marginTop: 24,
+    marginTop: 16, // Reducido de 24 para estar más pegado
+    marginBottom: 16, // Añadido para separación del borde inferior
+    marginHorizontal: 0, // Sin márgenes para que sea igual de ancho que la card
     shadowColor: colors.primary.DEFAULT,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,

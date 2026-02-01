@@ -22,6 +22,7 @@ import BookChaptersScreen from "../screens/BookChaptersScreen";
 import WritingDetailScreen from "../screens/WritingDetailScreen";
 import EditWritingScreen from "../screens/EditWritingScreen";
 import ReadingCalendarScreen from "../screens/ReadingCalendarScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 
 // =====================================================
 // 🎯 TIPOS DE NAVEGACIÓN - Mejores Prácticas
@@ -31,6 +32,7 @@ import ReadingCalendarScreen from "../screens/ReadingCalendarScreen";
 export type RootStackParamList = {
   Auth: undefined;           // Stack de autenticación
   MainTabs: undefined;       // Tab navigator principal
+  Profile: undefined;        // Pantalla de perfil
   OldTestament: undefined;   // Pantalla de libros del Antiguo Testamento
   NewTestament: undefined;   // Pantalla de libros del Nuevo Testamento
   BookChapters: {            // Pantalla genérica de capítulos de un libro
@@ -248,6 +250,13 @@ const AppNavigator: React.FC = () => {
         }}>
         <RootStack.Screen name="Auth" component={AuthNavigator} />
         <RootStack.Screen name="MainTabs" component={MainTabsNavigator} />
+        <RootStack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
         <RootStack.Screen
           name="OldTestament"
           component={OldTestamentScreen}

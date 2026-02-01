@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
@@ -290,17 +291,49 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     }
   };
 
-  const handleShare = () => {
-    const verseRef = selectedVerses.length === 1
-      ? `versículo ${selectedVerses[0]}`
-      : `versículos ${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`;
+  // =====================================================
+  // ✅ CONECTADO - Compartir versículos seleccionados
+  // =====================================================
+  const handleShare = async () => {
+    if (selectedVerses.length === 0 || !chapterData) return;
 
-    Alert.alert(
-      '🔗 Compartir',
-      `Funcionalidad mockeada para demo.\n\nEn producción, podrás compartir ${verseRef} en redes sociales o por mensaje.`,
-      [{text: 'Entendido'}]
-    );
-    cancelSelection();
+    try {
+      const minVerse = Math.min(...selectedVerses);
+      const maxVerse = Math.max(...selectedVerses);
+
+      // Obtener el texto de los versículos seleccionados
+      let versesText = '';
+      chapterData.sections.forEach(section => {
+        section.verses.forEach(verse => {
+          if (selectedVerses.includes(verse.number)) {
+            versesText += `${verse.number}. ${verse.text}\n`;
+          }
+        });
+      });
+
+      const reference = selectedVerses.length === 1
+        ? `${bookName} ${currentChapter}:${minVerse}`
+        : `${bookName} ${currentChapter}:${minVerse}-${maxVerse}`;
+
+      const message = `📖 ${reference}\n\n${versesText}\n🙏 Compartido desde Biblia App`;
+
+      const result = await Share.share({
+        message: message,
+        title: reference,
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log('Versículos compartidos');
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Compartir cancelado');
+      }
+
+      cancelSelection();
+    } catch (error: any) {
+      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+      console.error('Error compartiendo:', error);
+      cancelSelection();
+    }
   };
 
   const handleVersePress = (verseNumber: number) => {

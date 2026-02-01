@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,9 @@ import {
   Alert,
   useWindowDimensions,
   ActivityIndicator,
+  ScrollView,
+  Keyboard,
+  Pressable,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
@@ -26,6 +29,12 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Refs para navegar entre inputs
+  const fullNameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const { register } = useAuth();
 
@@ -88,10 +97,15 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.innerContainer}>
+    <Pressable style={styles.container} onPress={() => Keyboard.dismiss()}>
+      <KeyboardAvoidingView
+        style={styles.fullHeight}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.innerContainer}>
         {/* Header */}
         <View style={[styles.header, {paddingTop: dynamicStyles.headerPaddingTop}]}>
           <TouchableOpacity
@@ -131,12 +145,15 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
+                  ref={fullNameRef}
                   style={styles.input}
                   placeholder="Tu nombre"
                   placeholderTextColor={`${colors.charcoal.muted}80`}
                   value={fullName}
                   onChangeText={setFullName}
                   autoCapitalize="words"
+                  returnKeyType="next"
+                  onSubmitEditing={() => emailRef.current?.focus()}
                 />
               </View>
             </View>
@@ -152,6 +169,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
+                  ref={emailRef}
                   style={styles.input}
                   placeholder="ejemplo@email.com"
                   placeholderTextColor={`${colors.charcoal.muted}80`}
@@ -159,6 +177,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
                 />
               </View>
             </View>
@@ -174,6 +194,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
+                  ref={passwordRef}
                   style={[styles.input, styles.passwordInput]}
                   placeholder="Ingresa tu contraseña"
                   placeholderTextColor={`${colors.charcoal.muted}80`}
@@ -181,6 +202,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
+                  returnKeyType="next"
+                  onSubmitEditing={() => confirmPasswordRef.current?.focus()}
                 />
                 <TouchableOpacity
                   style={styles.eyeButton}
@@ -206,6 +229,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   style={styles.inputIcon}
                 />
                 <TextInput
+                  ref={confirmPasswordRef}
                   style={[styles.input, styles.passwordInput]}
                   placeholder="Repite tu contraseña"
                   placeholderTextColor={`${colors.charcoal.muted}80`}
@@ -213,6 +237,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
                   autoCapitalize="none"
+                  returnKeyType="done"
+                  onSubmitEditing={() => Keyboard.dismiss()}
                 />
                 <TouchableOpacity
                   style={styles.eyeButton}
@@ -268,7 +294,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
           </View>
         </View>
       </View>
+    </ScrollView>
     </KeyboardAvoidingView>
+    </Pressable>
   );
 };
 
@@ -276,6 +304,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.ivory.DEFAULT,
+  },
+  fullHeight: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 32,
   },
   innerContainer: {
     flex: 1,
