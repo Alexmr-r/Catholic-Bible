@@ -40,7 +40,7 @@ const CACHE_KEYS = {
 
 interface PendingSync {
   type: 'create' | 'update' | 'delete';
-  entity: 'writing' | 'favorite';
+  entity: 'writing' | 'favorite' | 'reading_progress';
   data: any;
   timestamp: number;
   tempId?: string; // ID temporal para items creados offline
@@ -162,6 +162,76 @@ class CacheService {
   async getFavorites(): Promise<any[] | null> {
     const cached = await this.get<{ data: any[]; timestamp: number }>(CACHE_KEYS.FAVORITES);
     return cached?.data || null;
+  }
+
+  /**
+   * ==========================================
+   * MÉTODOS ESPECÍFICOS - LECTURA DEL DÍA
+   * ==========================================
+   */
+
+  /**
+   * Guardar lectura del día en caché
+   * @param date - Fecha en formato YYYY-MM-DD
+   * @param reading - Datos de la lectura
+   */
+  async setDailyReading(date: string, reading: any): Promise<void> {
+    const key = `${CACHE_KEYS.DAILY_READINGS}:${date}`;
+    await this.set(key, {
+      data: reading,
+      timestamp: Date.now(),
+      expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 horas
+    });
+    console.log(`[Cache] 📖 Lectura del día guardada: ${date}`);
+  }
+
+  /**
+   * Leer lectura del día del caché
+   * @param date - Fecha en formato YYYY-MM-DD
+   * @returns Datos de la lectura o null si no existe/expiró
+   */
+  async getDailyReading(date: string): Promise<any | null> {
+    const key = `${CACHE_KEYS.DAILY_READINGS}:${date}`;
+    const cached = await this.get<{ data: any; timestamp: number; expiresAt: number }>(key);
+
+    if (!cached) return null;
+
+    // Verificar si expiró (pero aún lo devolvemos para offline)
+    if (cached.expiresAt < Date.now()) {
+      console.log(`[Cache] ⚠️ Lectura del día expirada pero disponible: ${date}`);
+    }
+
+    return cached.data;
+  }
+
+  /**
+   * Verificar si hay lectura del día en caché
+   */
+  async hasDailyReading(date: string): Promise<boolean> {
+    const reading = await this.getDailyReading(date);
+    return reading !== null;
+  }
+
+  /**
+   * Limpiar lecturas del día antiguas (más de 7 días)
+   */
+  async cleanOldDailyReadings(): Promise<void> {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const dailyReadingKeys = keys.filter(k => k.startsWith(CACHE_KEYS.DAILY_READINGS));
+      const now = Date.now();
+      const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+
+      for (const key of dailyReadingKeys) {
+        const cached = await this.get<{ expiresAt: number }>(key);
+        if (cached && cached.expiresAt < sevenDaysAgo) {
+          await this.remove(key);
+          console.log(`[Cache] 🗑️ Lectura antigua eliminada: ${key}`);
+        }
+      }
+    } catch (error) {
+      console.error('[Cache] ❌ Error limpiando lecturas antiguas:', error);
+    }
   }
 
   /**

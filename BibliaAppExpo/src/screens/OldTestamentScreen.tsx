@@ -13,6 +13,7 @@ import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
 import {OldTestamentScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book as ApiBook} from '../services/bible.service';
+import {useOfflineBible} from '../hooks/useOfflineBible';
 
 type BookCategory = 'Pentateuco' | 'Históricos' | 'Sapienciales' | 'Profetas';
 
@@ -60,6 +61,10 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Hook para modo offline
+  const {isOnline, isBibleDownloaded} = useOfflineBible();
 
   // =====================================================
   // ✅ CONECTADO A API - Cargar libros del Antiguo Testamento
@@ -72,23 +77,74 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
     try {
       setIsLoading(true);
       setError(null);
-      const apiBooks = await bibleService.getOldTestamentBooks();
 
-      // Transformar los libros de la API al formato local
+      let apiBooks: ApiBook[] = [];
+
+      // LÓGICA CORRECTA:
+      // - Con internet → SIEMPRE usar API (más actualizado)
+      // - Sin internet + Biblia descargada → usar datos offline
+      // - Sin internet + sin descarga → error
+
+      if (isOnline) {
+        // ✅ CON INTERNET: Siempre usar API
+        apiBooks = await bibleService.getOldTestamentBooks();
+      } else if (isBibleDownloaded) {
+        // ✅ SIN INTERNET + DESCARGADA: usar datos offline
+        const {BibleOfflineService} = await import('../services/english-bible-download.service');
+        const offlineData = await BibleOfflineService.loadData();
+
+        // Convertir datos offline al formato ApiBook
+        // Filtrar solo libros del AT (los primeros 46 son AT en la Biblia Católica)
+        const oldTestamentIds = [
+          'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
+          'joshua', 'judges', 'ruth', '1samuel', '2samuel', '1kings', '2kings',
+          '1chronicles', '2chronicles', 'ezra', 'nehemiah', 'tobit', 'judith',
+          'esther', '1maccabees', '2maccabees', 'job', 'psalms', 'proverbs',
+          'ecclesiastes', 'songofsolomon', 'wisdom', 'sirach',
+          'isaiah', 'jeremiah', 'lamentations', 'baruch', 'ezekiel', 'daniel',
+          'hosea', 'joel', 'amos', 'obadiah', 'jonah', 'micah', 'nahum',
+          'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi'
+        ];
+
+        apiBooks = offlineData.books
+          .filter(book => oldTestamentIds.includes(book.id.toLowerCase()) ||
+                         offlineData.books.indexOf(book) < 46)
+          .map(book => ({
+            id: book.id,
+            name: book.name,
+            abbreviation: book.name.substring(0, 3),
+            testament: 'old' as const,
+            category: 'Pentateuco',
+            totalChapters: book.chapters.length,
+            description: '',
+          }));
+      } else {
+        // Sin internet y sin descarga
+        throw new Error('NO_CONNECTION_NO_DOWNLOAD');
+      }
+
+      // Transformar los libros al formato local
       const transformedBooks: Book[] = apiBooks.map((apiBook: ApiBook) => ({
         id: apiBook.id,
         abbreviation: apiBook.abbreviation,
         name: apiBook.name,
         chapters: apiBook.totalChapters,
         category: mapCategory(apiBook.category),
-        enabled: true, // Todos los libros están habilitados ahora
+        enabled: true,
         color: getCategoryColor(mapCategory(apiBook.category)),
       }));
 
       setBooks(transformedBooks);
+      setRetryCount(0); // Reset contador de reintentos
     } catch (err: any) {
       console.error('Error cargando libros:', err);
-      setError('No se pudieron cargar los libros. Verifica tu conexión.');
+      setRetryCount(prev => prev + 1);
+
+      if (err.message === 'NO_CONNECTION_NO_DOWNLOAD' || (!isOnline && !isBibleDownloaded)) {
+        setError('NO_DOWNLOAD');
+      } else {
+        setError('No se pudieron cargar los libros. Verifica tu conexión.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -179,11 +235,45 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
       {/* Estado de error */}
       {error && !isLoading && (
         <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadBooks}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </TouchableOpacity>
+          <MaterialIcons
+            name={error === 'NO_DOWNLOAD' ? 'cloud-off' : 'error-outline'}
+            size={48}
+            color={error === 'NO_DOWNLOAD' ? colors.charcoal.muted : colors.burgundy.DEFAULT}
+          />
+          <Text style={styles.errorText}>
+            {error === 'NO_DOWNLOAD'
+              ? 'Sin conexión a internet'
+              : 'No se pudieron cargar los libros'
+            }
+          </Text>
+          <Text style={styles.errorSubtext}>
+            {error === 'NO_DOWNLOAD'
+              ? 'Descarga la Biblia para leer sin conexión'
+              : 'Verifica tu conexión a internet'
+            }
+          </Text>
+
+          {/* Mostrar opción de descargar si está offline sin descarga o si falló 2+ veces */}
+          {(error === 'NO_DOWNLOAD' || retryCount >= 2) && !isBibleDownloaded ? (
+            <View style={styles.errorButtons}>
+              <TouchableOpacity
+                style={styles.downloadButton}
+                onPress={() => navigation.navigate('ManageDownloads')}
+              >
+                <MaterialIcons name="cloud-download" size={18} color="#FFFFFF" />
+                <Text style={styles.downloadButtonText}>Descargar Biblia</Text>
+              </TouchableOpacity>
+              {retryCount >= 2 && (
+                <TouchableOpacity style={styles.retryButtonSecondary} onPress={loadBooks}>
+                  <Text style={styles.retryButtonSecondaryText}>Reintentar conexión</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.retryButton} onPress={loadBooks}>
+              <Text style={styles.retryButtonText}>Reintentar</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -558,6 +648,42 @@ const styles = StyleSheet.create({
 
   bottomSpacer: {
     height: 20,
+  },
+  // Estilos adicionales para error mejorado
+  errorSubtext: {
+    fontSize: 13,
+    color: colors.charcoal.muted,
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  errorButtons: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.gold.DEFAULT,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  downloadButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  retryButtonSecondary: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  retryButtonSecondaryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.charcoal.muted,
+    textDecorationLine: 'underline',
   },
 });
 

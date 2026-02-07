@@ -103,6 +103,8 @@ class SyncService {
       await this.syncWritingOperation(operation);
     } else if (operation.entity === 'favorite') {
       await this.syncFavoriteOperation(operation);
+    } else if (operation.entity === 'reading_progress') {
+      await this.syncReadingProgressOperation(operation);
     }
   }
 
@@ -152,6 +154,25 @@ class SyncService {
 
       case 'delete':
         await apiClient.delete(`/favorites/${operation.data.favoriteId}`);
+        break;
+    }
+  }
+
+  /**
+   * Sincronizar operación de Reading Progress
+   */
+  private async syncReadingProgressOperation(operation: PendingSync): Promise<void> {
+    switch (operation.type) {
+      case 'create':
+        // Marcar lectura como completada en el servidor
+        await apiClient.post('/reading-progress', operation.data);
+        console.log('[Sync] ✅ Reading progress sincronizado:', operation.data.date);
+        break;
+
+      case 'delete':
+        // Desmarcar lectura en el servidor
+        await apiClient.delete(`/reading-progress?date=${operation.data.date}`);
+        console.log('[Sync] ✅ Reading progress eliminado:', operation.data.date);
         break;
     }
   }

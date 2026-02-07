@@ -85,5 +85,28 @@ public class BibleDto {
             String text,
             String highlightedText
     ) {}
+
+    // DTOs para descarga offline
+    public record FullBibleDownload(
+            String translation,
+            String language,
+            List<BookWithChapters> books
+    ) {}
+
+    public record BookWithChapters(
+            String id,
+            String name,
+            List<ChapterWithVerses> chapters
+    ) {}
+
+    public record ChapterWithVerses(
+            int chapter,
+            List<SimpleVerse> verses
+    ) {}
+
+    public record SimpleVerse(
+            int verse,
+            String text
+    ) {}
 }
 

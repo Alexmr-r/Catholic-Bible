@@ -31,6 +31,7 @@ import SendMessageScreen from "../screens/SendMessageScreen";
 import WritingsHelpScreen from "../screens/WritingsHelpScreen";
 import FavoritesHelpScreen from "../screens/FavoritesHelpScreen";
 import OfflineHelpScreen from "../screens/OfflineHelpScreen";
+import ManageDownloadsScreen from "../screens/ManageDownloadsScreen";
 
 // =====================================================
 // 🎯 TIPOS DE NAVEGACIÓN - Mejores Prácticas
@@ -91,6 +92,11 @@ export type RootStackParamList = {
     createdAt: string;
   };
   ReadingCalendar: undefined;
+  SendMessage: undefined;
+  WritingsHelp: undefined;
+  FavoritesHelp: undefined;
+  OfflineHelp: undefined;
+  ManageDownloads: undefined;
 };
 
 // Auth Stack (Login, Register, ForgotPassword)
@@ -330,6 +336,13 @@ const AppNavigator: React.FC = () => {
         <RootStack.Screen
           name="OfflineHelp"
           component={OfflineHelpScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="ManageDownloads"
+          component={ManageDownloadsScreen}
           options={{
             animation: 'slide_from_right',
           }}

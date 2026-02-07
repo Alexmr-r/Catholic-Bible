@@ -13,6 +13,7 @@ import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
 import {NewTestamentScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book as ApiBook} from '../services/bible.service';
+import {useOfflineBible} from '../hooks/useOfflineBible';
 
 type BookCategory = 'Evangelios' | 'Historia' | 'Cartas' | 'Profetico';
 
@@ -62,9 +63,13 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Hook para modo offline
+  const {isOnline, isBibleDownloaded} = useOfflineBible();
 
   // =====================================================
-  // ✅ CONECTADO A API - Cargar libros del Nuevo Testamento
+  // ✅ CONECTADO A API / OFFLINE - Cargar libros del Nuevo Testamento
   // =====================================================
   useEffect(() => {
     loadBooks();
@@ -74,23 +79,70 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
     try {
       setIsLoading(true);
       setError(null);
-      const apiBooks = await bibleService.getNewTestamentBooks();
 
-      // Transformar los libros de la API al formato local
+      let apiBooks: ApiBook[] = [];
+
+      // LÓGICA CORRECTA:
+      // - Con internet → SIEMPRE usar API (más actualizado)
+      // - Sin internet + Biblia descargada → usar datos offline
+      // - Sin internet + sin descarga → error
+
+      if (isOnline) {
+        // ✅ CON INTERNET: Siempre usar API
+        apiBooks = await bibleService.getNewTestamentBooks();
+      } else if (isBibleDownloaded) {
+        // ✅ SIN INTERNET + DESCARGADA: usar datos offline
+        const {BibleOfflineService} = await import('../services/english-bible-download.service');
+        const offlineData = await BibleOfflineService.loadData();
+
+        // Libros del NT (desde el libro 47 en adelante en la Biblia Católica)
+        const newTestamentIds = [
+          'matthew', 'mark', 'luke', 'john', 'acts',
+          'romans', '1corinthians', '2corinthians', 'galatians', 'ephesians',
+          'philippians', 'colossians', '1thessalonians', '2thessalonians',
+          '1timothy', '2timothy', 'titus', 'philemon', 'hebrews',
+          'james', '1peter', '2peter', '1john', '2john', '3john', 'jude', 'revelation'
+        ];
+
+        apiBooks = offlineData.books
+          .filter(book => newTestamentIds.includes(book.id.toLowerCase()) ||
+                         offlineData.books.indexOf(book) >= 46)
+          .map(book => ({
+            id: book.id,
+            name: book.name,
+            abbreviation: book.name.substring(0, 3),
+            testament: 'new' as const,
+            category: 'Cartas',
+            totalChapters: book.chapters.length,
+            description: '',
+          }));
+      } else {
+        // ❌ SIN INTERNET + SIN DESCARGA: mostrar error
+        throw new Error('NO_CONNECTION_NO_DOWNLOAD');
+      }
+
+      // Transformar los libros al formato local
       const transformedBooks: Book[] = apiBooks.map((apiBook: ApiBook) => ({
         id: apiBook.id,
         abbreviation: apiBook.abbreviation,
         name: apiBook.name,
         chapters: apiBook.totalChapters,
         category: mapCategory(apiBook.category),
-        enabled: true, // Todos los libros están habilitados
+        enabled: true,
         color: getCategoryColor(mapCategory(apiBook.category)),
       }));
 
       setBooks(transformedBooks);
+      setRetryCount(0);
     } catch (err: any) {
       console.error('Error cargando libros:', err);
-      setError('No se pudieron cargar los libros. Verifica tu conexión.');
+      setRetryCount(prev => prev + 1);
+
+      if (err.message === 'NO_CONNECTION_NO_DOWNLOAD' || (!isOnline && !isBibleDownloaded)) {
+        setError('NO_DOWNLOAD');
+      } else {
+        setError('No se pudieron cargar los libros. Verifica tu conexión.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -181,11 +233,44 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
       {/* Estado de error */}
       {error && !isLoading && (
         <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadBooks}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </TouchableOpacity>
+          <MaterialIcons
+            name={error === 'NO_DOWNLOAD' ? 'cloud-off' : 'error-outline'}
+            size={48}
+            color={error === 'NO_DOWNLOAD' ? colors.charcoal.muted : colors.burgundy.DEFAULT}
+          />
+          <Text style={styles.errorText}>
+            {error === 'NO_DOWNLOAD'
+              ? 'Sin conexión a internet'
+              : 'No se pudieron cargar los libros'
+            }
+          </Text>
+          <Text style={styles.errorSubtext}>
+            {error === 'NO_DOWNLOAD'
+              ? 'Descarga la Biblia para leer sin conexión'
+              : 'Verifica tu conexión a internet'
+            }
+          </Text>
+
+          {(error === 'NO_DOWNLOAD' || retryCount >= 2) && !isBibleDownloaded ? (
+            <View style={styles.errorButtons}>
+              <TouchableOpacity
+                style={styles.downloadButton}
+                onPress={() => navigation.navigate('ManageDownloads')}
+              >
+                <MaterialIcons name="cloud-download" size={18} color="#FFFFFF" />
+                <Text style={styles.downloadButtonText}>Descargar Biblia</Text>
+              </TouchableOpacity>
+              {retryCount >= 2 && (
+                <TouchableOpacity style={styles.retryButtonSecondary} onPress={loadBooks}>
+                  <Text style={styles.retryButtonSecondaryText}>Reintentar conexión</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.retryButton} onPress={loadBooks}>
+              <Text style={styles.retryButtonText}>Reintentar</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -560,6 +645,42 @@ const styles = StyleSheet.create({
 
   bottomSpacer: {
     height: 20,
+  },
+  // Estilos adicionales para error mejorado
+  errorSubtext: {
+    fontSize: 13,
+    color: colors.charcoal.muted,
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  errorButtons: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.gold.DEFAULT,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  downloadButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  retryButtonSecondary: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  retryButtonSecondaryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.charcoal.muted,
+    textDecorationLine: 'underline',
   },
 });
 

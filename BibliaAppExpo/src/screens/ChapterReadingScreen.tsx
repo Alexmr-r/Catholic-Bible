@@ -8,6 +8,8 @@ import {
   Alert,
   ActivityIndicator,
   Share,
+  Modal,
+  Pressable,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
@@ -17,6 +19,7 @@ import {favoritesService} from '../services/favorites.service';
 import {highlightService, Highlight, HighlightColor, getHighlightHex, HIGHLIGHT_COLORS} from '../services/highlights.service';
 import {getChapterTitle} from '../data/chapterTitles';
 import {useTextSettings} from '../contexts/TextSettingsContext';
+import {useOfflineBible} from '../hooks/useOfflineBible';
 import TextSettingsModal from '../components/TextSettingsModal';
 
 const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, route}) => {
@@ -42,25 +45,82 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
   // Modal de configuración de texto
   const [showTextSettings, setShowTextSettings] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false); // Modal de opciones (3 puntos)
   const {settings} = useTextSettings();
+
+  // ✅ Hook para modo offline
+  const {isOnline, isBibleDownloaded, needsDownload} = useOfflineBible();
 
   // Determinar si debemos filtrar versículos (solo si hay rango específico)
   const shouldFilterVerses = favoriteVerseNumber !== undefined;
 
   // =====================================================
-  // ✅ CONECTADO A API - Cargar capítulo
+  // ✅ CONECTADO A API / OFFLINE - Cargar capítulo
   // =====================================================
   useEffect(() => {
+    // Si está offline y no tiene Biblia descargada, redirigir
+    if (needsDownload) {
+      Alert.alert(
+        'Sin conexión',
+        'No tienes conexión a internet. ¿Deseas descargar la Biblia para leerla sin conexión?',
+        [
+          {text: 'Volver', onPress: () => navigation.goBack()},
+          {text: 'Descargar', onPress: () => navigation.navigate('ManageDownloads')},
+        ]
+      );
+      return;
+    }
     loadChapter();
-  }, [currentChapter]);
+  }, [currentChapter, needsDownload]);
 
   const loadChapter = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Cargar el capítulo completo desde la API
-      const data = await bibleService.getChapter(bookId, currentChapter);
+      let data: Chapter | null = null;
+
+      if (isOnline) {
+        // ✅ CON CONEXIÓN: Cargar del API
+        data = await bibleService.getChapter(bookId, currentChapter);
+      } else if (isBibleDownloaded) {
+        // ✅ SIN CONEXIÓN + BIBLIA DESCARGADA: Cargar offline
+        const {BibleOfflineService} = await import('../services/english-bible-download.service');
+        const offlineChapter = await BibleOfflineService.getChapter(bookId, currentChapter);
+
+        if (offlineChapter) {
+          // Convertir formato offline al formato Chapter
+          data = {
+            book: bookId,
+            bookName: bookName,
+            chapter: currentChapter,
+            version: 'Offline',
+            sections: [{
+              title: '',
+              verses: offlineChapter.verses.map(v => ({
+                number: v.verse,
+                text: v.text,
+                hasNote: false,
+              })),
+            }],
+            previousChapter: currentChapter > 1 ? {
+              bookId,
+              bookName,
+              chapter: currentChapter - 1,
+            } : undefined,
+            nextChapter: {
+              bookId,
+              bookName,
+              chapter: currentChapter + 1,
+            },
+          };
+        }
+      }
+
+      if (!data) {
+        setError('No se pudo cargar el capítulo.');
+        return;
+      }
 
       // Si hay versículos específicos para mostrar, filtrar
       if (shouldFilterVerses && data) {
@@ -138,31 +198,49 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Más opciones
+  // ✅ IMPLEMENTADO - Más opciones (Modal)
   // =====================================================
   const handleMoreOptions = () => {
+    setShowOptionsMenu(true);
+  };
+
+  // Compartir capítulo completo
+  const handleShareChapter = async () => {
+    setShowOptionsMenu(false);
+    if (!chapterData) return;
+
+    try {
+      // Obtener todo el texto del capítulo
+      let chapterText = '';
+      chapterData.sections.forEach(section => {
+        if (section.title) {
+          chapterText += `\n📖 ${section.title}\n\n`;
+        }
+        section.verses.forEach(verse => {
+          chapterText += `${verse.number}. ${verse.text}\n`;
+        });
+      });
+
+      const reference = `${bookName} ${currentChapter}`;
+      const message = `📖 ${reference}\n${chapterText}\n🙏 Compartido desde Biblia App`;
+
+      await Share.share({
+        message: message,
+        title: reference,
+      });
+    } catch (error: any) {
+      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+      console.error('Error compartiendo capítulo:', error);
+    }
+  };
+
+  // Escuchar audio (próximamente)
+  const handleListenAudio = () => {
+    setShowOptionsMenu(false);
     Alert.alert(
-      '⚙️ Opciones',
-      'Selecciona una opción',
-      [
-        {
-          text: '⭐ Añadir capítulo completo a favoritos',
-          onPress: handleAddChapterToFavorites,
-        },
-        {
-          text: '🎧 Audio del capítulo',
-          onPress: () => Alert.alert('En desarrollo', 'Próximamente'),
-        },
-        {
-          text: '💬 Comentarios',
-          onPress: () => Alert.alert('En desarrollo', 'Próximamente'),
-        },
-        {
-          text: '🔗 Referencias cruzadas',
-          onPress: () => Alert.alert('En desarrollo', 'Próximamente'),
-        },
-        {text: 'Cancelar', style: 'cancel'},
-      ]
+      '🎧 Audio del capítulo',
+      'Esta función estará disponible próximamente.\n\nPodrás escuchar la lectura del capítulo en audio.',
+      [{text: 'Entendido'}]
     );
   };
 
@@ -372,6 +450,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
   // Añadir capítulo completo a favoritos
   const handleAddChapterToFavorites = async () => {
+    setShowOptionsMenu(false); // Cerrar modal
     if (!chapterData) return;
 
     try {
@@ -648,6 +727,52 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         visible={showTextSettings}
         onClose={() => setShowTextSettings(false)}
       />
+
+      {/* Modal de Opciones (3 puntos) */}
+      <Modal
+        visible={showOptionsMenu}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowOptionsMenu(false)}>
+        <Pressable
+          style={styles.optionsModalOverlay}
+          onPress={() => setShowOptionsMenu(false)}>
+          <View style={styles.optionsMenuContainer}>
+            {/* Guardar capítulo completo */}
+            <TouchableOpacity
+              style={styles.optionsMenuItem}
+              onPress={handleAddChapterToFavorites}
+              activeOpacity={0.7}>
+              <View style={styles.optionsMenuIcon}>
+                <MaterialIcons name="bookmark" size={20} color={colors.gold.DEFAULT} />
+              </View>
+              <Text style={styles.optionsMenuText}>Guardar capítulo completo</Text>
+            </TouchableOpacity>
+
+            {/* Compartir capítulo */}
+            <TouchableOpacity
+              style={styles.optionsMenuItem}
+              onPress={handleShareChapter}
+              activeOpacity={0.7}>
+              <View style={styles.optionsMenuIcon}>
+                <MaterialIcons name="share" size={20} color={colors.gold.DEFAULT} />
+              </View>
+              <Text style={styles.optionsMenuText}>Compartir capítulo</Text>
+            </TouchableOpacity>
+
+            {/* Escuchar audio */}
+            <TouchableOpacity
+              style={styles.optionsMenuItem}
+              onPress={handleListenAudio}
+              activeOpacity={0.7}>
+              <View style={styles.optionsMenuIcon}>
+                <MaterialIcons name="headphones" size={20} color={colors.gold.DEFAULT} />
+              </View>
+              <Text style={styles.optionsMenuText}>Escuchar audio</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -933,6 +1058,46 @@ const styles = StyleSheet.create({
     width: 1,
     height: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+
+  // Modal de Opciones
+  optionsModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  optionsMenuContainer: {
+    position: 'absolute',
+    top: 56,
+    right: 16,
+    width: 280,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  optionsMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  optionsMenuIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: `${colors.gold.DEFAULT}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionsMenuText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.charcoal.dark,
   },
 });
 

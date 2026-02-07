@@ -22,6 +22,7 @@ import {colors} from '../theme/colors';
 import {readingProgressService, CalendarMonth} from '../services/reading-progress.service';
 import {dailyReadingService} from '../services/daily-reading.service';
 import {writingsService} from '../services/writings.service';
+import {useIsOnline} from '../contexts/NetworkContext';
 import type {DailyReading} from '../services/daily-reading.service';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -50,7 +51,11 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedReading, setSelectedReading] = useState<DailyReading | null>(null);
   const [hasReflection, setHasReflection] = useState(false);
-  const [reflectionWriting, setReflectionWriting] = useState<any | null>(null); // Guardar el writing completo
+  const [reflectionWriting, setReflectionWriting] = useState<any | null>(null);
+  const [readingLoadError, setReadingLoadError] = useState(false); // Error al cargar lectura
+
+  // Estado de conexión
+  const isOnline = useIsOnline();
 
   useEffect(() => {
     loadMonthData();
@@ -87,6 +92,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
 
   // Función auxiliar para cargar lectura de una fecha
   const loadReadingForDate = async (date: string) => {
+    setReadingLoadError(false);
     try {
       const reading = await dailyReadingService.getReadingByDate(date);
       setSelectedReading(reading);
@@ -109,6 +115,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
     } catch (error) {
       console.error('Error cargando lectura:', error);
       setSelectedReading(null);
+      setReadingLoadError(true); // Marcar que hubo error (probablemente offline)
     }
   };
 
@@ -132,7 +139,13 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
       setMonthData(data);
     } catch (error) {
       console.error('Error cargando calendario:', error);
-      Alert.alert('Error', 'No se pudo cargar el calendario');
+      // No mostrar Alert - el servicio ya devuelve datos del caché si hay
+      // Si no hay datos, simplemente mostrar calendario vacío
+      setMonthData({
+        year: currentYear,
+        month: currentMonth,
+        completedDates: [],
+      });
     } finally {
       setIsLoading(false);
     }
@@ -382,6 +395,27 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
                 })}
               </View>
             </View>
+
+            {/* Mensaje de error offline */}
+            {selectedDate && readingLoadError && !selectedReading && (
+              <View style={styles.offlineCard}>
+                <View style={styles.offlineIconContainer}>
+                  <MaterialIcons name="cloud-off" size={32} color={colors.charcoal.muted} />
+                </View>
+                <Text style={styles.offlineTitle}>Lectura no disponible</Text>
+                <Text style={styles.offlineMessage}>
+                  {isOnline
+                    ? 'No se pudo cargar la lectura de este día.'
+                    : 'Sin conexión a internet. Esta lectura no está guardada en tu dispositivo.'
+                  }
+                </Text>
+                {!isOnline && (
+                  <Text style={styles.offlineHint}>
+                    Conéctate a internet para ver el contenido de este día.
+                  </Text>
+                )}
+              </View>
+            )}
 
             {/* Reading Card - Solo mostrar si hay día seleccionado */}
             {selectedDate && selectedReading && (
@@ -726,6 +760,52 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     color: '#FFFFFF',
     textTransform: 'uppercase',
+  },
+  // Estilos para tarjeta offline (mismo tamaño que readingCard)
+  offlineCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginHorizontal: 24,
+    marginBottom: 32,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  offlineIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  offlineTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.charcoal.DEFAULT,
+    marginBottom: 6,
+  },
+  offlineMessage: {
+    fontSize: 13,
+    color: colors.charcoal.muted,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 8,
+  },
+  offlineHint: {
+    fontSize: 12,
+    color: colors.gold.DEFAULT,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
 

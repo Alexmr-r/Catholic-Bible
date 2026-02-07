@@ -59,6 +59,56 @@ public class BibleController {
         return ResponseEntity.ok(books.stream().map(this::toBookDto).toList());
     }
 
+    @GetMapping("/english/download")
+    @Operation(summary = "Descargar Biblia completa", description = "Descarga toda la Biblia en formato JSON para uso offline")
+    public ResponseEntity<BibleDto.FullBibleDownload> downloadFullBible() {
+        log.info("Generando descarga completa de la Biblia para uso offline");
+
+        // Obtener todos los libros
+        BibleUseCase.BooksResponse allBooks = bibleUseCase.getAllBooks();
+
+        List<BibleDto.BookWithChapters> booksWithChapters = new java.util.ArrayList<>();
+
+        // Procesar Antiguo Testamento
+        for (Book book : allBooks.oldTestament()) {
+            booksWithChapters.add(getBookWithAllChapters(book));
+        }
+
+        // Procesar Nuevo Testamento
+        for (Book book : allBooks.newTestament()) {
+            booksWithChapters.add(getBookWithAllChapters(book));
+        }
+
+        log.info("Descarga generada: {} libros", booksWithChapters.size());
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"bible_offline.json\"")
+                .body(new BibleDto.FullBibleDownload(
+                        "Biblia de Jerusalén",
+                        "es",
+                        booksWithChapters
+                ));
+    }
+
+    private BibleDto.BookWithChapters getBookWithAllChapters(Book book) {
+        List<BibleDto.ChapterWithVerses> chapters = new java.util.ArrayList<>();
+
+        for (int i = 1; i <= book.getTotalChapters(); i++) {
+            try {
+                Chapter chapter = bibleUseCase.getChapter(book.getId(), i);
+                List<BibleDto.SimpleVerse> verses = chapter.getSections().stream()
+                        .flatMap(section -> section.getVerses().stream())
+                        .map(verse -> new BibleDto.SimpleVerse(verse.getVerseNumber(), verse.getText()))
+                        .toList();
+                chapters.add(new BibleDto.ChapterWithVerses(i, verses));
+            } catch (Exception e) {
+                log.warn("Error obteniendo capítulo {} de {}: {}", i, book.getId(), e.getMessage());
+            }
+        }
+
+        return new BibleDto.BookWithChapters(book.getId(), book.getName(), chapters);
+    }
+
     @GetMapping("/books/{bookId}")
     @Operation(summary = "Obtener detalle de libro", description = "Obtiene información detallada de un libro")
     public ResponseEntity<BibleDto.BookDetailDto> getBook(

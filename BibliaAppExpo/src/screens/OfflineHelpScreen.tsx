@@ -10,8 +10,8 @@ import {colors} from '../theme/colors';
 const OfflineHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const steps = [
     {icon: 'bookmark-border', title: 'Favoritos y Notas', description: 'Tus marcadores locales guardados.', badge: null},
-    {icon: 'workspace-premium', title: 'Descargar', description: 'Estado actual: Biblia Vulgata.', badge: 'DESCARGADO'},
-    {icon: 'menu-book', title: 'Lectura de la Biblia', description: 'Biblia disponible sin conexión a internet.', badge: null},
+    {icon: 'workspace-premium', title: 'Biblia en Inglés', description: 'Descarga disponible para offline.', badge: 'OPCIONAL'},
+    {icon: 'menu-book', title: 'Lectura de la Biblia', description: 'Lee la Palabra incluso sin conexión.', badge: null},
   ];
 
   return (
@@ -64,7 +64,10 @@ const OfflineHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
             <Text style={styles.infoTitle}>REFLEXIÓN ESPIRITUAL</Text>
           </View>
           <Text style={styles.infoText}>La Palabra de Dios no conoce fronteras. Aprovecha el silencio del modo offline para una meditación más profunda.</Text>
-          <TouchableOpacity style={styles.downloadButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.downloadButton}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('ManageDownloads')}>
             <MaterialIcons name="cloud-download" size={16} color={colors.gold.DEFAULT} />
             <Text style={styles.downloadButtonText}>GESTIONAR DESCARGAS</Text>
           </TouchableOpacity>

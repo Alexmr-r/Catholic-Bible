@@ -20,6 +20,8 @@ import {dailyReadingService, DailyReading} from '../services/daily-reading.servi
 import {writingsService} from '../services/writings.service';
 import {readingProgressService} from '../services/reading-progress.service';
 import {useTextSettings} from '../contexts/TextSettingsContext';
+import {useIsOnline} from '../contexts/NetworkContext';
+import {cacheService} from '../services/cache.service';
 import TextSettingsModal from '../components/TextSettingsModal';
 
 const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, route}) => {
@@ -35,6 +37,10 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   // Modal de configuración de texto
   const [showTextSettings, setShowTextSettings] = useState(false);
   const {settings} = useTextSettings();
+
+  // ✅ Estado de conexión
+  const isOnline = useIsOnline();
+  const [isUsingCache, setIsUsingCache] = useState(false);
 
   // ✅ CONECTADO A API - Estados de datos
   const [dailyReading, setDailyReading] = useState<DailyReading | null>(null);
@@ -144,19 +150,56 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   }, [targetDate]);
 
   const loadTodayReading = async () => {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
     try {
       setIsLoading(true);
       setError(null);
-      const reading = await dailyReadingService.getTodayReading();
-      setDailyReading(reading);
+      setIsUsingCache(false);
 
-      // Verificar si ya está marcada como completada
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      const completed = await readingProgressService.isDateCompleted(today);
-      setIsReadingCompleted(completed);
+      let reading: DailyReading | null = null;
 
-      // Cargar reflexión existente si hay
-      await loadExistingReflection(reading);
+      if (isOnline) {
+        // ✅ CON CONEXIÓN: Cargar del API y guardar en caché
+        try {
+          reading = await dailyReadingService.getTodayReading();
+          // Guardar en caché para uso offline
+          await cacheService.setDailyReading(today, reading);
+          console.log('[DailyReading] ✅ Cargado del API y cacheado');
+        } catch (apiError) {
+          console.warn('[DailyReading] ⚠️ Error del API, intentando caché:', apiError);
+          // Fallback a caché si falla el API
+          reading = await cacheService.getDailyReading(today);
+          if (reading) {
+            setIsUsingCache(true);
+            console.log('[DailyReading] ✅ Usando caché (fallback)');
+          }
+        }
+      } else {
+        // ✅ SIN CONEXIÓN: Intentar cargar del caché
+        reading = await cacheService.getDailyReading(today);
+        if (reading) {
+          setIsUsingCache(true);
+          console.log('[DailyReading] ✅ Cargado del caché (offline)');
+        }
+      }
+
+      if (reading) {
+        setDailyReading(reading);
+
+        // Verificar si ya está marcada como completada
+        const completed = await readingProgressService.isDateCompleted(today);
+        setIsReadingCompleted(completed);
+
+        // Cargar reflexión existente si hay
+        await loadExistingReflection(reading);
+      } else {
+        // No hay datos ni online ni en caché
+        setError(isOnline
+          ? 'No se pudo cargar la lectura del día. Por favor, intenta de nuevo más tarde.'
+          : 'No hay conexión a internet y no hay lectura guardada para hoy. Conéctate a internet para cargar la lectura del día.'
+        );
+      }
     } catch (err: any) {
       console.error('Error cargando lectura del día:', err);
       setError('No se pudo cargar la lectura del día. Por favor, intenta de nuevo más tarde.');
@@ -169,17 +212,50 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
     try {
       setIsLoading(true);
       setError(null);
-      const reading = await dailyReadingService.getReadingByDate(date);
-      setDailyReading(reading);
+      setIsUsingCache(false);
 
-      // Verificar si ya está marcada como completada
-      const completed = await readingProgressService.isDateCompleted(date);
-      setIsReadingCompleted(completed);
+      let reading: DailyReading | null = null;
 
-      // Cargar reflexión existente si hay
-      await loadExistingReflection(reading);
+      if (isOnline) {
+        // ✅ CON CONEXIÓN: Cargar del API y guardar en caché
+        try {
+          reading = await dailyReadingService.getReadingByDate(date);
+          // Guardar en caché para uso offline
+          await cacheService.setDailyReading(date, reading);
+          console.log('[DailyReading] ✅ Cargado del API y cacheado:', date);
+        } catch (apiError) {
+          console.warn('[DailyReading] ⚠️ Error del API, intentando caché:', apiError);
+          reading = await cacheService.getDailyReading(date);
+          if (reading) {
+            setIsUsingCache(true);
+          }
+        }
+      } else {
+        // ✅ SIN CONEXIÓN: Intentar cargar del caché
+        reading = await cacheService.getDailyReading(date);
+        if (reading) {
+          setIsUsingCache(true);
+          console.log('[DailyReading] ✅ Cargado del caché (offline):', date);
+        }
+      }
+
+      if (reading) {
+        setDailyReading(reading);
+
+        // Verificar si ya está marcada como completada
+        const completed = await readingProgressService.isDateCompleted(date);
+        setIsReadingCompleted(completed);
+
+        // Cargar reflexión existente si hay
+        await loadExistingReflection(reading);
+      } else {
+        setError(isOnline
+          ? 'No se pudo cargar la lectura para esta fecha.'
+          : 'No hay conexión a internet y no hay lectura guardada para esta fecha.'
+        );
+      }
     } catch (err: any) {
-      console.error('Error cargando lectura:', err);
+      console.error('Error cargando lectura por fecha:', err);
       setError('No se pudo cargar la lectura. Por favor, intenta de nuevo más tarde.');
     } finally {
       setIsLoading(false);

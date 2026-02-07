@@ -49,7 +49,7 @@ class ReadingProgressService {
       await this.addToCache(tempProgress);
       await cacheService.addPendingSync({
         type: 'create',
-        entity: 'reading_progress' as any,
+        entity: 'reading_progress',
         data: { date, dailyReadingId },
         timestamp: Date.now(),
         tempId: tempProgress.id,
@@ -71,7 +71,7 @@ class ReadingProgressService {
       await this.removeFromCache(date);
       await cacheService.addPendingSync({
         type: 'delete',
-        entity: 'reading_progress' as any,
+        entity: 'reading_progress',
         data: { date },
         timestamp: Date.now(),
       });
@@ -97,24 +97,36 @@ class ReadingProgressService {
         `/reading-progress?year=${year}&month=${month}`
       );
       await this.updateCacheForMonth(response, year, month);
-      console.log('[ReadingProgress] ✅ Mes cargado desde API');
+      console.log('[ReadingProgress] ✅ Mes cargado desde API:', response.length, 'fechas');
       return {
         year,
         month,
         completedDates: response.map(p => p.date),
       };
     } catch (error) {
-      console.warn('[ReadingProgress] ⚠️ Sin internet, leyendo caché');
-      const cached = await this.getFromCache();
-      const filtered = cached.filter(p => {
-        const d = new Date(p.date);
-        return d.getFullYear() === year && d.getMonth() + 1 === month;
-      });
-      return {
-        year,
-        month,
-        completedDates: filtered.map(p => p.date),
-      };
+      console.warn('[ReadingProgress] ⚠️ Sin internet, leyendo caché...');
+      try {
+        const cached = await this.getFromCache();
+        console.log('[ReadingProgress] 📱 Caché tiene', cached.length, 'fechas totales');
+        const filtered = cached.filter(p => {
+          const d = new Date(p.date);
+          return d.getFullYear() === year && d.getMonth() + 1 === month;
+        });
+        console.log('[ReadingProgress] 📅 Fechas del mes', month, ':', filtered.length);
+        return {
+          year,
+          month,
+          completedDates: filtered.map(p => p.date),
+        };
+      } catch (cacheError) {
+        console.error('[ReadingProgress] ❌ Error leyendo caché:', cacheError);
+        // Retornar vacío si falla todo
+        return {
+          year,
+          month,
+          completedDates: [],
+        };
+      }
     }
   }
 
