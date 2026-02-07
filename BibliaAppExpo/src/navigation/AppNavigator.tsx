@@ -27,6 +27,10 @@ import HelpSupportScreen from "../screens/HelpSupportScreen";
 import ReadingSettingsScreen from "../screens/ReadingSettingsScreen";
 import AccountScreen from "../screens/AccountScreen";
 import ChangePasswordScreen from "../screens/ChangePasswordScreen";
+import SendMessageScreen from "../screens/SendMessageScreen";
+import WritingsHelpScreen from "../screens/WritingsHelpScreen";
+import FavoritesHelpScreen from "../screens/FavoritesHelpScreen";
+import OfflineHelpScreen from "../screens/OfflineHelpScreen";
 
 // =====================================================
 // 🎯 TIPOS DE NAVEGACIÓN - Mejores Prácticas
@@ -298,6 +302,34 @@ const AppNavigator: React.FC = () => {
         <RootStack.Screen
           name="DailyReading"
           component={DailyReadingScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="SendMessage"
+          component={SendMessageScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="WritingsHelp"
+          component={WritingsHelpScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="FavoritesHelp"
+          component={FavoritesHelpScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="OfflineHelp"
+          component={OfflineHelpScreen}
           options={{
             animation: 'slide_from_right',
           }}

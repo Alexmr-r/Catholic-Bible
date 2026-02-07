@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
@@ -19,28 +18,21 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
     navigation.goBack();
   };
 
-  // =====================================================
-  // 🔴 MOCKEADO - Temas de ayuda
-  // TODO: Implementar navegación a artículos de ayuda
-  // =====================================================
-  const handleHelpTopic = (topic: string) => {
-    Alert.alert(
-      topic,
-      'Funcionalidad en desarrollo.\n\nAquí encontrarás información detallada sobre este tema.',
-      [{text: 'Entendido'}]
-    );
+  // Navegación a pantallas de ayuda
+  const handleWritingsHelp = () => {
+    navigation.navigate('WritingsHelp');
   };
 
-  // =====================================================
-  // 🔴 MOCKEADO - Contactar soporte
-  // TODO: Implementar formulario de contacto o email
-  // =====================================================
+  const handleFavoritesHelp = () => {
+    navigation.navigate('FavoritesHelp');
+  };
+
+  const handleOfflineHelp = () => {
+    navigation.navigate('OfflineHelp');
+  };
+
   const handleContactSupport = () => {
-    Alert.alert(
-      'Contactar Soporte',
-      'Funcionalidad en desarrollo.\n\nPronto podrás enviar un mensaje directamente a nuestro equipo de soporte.',
-      [{text: 'Entendido'}]
-    );
+    navigation.navigate('SendMessage');
   };
 
   return (
@@ -70,7 +62,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
           {/* Cómo usar los escritos */}
           <TouchableOpacity
             style={styles.topicCard}
-            onPress={() => handleHelpTopic('Cómo usar los escritos')}
+            onPress={handleWritingsHelp}
             activeOpacity={0.7}>
             <View style={styles.iconContainer}>
               <MaterialIcons name="history-edu" size={24} color={colors.gold.DEFAULT} />
@@ -82,7 +74,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
           {/* Gestión de favoritos */}
           <TouchableOpacity
             style={styles.topicCard}
-            onPress={() => handleHelpTopic('Gestión de favoritos')}
+            onPress={handleFavoritesHelp}
             activeOpacity={0.7}>
             <View style={styles.iconContainer}>
               <MaterialIcons name="favorite" size={24} color={colors.gold.DEFAULT} />
@@ -94,7 +86,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
           {/* Uso sin conexión */}
           <TouchableOpacity
             style={styles.topicCard}
-            onPress={() => handleHelpTopic('Uso sin conexión')}
+            onPress={handleOfflineHelp}
             activeOpacity={0.7}>
             <View style={styles.iconContainer}>
               <MaterialIcons name="cloud-download" size={24} color={colors.gold.DEFAULT} />
