@@ -56,16 +56,11 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   ];
 
   // =====================================================
-  // 🔴 MOCKEADO - Perfil de usuario
-  // TODO: Navegar a pantalla de perfil
-  // navigation.navigate('Profile')
+  // ✅ NAVEGACIÓN IMPLEMENTADA - Perfil de usuario
+  // Navega a la pantalla de perfil del usuario
   // =====================================================
   const handleProfile = () => {
-    Alert.alert(
-      '👤 Perfil',
-      'Funcionalidad mockeada para demo.\n\nEn producción, aquí accederás a tu perfil, configuración y preferencias.',
-      [{text: 'Entendido'}]
-    );
+    navigation.navigate('Profile');
   };
 
   // =====================================================

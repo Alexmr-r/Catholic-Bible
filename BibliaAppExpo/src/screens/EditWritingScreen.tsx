@@ -24,6 +24,7 @@ import {colors} from '../theme/colors';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {writingsService} from '../services/writings.service';
+import {readingProgressService} from '../services/reading-progress.service';
 
 type EditWritingScreenProps = NativeStackScreenProps<RootStackParamList, 'EditWriting'>;
 
@@ -32,6 +33,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
     writingId,
     initialTitle,
     initialContent,
+    bookId,
     bookName,
     chapter,
     verse,
@@ -82,12 +84,36 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
 
     try {
       setIsSaving(true);
-      await writingsService.updateWriting(writingId, {
-        title: title.trim(),
-        content: content.trim(),
-      });
 
-      // Simplemente volver atrás - WritingDetailScreen se actualizará automáticamente
+      if (writingId === 'new') {
+        // Crear nuevo writing (viene desde calendario)
+        await writingsService.createWriting({
+          title: title.trim(),
+          content: content.trim(),
+          bookId: bookId,
+          chapter: chapter,
+          verse: verse,
+          tags: ['reflexión', 'lectura-diaria'],
+        });
+
+        // ✅ NUEVO: Marcar el día como completado automáticamente
+        try {
+          const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+          await readingProgressService.markAsComplete(today);
+          console.log('✅ Día marcado automáticamente como completado:', today);
+        } catch (err) {
+          console.error('Error marcando día como completado:', err);
+          // No fallar si no se puede marcar, la reflexión ya se guardó
+        }
+      } else {
+        // Actualizar writing existente
+        await writingsService.updateWriting(writingId, {
+          title: title.trim(),
+          content: content.trim(),
+        });
+      }
+
+      // Volver atrás
       navigation.goBack();
     } catch (error) {
       console.error('Error guardando escrito:', error);

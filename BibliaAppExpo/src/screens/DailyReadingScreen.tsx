@@ -22,7 +22,7 @@ import {readingProgressService} from '../services/reading-progress.service';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import TextSettingsModal from '../components/TextSettingsModal';
 
-const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => {
+const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, route}) => {
   const [reflection, setReflection] = useState('');
   const [reflectionTitle, setReflectionTitle] = useState('');
   const [showFab, setShowFab] = useState(true);
@@ -44,12 +44,104 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
   const [isMarkedAsRead, setIsMarkedAsRead] = useState(false);
   const [isReadingCompleted, setIsReadingCompleted] = useState(false);
 
+  // Obtener fecha del parámetro (si viene del calendario)
+  const targetDate = route?.params?.date;
+
+  // ✅ NUEVO: Auto-guardado con debounce
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSavedContent, setLastSavedContent] = useState('');
+
   // =====================================================
-  // ✅ CONECTADO A API - Cargar lectura del día
+  // ✅ NUEVO - Auto-guardado con debounce
   // =====================================================
   useEffect(() => {
-    loadTodayReading();
-  }, []);
+    // Solo auto-guardar si hay contenido y ha cambiado
+    if (reflection.trim() && reflection !== lastSavedContent && dailyReading) {
+      // Limpiar timer anterior
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+
+      // Iniciar nuevo timer de 2 segundos
+      autoSaveTimerRef.current = setTimeout(() => {
+        autoSaveReflection();
+      }, 2000);
+    }
+
+    // Cleanup
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [reflection, dailyReading]);
+
+  const autoSaveReflection = async () => {
+    if (!dailyReading || !reflection.trim() || isSavingReflection) return;
+
+    try {
+      setIsAutoSaving(true);
+
+      const existingWritings = await writingsService.getWritings({
+        bookId: dailyReading.bookId,
+      });
+
+      const existingReflection = existingWritings.writings.find(w =>
+        w.bookId === dailyReading.bookId &&
+        w.chapter === dailyReading.chapterNumber &&
+        w.verse === dailyReading.verseNumbers[0] &&
+        w.tags.includes('lectura-diaria')
+      );
+
+      if (existingReflection) {
+        // Actualizar existente
+        await writingsService.updateWriting(existingReflection.id, {
+          title: reflectionTitle.trim() || '',
+          content: reflection,
+        });
+      } else {
+        // Crear nueva
+        await writingsService.createWriting({
+          title: reflectionTitle.trim() || '',
+          content: reflection,
+          bookId: dailyReading.bookId,
+          chapter: dailyReading.chapterNumber,
+          verse: dailyReading.verseNumbers[0],
+          tags: ['reflexión', 'lectura-diaria'],
+        });
+      }
+
+      // Marcar como completado si no lo está
+      if (!isReadingCompleted) {
+        const dateToMark = targetDate || new Date().toISOString().split('T')[0];
+        await readingProgressService.markAsComplete(
+          dateToMark,
+          dailyReading.id !== 'fallback' ? dailyReading.id : undefined
+        );
+        setIsReadingCompleted(true);
+      }
+
+      setLastSavedContent(reflection);
+      console.log('✅ Auto-guardado exitoso');
+    } catch (err) {
+      console.error('Error en auto-guardado:', err);
+      // No mostrar alert en auto-guardado para no interrumpir al usuario
+    } finally {
+      setIsAutoSaving(false);
+    }
+  };
+
+  // =====================================================
+  // ✅ CONECTADO A API - Cargar lectura del día o fecha específica
+  // =====================================================
+  useEffect(() => {
+    if (targetDate) {
+      loadReadingByDate(targetDate);
+    } else {
+      loadTodayReading();
+    }
+  }, [targetDate]);
 
   const loadTodayReading = async () => {
     try {
@@ -62,11 +154,67 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
       const completed = await readingProgressService.isDateCompleted(today);
       setIsReadingCompleted(completed);
+
+      // Cargar reflexión existente si hay
+      await loadExistingReflection(reading);
     } catch (err: any) {
       console.error('Error cargando lectura del día:', err);
       setError('No se pudo cargar la lectura del día. Por favor, intenta de nuevo más tarde.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadReadingByDate = async (date: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const reading = await dailyReadingService.getReadingByDate(date);
+      setDailyReading(reading);
+
+      // Verificar si ya está marcada como completada
+      const completed = await readingProgressService.isDateCompleted(date);
+      setIsReadingCompleted(completed);
+
+      // Cargar reflexión existente si hay
+      await loadExistingReflection(reading);
+    } catch (err: any) {
+      console.error('Error cargando lectura:', err);
+      setError('No se pudo cargar la lectura. Por favor, intenta de nuevo más tarde.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // =====================================================
+  // ✅ NUEVO - Cargar reflexión existente
+  // =====================================================
+  const loadExistingReflection = async (reading: DailyReading) => {
+    try {
+      const writings = await writingsService.getWritings({
+        bookId: reading.bookId,
+      });
+
+      const existingReflection = writings.writings.find(w =>
+        w.bookId === reading.bookId &&
+        w.chapter === reading.chapterNumber &&
+        w.verse === reading.verseNumbers[0] &&
+        w.tags.includes('lectura-diaria')
+      );
+
+      if (existingReflection) {
+        setReflectionTitle(existingReflection.title || '');
+        setReflection(existingReflection.content);
+        setLastSavedContent(existingReflection.content); // Para que el botón muestre "GUARDADO"
+      } else {
+        // Limpiar si no hay reflexión
+        setReflectionTitle('');
+        setReflection('');
+        setLastSavedContent('');
+      }
+    } catch (err) {
+      console.error('Error cargando reflexión:', err);
+      // No mostrar error al usuario, solo no cargar reflexión
     }
   };
 
@@ -130,18 +278,19 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
   const handleBookmark = async () => {
     if (!dailyReading) return;
 
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    // Usar targetDate si viene del calendario, sino usar hoy
+    const dateToMark = targetDate || new Date().toISOString().split('T')[0];
 
     try {
       if (isReadingCompleted) {
         // Desmarcar
-        await readingProgressService.unmarkAsComplete(today);
+        await readingProgressService.unmarkAsComplete(dateToMark);
         setIsReadingCompleted(false);
         Alert.alert('✅ Lectura desmarcada', 'Se ha quitado del registro.');
       } else {
         // Marcar como completada
         await readingProgressService.markAsComplete(
-          today,
+          dateToMark,
           dailyReading.id !== 'fallback' ? dailyReading.id : undefined
         );
         setIsReadingCompleted(true);
@@ -167,25 +316,65 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
     try {
       setIsSavingReflection(true);
 
-      // Usar el título personalizado solo si lo escribió, sino guardar sin título
-      const title = reflectionTitle.trim()
-        ? reflectionTitle
-        : '';  // Sin título si no lo escribió
-
-      await writingsService.createWriting({
-        title: title,
-        content: reflection,
+      // Verificar si ya existe una reflexión para este día
+      const existingWritings = await writingsService.getWritings({
         bookId: dailyReading.bookId,
-        chapter: dailyReading.chapterNumber,
-        verse: dailyReading.verseNumbers[0],
-        tags: ['reflexión', 'lectura-diaria'],
       });
-      Alert.alert('✅ Reflexión Guardada', 'Tu reflexión se ha guardado en tus escritos.');
-      setReflection('');
-      setReflectionTitle('');
+
+      // Buscar si hay alguna reflexión del mismo capítulo y versículo
+      const existingReflection = existingWritings.writings.find(w =>
+        w.bookId === dailyReading.bookId &&
+        w.chapter === dailyReading.chapterNumber &&
+        w.verse === dailyReading.verseNumbers[0] &&
+        w.tags.includes('lectura-diaria')
+      );
+
+      if (existingReflection) {
+        // Ya existe una reflexión para este día - Actualizar
+        await writingsService.updateWriting(existingReflection.id, {
+          title: reflectionTitle.trim() || '',
+          content: reflection,
+        });
+        Alert.alert('✅ Reflexión Actualizada', 'Tu reflexión se ha actualizado correctamente.');
+      } else {
+        // No existe reflexión previa, crear nueva
+        const title = reflectionTitle.trim() || '';
+
+        await writingsService.createWriting({
+          title: title,
+          content: reflection,
+          bookId: dailyReading.bookId,
+          chapter: dailyReading.chapterNumber,
+          verse: dailyReading.verseNumbers[0],
+          tags: ['reflexión', 'lectura-diaria'],
+        });
+
+        Alert.alert('✅ Reflexión Guardada', 'Tu reflexión se ha guardado en tus escritos.');
+      }
+
+      // ✅ NUEVO: Marcar automáticamente como completado
+      if (!isReadingCompleted) {
+        const dateToMark = targetDate || new Date().toISOString().split('T')[0];
+        try {
+          await readingProgressService.markAsComplete(
+            dateToMark,
+            dailyReading.id !== 'fallback' ? dailyReading.id : undefined
+          );
+          setIsReadingCompleted(true);
+          console.log('✅ Lectura marcada automáticamente como completada');
+        } catch (err) {
+          console.error('Error marcando lectura:', err);
+          // No mostrar error al usuario, la reflexión sí se guardó
+        }
+      }
+
+      // Limpiar campos después de guardar nueva reflexión
+      if (!existingReflection) {
+        setReflection('');
+        setReflectionTitle('');
+      }
     } catch (err: any) {
       console.error('Error guardando reflexión:', err);
-      // Mostrar mensaje más descriptivo
       const message = err.message || 'No se pudo guardar la reflexión.';
       Alert.alert('Error', message);
     } finally {
@@ -231,11 +420,14 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
       {/* Header Sticky */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity
-            onPress={handleBack}
-            activeOpacity={0.7}
-            style={styles.headerButton}>
-          </TouchableOpacity>
+          {targetDate && (
+            <TouchableOpacity
+              onPress={handleBack}
+              activeOpacity={0.7}
+              style={styles.headerButton}>
+              <MaterialIcons name="arrow-back" size={24} color={colors.ink.light} />
+            </TouchableOpacity>
+          )}
         </View>
         <View style={styles.headerCenter}>
           <Text style={styles.headerSubtitle}>LITURGIA DE HOY</Text>
@@ -248,12 +440,14 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
             style={styles.headerButton}>
             <MaterialIcons name="text-fields" size={22} color={colors.charcoal.muted} />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleCalendar}
-            activeOpacity={0.7}
-            style={styles.headerButton}>
-            <MaterialIcons name="calendar-today" size={22} color={colors.ink.light} />
-          </TouchableOpacity>
+          {!targetDate && (
+            <TouchableOpacity
+              onPress={handleCalendar}
+              activeOpacity={0.7}
+              style={styles.headerButton}>
+              <MaterialIcons name="calendar-today" size={22} color={colors.ink.light} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -397,20 +591,20 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation}) => 
 
             <View style={styles.reflectionFooter}>
               <View style={styles.autoSaveContainer}>
-                <MaterialIcons name="cloud-done" size={14} color={colors.charcoal.muted} />
-                <Text style={styles.autoSaveText}>Guardado automático</Text>
+                <MaterialIcons
+                  name={isAutoSaving ? "cloud-upload" : "cloud-done"}
+                  size={14}
+                  color={isAutoSaving ? colors.primary.DEFAULT : colors.charcoal.muted}
+                />
+                <Text style={[
+                  styles.autoSaveText,
+                  isAutoSaving && {color: colors.primary.DEFAULT}
+                ]}>
+                  {isAutoSaving ? 'Guardando...' : 'Guardado automático'}
+                </Text>
               </View>
             </View>
           </View>
-
-          {/* Botón Guardar Reflexión - Ahora dentro del ScrollView */}
-          <TouchableOpacity
-            style={styles.saveReflectionButton}
-            onPress={handleSaveReflection}
-            activeOpacity={0.8}>
-            <MaterialIcons name="save" size={20} color="#FFFFFF" />
-            <Text style={styles.saveReflectionButtonText}>GUARDAR REFLEXIÓN</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -701,6 +895,10 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  saveReflectionButtonSaved: {
+    backgroundColor: colors.charcoal.muted, // Color más suave cuando ya está guardado
+    shadowOpacity: 0.1,
   },
   saveReflectionButtonText: {
     fontSize: 14,

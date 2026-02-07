@@ -17,6 +17,8 @@ public interface DailyReadingRepositoryPort {
 
     List<DailyReading> findByDateBetween(LocalDate startDate, LocalDate endDate);
 
+    List<DailyReading> findAll();
+
     DailyReading save(DailyReading dailyReading);
 
     ReadingHistory saveHistory(ReadingHistory history);

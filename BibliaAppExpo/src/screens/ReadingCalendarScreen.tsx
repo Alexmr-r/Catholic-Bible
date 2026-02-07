@@ -1,8 +1,9 @@
 /**
  * ==========================================
- * CALENDARIO DE CONSTANCIA VISUAL
+ * ACTIVIDAD ESPIRITUAL - CALENDARIO
  * ==========================================
- * Diseño basado exactamente en el HTML de referencia
+ * Muestra calendario mensual con lecturas completadas,
+ * tarjeta del día seleccionado y reflexión personal editable
  */
 
 import React, {useState, useEffect} from 'react';
@@ -19,10 +20,13 @@ import {
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
 import {readingProgressService, CalendarMonth} from '../services/reading-progress.service';
+import {dailyReadingService} from '../services/daily-reading.service';
+import {writingsService} from '../services/writings.service';
+import type {DailyReading} from '../services/daily-reading.service';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CALENDAR_PADDING = 24; // Más padding para calendario más pequeño
-const GAP = 4;
+const CALENDAR_PADDING = 24;
+const GAP = 8;
 const CELL_SIZE = (SCREEN_WIDTH - (CALENDAR_PADDING * 2) - (GAP * 6)) / 7;
 
 type ReadingCalendarScreenProps = {
@@ -42,9 +46,84 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
   const [monthData, setMonthData] = useState<CalendarMonth | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Estado para día seleccionado y su lectura
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedReading, setSelectedReading] = useState<DailyReading | null>(null);
+  const [hasReflection, setHasReflection] = useState(false);
+  const [reflectionWriting, setReflectionWriting] = useState<any | null>(null); // Guardar el writing completo
+
   useEffect(() => {
     loadMonthData();
   }, [currentYear, currentMonth]);
+
+  // ✅ Recargar cuando vuelve a la pantalla (por si guardó reflexión)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      await reloadAndSelectToday();
+    });
+    return unsubscribe;
+  }, [navigation, currentYear, currentMonth]);
+
+  // Función para recargar datos y seleccionar HOY si corresponde
+  const reloadAndSelectToday = async () => {
+    try {
+      const data = await readingProgressService.getMonthProgress(currentYear, currentMonth);
+      setMonthData(data);
+
+      // Auto-seleccionar HOY si está completado
+      const today = new Date();
+      const todayStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+      if (today.getFullYear() === currentYear && today.getMonth() + 1 === currentMonth) {
+        if (data.completedDates.includes(todayStr)) {
+          setSelectedDate(todayStr);
+          await loadReadingForDate(todayStr);
+        }
+      }
+    } catch (error) {
+      console.error('Error recargando datos:', error);
+    }
+  };
+
+  // Función auxiliar para cargar lectura de una fecha
+  const loadReadingForDate = async (date: string) => {
+    try {
+      const reading = await dailyReadingService.getReadingByDate(date);
+      setSelectedReading(reading);
+
+      // Verificar reflexión
+      try {
+        const writings = await writingsService.getWritings({ bookId: reading.bookId });
+        const reflection = writings.writings.find(w =>
+          w.bookId === reading.bookId &&
+          w.chapter === reading.chapterNumber &&
+          w.verse === reading.verseNumbers[0] &&
+          w.tags.includes('lectura-diaria')
+        );
+        setHasReflection(!!reflection);
+        setReflectionWriting(reflection || null);
+      } catch {
+        setHasReflection(false);
+        setReflectionWriting(null);
+      }
+    } catch (error) {
+      console.error('Error cargando lectura:', error);
+      setSelectedReading(null);
+    }
+  };
+
+  useEffect(() => {
+    // Auto-seleccionar el día HOY si está completado (al cargar por primera vez)
+    const today = new Date();
+    if (monthData && today.getFullYear() === currentYear && today.getMonth() + 1 === currentMonth) {
+      const todayStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+      if (monthData.completedDates.includes(todayStr) && !selectedDate) {
+        setSelectedDate(todayStr);
+        loadReadingForDate(todayStr);
+      }
+    }
+  }, [monthData]);
 
   const loadMonthData = async () => {
     try {
@@ -59,6 +138,16 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
     }
   };
 
+  const handleDayPress = async (date: string) => {
+    // Verificar si se puede seleccionar (completado o últimos 7 días)
+    if (!canSelectDate(date)) {
+      return;
+    }
+
+    setSelectedDate(date);
+    await loadReadingForDate(date);
+  };
+
   const goToPreviousMonth = () => {
     if (currentMonth === 1) {
       setCurrentMonth(12);
@@ -66,6 +155,8 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
     } else {
       setCurrentMonth(currentMonth - 1);
     }
+    setSelectedDate(null);
+    setSelectedReading(null);
   };
 
   const goToNextMonth = () => {
@@ -75,6 +166,8 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
     } else {
       setCurrentMonth(currentMonth + 1);
     }
+    setSelectedDate(null);
+    setSelectedReading(null);
   };
 
   const getDaysInMonth = () => {
@@ -84,7 +177,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
 
     const days: Array<{ day: number; isCurrentMonth: boolean; date: string }> = [];
 
-    // Días del mes anterior (para completar primera semana)
+    // Días del mes anterior
     const prevMonthDays = new Date(currentYear, currentMonth - 1, 0).getDate();
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const day = prevMonthDays - i;
@@ -106,7 +199,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
       });
     }
 
-    // Días del siguiente mes (para completar última semana)
+    // Días del siguiente mes
     const remainingDays = 7 - (days.length % 7);
     if (remainingDays < 7) {
       for (let day = 1; day <= remainingDays; day++) {
@@ -127,6 +220,73 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
     return monthData?.completedDates.includes(date) || false;
   };
 
+  const isToday = (date: string) => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return date === todayStr;
+  };
+
+  // Verifica si un día se puede seleccionar
+  const canSelectDate = (date: string) => {
+    // Si está completado, siempre se puede seleccionar
+    if (isDateCompleted(date)) return true;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const dateObj = new Date(date);
+    dateObj.setHours(0, 0, 0, 0);
+
+    // No permitir fechas futuras
+    if (dateObj > today) return false;
+
+    const dateYear = dateObj.getFullYear();
+    const dateMonth = dateObj.getMonth() + 1;
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth() + 1;
+
+    // Si estamos viendo el mes ACTUAL
+    if (currentYear === todayYear && currentMonth === todayMonth) {
+      // Permitir todos los días pasados del mes actual + últimos 7 días del mes anterior
+      const diffTime = today.getTime() - dateObj.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      // Días del mes actual (todos los pasados)
+      if (dateYear === todayYear && dateMonth === todayMonth) {
+        return true; // Todos los días pasados del mes actual
+      }
+
+      // Últimos 7 días del mes anterior
+      if (diffDays <= 7) {
+        return true;
+      }
+
+      return false;
+    }
+
+    // Si estamos viendo un mes PASADO
+    if (currentYear < todayYear || (currentYear === todayYear && currentMonth < todayMonth)) {
+      // Obtener el último día del mes que estamos viendo
+      const lastDayOfViewedMonth = new Date(currentYear, currentMonth, 0).getDate();
+      const dateDay = dateObj.getDate();
+
+      // Solo permitir los últimos 7 días de ese mes pasado
+      if (dateYear === currentYear && dateMonth === currentMonth) {
+        return dateDay > lastDayOfViewedMonth - 7;
+      }
+
+      return false;
+    }
+
+    // Si estamos viendo un mes FUTURO, no permitir nada
+    return false;
+  };
+
+  const formatDate = (date: string) => {
+    const [, month, day] = date.split('-').map(Number);
+    return `${day} de ${MONTH_NAMES[month - 1]}`;
+  };
+
   const days = getDaysInMonth();
 
   return (
@@ -140,7 +300,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
           <MaterialIcons name="arrow-back" size={24} color={colors.ink.light} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Calendario de Lecturas Diarias</Text>
+          <Text style={styles.headerTitle}>Actividad Espiritual</Text>
         </View>
         <View style={styles.backButton} />
       </View>
@@ -149,6 +309,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
+
         {/* Month Header */}
         <View style={styles.monthHeader}>
           <Text style={styles.monthTitle}>
@@ -175,48 +336,149 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
             <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
           </View>
         ) : (
-          <View style={styles.calendarContainer}>
-            {/* Day names - Igual que el HTML */}
-            <View style={styles.calendarGrid}>
-              {DAY_NAMES_SHORT.map((name) => (
-                <View key={name} style={styles.dayNameCell}>
-                  <Text style={styles.dayNameText}>{name}</Text>
-                </View>
-              ))}
+          <>
+            {/* Calendar */}
+            <View style={styles.calendarContainer}>
+              {/* Day names */}
+              <View style={styles.calendarGrid}>
+                {DAY_NAMES_SHORT.map((name) => (
+                  <View key={name} style={styles.dayNameCell}>
+                    <Text style={styles.dayNameText}>{name}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Days grid */}
+              <View style={styles.calendarGrid}>
+                {days.map((item, index) => {
+                  const completed = isDateCompleted(item.date);
+                  const selected = selectedDate === item.date;
+                  const today = isToday(item.date);
+                  const canSelect = canSelectDate(item.date); // Nuevo: puede seleccionar si es de los últimos 7 días
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => canSelect && handleDayPress(item.date)}
+                      disabled={!canSelect}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.dayCell,
+                        !item.isCurrentMonth && styles.dayCellInactive,
+                        (selected || (today && !selectedDate)) && styles.dayCellSelected,
+                      ]}>
+                      {completed && !selected && !(today && !selectedDate) && <View style={styles.dayCompletedBg} />}
+                      <Text
+                        style={[
+                          styles.dayNumber,
+                          !item.isCurrentMonth && styles.dayNumberInactive,
+                          completed && !selected && !(today && !selectedDate) && styles.dayNumberCompleted,
+                          (selected || (today && !selectedDate)) && styles.dayNumberSelected,
+                        ]}>
+                        {item.day}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
-            {/* Days grid - Igual que el HTML */}
-            <View style={styles.calendarGrid}>
-              {days.map((item, index) => {
-                const completed = isDateCompleted(item.date);
-                return (
-                  <View
-                    key={index}
-                    style={[
-                      styles.dayCell,
-                      !item.isCurrentMonth && styles.dayCellInactive,
+            {/* Reading Card - Solo mostrar si hay día seleccionado */}
+            {selectedDate && selectedReading && (
+              <View style={styles.readingCard}>
+                <View style={styles.readingCardHeader}>
+                  <View style={styles.readingCardStatus}>
+                    <MaterialIcons
+                      name={isDateCompleted(selectedDate) ? "bookmark" : "bookmark-outline"}
+                      size={20}
+                      color={isDateCompleted(selectedDate) ? colors.gold.DEFAULT : colors.charcoal.muted}
+                    />
+                    <Text style={[
+                      styles.readingCardStatusText,
+                      !isDateCompleted(selectedDate) && styles.readingCardStatusPending
                     ]}>
-                    {completed && <View style={styles.dayCompletedCircle} />}
-                    <Text
-                      style={[
-                        styles.dayNumber,
-                        !item.isCurrentMonth && styles.dayNumberInactive,
-                        completed && styles.dayNumberCompleted,
-                      ]}>
-                      {item.day}
+                      {isDateCompleted(selectedDate) ? 'COMPLETADO' : 'PENDIENTE'}
                     </Text>
                   </View>
-                );
-              })}
-            </View>
-          </View>
-        )}
+                  <Text style={styles.readingCardDate}>{formatDate(selectedDate)}</Text>
+                </View>
 
-        {/* Legend */}
-        <View style={styles.legend}>
-          <View style={styles.legendDot} />
-          <Text style={styles.legendText}>LECTURA COMPLETADA</Text>
-        </View>
+                <Text style={styles.readingCardTitle}>{selectedReading.biblicalReference}</Text>
+
+                <Text style={styles.readingCardExcerpt} numberOfLines={2}>
+                  "{selectedReading.readingText.substring(0, 150)}..."
+                </Text>
+
+                <View style={styles.readingCardDivider} />
+
+                <View style={styles.readingCardFooter}>
+                  {isDateCompleted(selectedDate) ? (
+                    // Día completado: mostrar estado de reflexión
+                    <>
+                      <View style={styles.readingCardReflection}>
+                        <MaterialIcons name="edit-note" size={18} color={colors.primary.DEFAULT} />
+                        <Text style={styles.readingCardReflectionText}>
+                          {hasReflection ? 'Contiene reflexión' : 'Sin reflexión'}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (hasReflection && reflectionWriting) {
+                            navigation.navigate('WritingDetail', {
+                              writingId: reflectionWriting.id,
+                              title: reflectionWriting.title,
+                              content: reflectionWriting.content,
+                              bookId: reflectionWriting.bookId,
+                              bookName: reflectionWriting.bookName,
+                              chapter: reflectionWriting.chapter,
+                              verse: reflectionWriting.verse,
+                              tags: reflectionWriting.tags,
+                              createdAt: reflectionWriting.createdAt,
+                              isFavorite: reflectionWriting.isFavorite,
+                            });
+                          } else {
+                            navigation.navigate('EditWriting', {
+                              writingId: 'new',
+                              initialTitle: '',
+                              initialContent: '',
+                              bookId: selectedReading.bookId,
+                              bookName: selectedReading.bookName,
+                              chapter: selectedReading.chapterNumber,
+                              verse: selectedReading.verseNumbers[0],
+                              verseText: selectedReading.readingText.substring(0, 200),
+                              createdAt: new Date().toISOString(),
+                            });
+                          }
+                        }}
+                        style={styles.readingCardButton}>
+                        <Text style={styles.readingCardButtonText}>
+                          {hasReflection ? 'VER REFLEXIÓN' : 'ESCRIBIR'}
+                        </Text>
+                        <MaterialIcons name="arrow-forward" size={14} color={colors.burgundy.DEFAULT} />
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    // Día pendiente: mostrar botón para completar
+                    <>
+                      <View style={styles.readingCardReflection}>
+                        <MaterialIcons name="schedule" size={18} color={colors.charcoal.muted} />
+                        <Text style={styles.readingCardReflectionText}>
+                          Lectura pendiente
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => navigation.navigate('DailyReading', { date: selectedDate })}
+                        style={[styles.readingCardButton, styles.readingCardButtonPrimary]}>
+                        <Text style={styles.readingCardButtonTextPrimary}>LEER</Text>
+                        <MaterialIcons name="arrow-forward" size={14} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              </View>
+            )}
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -225,7 +487,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream, // Fondo sepia/cream de la app
+    backgroundColor: colors.cream,
   },
 
   // Header
@@ -235,8 +497,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 48,
-    paddingBottom: 16,
-    backgroundColor: colors.cream,
+    paddingBottom: 12,
+    backgroundColor: `${colors.cream}F5`,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
@@ -264,32 +526,30 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Month Header - Igual que HTML
+  // Month Header
   monthHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 32,
+    paddingTop: 24,
+    paddingBottom: 24,
   },
   monthTitle: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '700',
-    color: colors.ink.DEFAULT,
+    color: colors.burgundy.DEFAULT,
     fontFamily: 'serif',
   },
   monthNavigation: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 8,
   },
   navButton: {
     width: 32,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 9999,
-    backgroundColor: `${colors.paper}80`, // 50% opacity como en HTML
   },
 
   // Loading
@@ -300,38 +560,37 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
 
-  // Calendar Container - CENTRADO
+  // Calendar Container
   calendarContainer: {
     paddingHorizontal: CALENDAR_PADDING,
-    paddingBottom: 32,
+    marginBottom: 32,
   },
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: GAP,
-    // ❌ REMOVIDO: justifyContent: 'center', // Esto hacía que estuviera centrado
   },
 
   // Day Names
   dayNameCell: {
     width: CELL_SIZE,
-    height: CELL_SIZE * 0.6,
+    height: CELL_SIZE * 0.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayNameText: {
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 2,
     color: colors.ink.light,
     textTransform: 'uppercase',
-    opacity: 0.5,
+    opacity: 0.6,
   },
 
-  // Day Cells - MUCHO MÁS GRANDES
+  // Day Cells
   dayCell: {
     width: CELL_SIZE,
-    height: CELL_SIZE,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -339,52 +598,133 @@ const styles = StyleSheet.create({
   dayCellInactive: {
     opacity: 0.3,
   },
-  dayCompletedCircle: {
+  dayCellSelected: {
+    backgroundColor: colors.primary.DEFAULT, // Verde para día seleccionado
+    borderRadius: 9999,
+  },
+  dayCompletedBg: {
     position: 'absolute',
-    top: 6,
-    left: 6,
-    right: 6,
-    bottom: 6,
-    backgroundColor: 'rgba(107, 144, 128, 0.25)', // ✅ Verde fuerte #6B9080 con 25% opacidad
+    inset: 4,
+    backgroundColor: `${colors.gold.DEFAULT}26`, // 15% opacity
     borderRadius: 9999,
     zIndex: 0,
   },
   dayNumber: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.ink.DEFAULT, // ✅ Negro exacto del resto de la app (#374151)
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.ink.DEFAULT,
     zIndex: 1,
   },
   dayNumberInactive: {
     color: colors.ink.light,
-    opacity: 0.3,
   },
   dayNumberCompleted: {
+    fontWeight: '600',
+  },
+  dayNumberSelected: {
+    color: '#FFFFFF',
     fontWeight: '700',
-    color: colors.primary.DEFAULT, // ✅ Verde fuerte #6B9080 solo cuando está completado
   },
 
-  // Legend - ALINEADA EXACTAMENTE CON EL BORDE IZQUIERDO DEL CALENDARIO
-  legend: {
+  // Reading Card
+  readingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginHorizontal: 24,
+    marginBottom: 32,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.ivory.border,
+  },
+  readingCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginLeft: 35, // Exacto mismo margen que calendarContainer
-    marginTop: 32,
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  legendDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 9999,
-    backgroundColor: 'rgba(107, 144, 128, 0.25)', // ✅ Verde fuerte con 25% opacidad
-    borderWidth: 1.5,
-    borderColor: colors.primary.DEFAULT,
+  readingCardStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  legendText: {
-    fontSize: 12,
+  readingCardStatusText: {
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.5,
     color: colors.ink.light,
+    textTransform: 'uppercase',
+  },
+  readingCardStatusPending: {
+    color: colors.charcoal.muted,
+  },
+  readingCardDate: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.ink.light,
+  },
+  readingCardTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.charcoal.dark,
+    fontFamily: 'serif',
+    marginBottom: 8,
+  },
+  readingCardExcerpt: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: colors.ink.light,
+    lineHeight: 20,
+    marginBottom: 16,
+    fontFamily: 'serif',
+  },
+  readingCardDivider: {
+    height: 1,
+    backgroundColor: `${colors.charcoal.muted}20`,
+    marginBottom: 16,
+  },
+  readingCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  readingCardReflection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  readingCardReflectionText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary.DEFAULT,
+  },
+  readingCardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  readingCardButtonText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: colors.burgundy.DEFAULT,
+    textTransform: 'uppercase',
+  },
+  readingCardButtonPrimary: {
+    backgroundColor: colors.primary.DEFAULT,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  readingCardButtonTextPrimary: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: '#FFFFFF',
     textTransform: 'uppercase',
   },
 });

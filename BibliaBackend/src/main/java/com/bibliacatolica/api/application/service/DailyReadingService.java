@@ -38,9 +38,53 @@ public class DailyReadingService implements DailyReadingUseCase {
     @Transactional(readOnly = true)
     public DailyReading getReadingByDate(LocalDate date) {
         log.debug("Obteniendo lectura para fecha: {}", date);
-        return dailyReadingRepository.findByDate(date)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lectura diaria", date.toString()));
+
+        // Intentar obtener lectura existente
+        Optional<DailyReading> existingReading = dailyReadingRepository.findByDate(date);
+
+        if (existingReading.isPresent()) {
+            return existingReading.get();
+        }
+
+        // Si no existe, generar una lectura dinámica basada en la fecha
+        // Usamos el día del año para seleccionar una lectura del pool
+        return generateDynamicReading(date);
+    }
+
+    /**
+     * Genera una lectura dinámica para fechas que no tienen lectura predefinida
+     * Usa el día del año para seleccionar consistentemente la misma lectura para la misma fecha
+     */
+    private DailyReading generateDynamicReading(LocalDate date) {
+        log.debug("Generando lectura dinámica para fecha: {}", date);
+
+        // Obtener todas las lecturas disponibles
+        List<DailyReading> allReadings = dailyReadingRepository.findAll();
+
+        if (allReadings.isEmpty()) {
+            throw new ResourceNotFoundException("Lectura diaria", date.toString());
+        }
+
+        // Usar el día del año para seleccionar consistentemente
+        int dayOfYear = date.getDayOfYear();
+        int index = dayOfYear % allReadings.size();
+
+        DailyReading baseReading = allReadings.get(index);
+
+        // Crear una copia con la fecha solicitada
+        return DailyReading.builder()
+                .id(UUID.nameUUIDFromBytes(("reading-" + date.toString()).getBytes()))
+                .date(date)
+                .title(baseReading.getTitle())
+                .badge(baseReading.getBadge())
+                .imageUrl(baseReading.getImageUrl())
+                .bookId(baseReading.getBookId())
+                .bookName(baseReading.getBookName())
+                .chapterNumber(baseReading.getChapterNumber())
+                .verseNumbers(baseReading.getVerseNumbers())
+                .readingText(baseReading.getReadingText())
+                .officialReflection(baseReading.getOfficialReflection())
+                .build();
     }
 
     @Override

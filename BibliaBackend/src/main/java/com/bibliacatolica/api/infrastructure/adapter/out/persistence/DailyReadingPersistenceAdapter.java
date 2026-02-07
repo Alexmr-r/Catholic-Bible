@@ -40,6 +40,13 @@ public class DailyReadingPersistenceAdapter implements DailyReadingRepositoryPor
     }
 
     @Override
+    public List<DailyReading> findAll() {
+        return dailyReadingRepository.findAll().stream()
+                .map(this::toDailyReadingDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public DailyReading save(DailyReading dailyReading) {
         DailyReadingEntity entity = toDailyReadingEntity(dailyReading);
         DailyReadingEntity saved = dailyReadingRepository.save(entity);

@@ -23,6 +23,10 @@ import WritingDetailScreen from "../screens/WritingDetailScreen";
 import EditWritingScreen from "../screens/EditWritingScreen";
 import ReadingCalendarScreen from "../screens/ReadingCalendarScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import HelpSupportScreen from "../screens/HelpSupportScreen";
+import ReadingSettingsScreen from "../screens/ReadingSettingsScreen";
+import AccountScreen from "../screens/AccountScreen";
+import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 
 // =====================================================
 // 🎯 TIPOS DE NAVEGACIÓN - Mejores Prácticas
@@ -33,6 +37,11 @@ export type RootStackParamList = {
   Auth: undefined;           // Stack de autenticación
   MainTabs: undefined;       // Tab navigator principal
   Profile: undefined;        // Pantalla de perfil
+  Account: undefined;        // Pantalla de mi cuenta
+  ChangePassword: undefined; // Pantalla de cambio de contraseña
+  HelpSupport: undefined;    // Pantalla de ayuda y soporte
+  ReadingSettings: undefined; // Pantalla de ajustes de lectura
+  DailyReading: { date?: string }; // ✅ Agregado para navegar desde calendario
   OldTestament: undefined;   // Pantalla de libros del Antiguo Testamento
   NewTestament: undefined;   // Pantalla de libros del Nuevo Testamento
   BookChapters: {            // Pantalla genérica de capítulos de un libro
@@ -70,6 +79,7 @@ export type RootStackParamList = {
     writingId: string;
     initialTitle: string;
     initialContent: string;
+    bookId?: string; // ✅ Agregado para crear writings desde calendario
     bookName?: string;
     chapter?: number;
     verse?: number;
@@ -87,7 +97,7 @@ export type AuthStackParamList = {
 
 // Tab Navigator (Pantallas principales con bottom bar)
 export type MainTabsParamList = {
-  DailyReading: undefined;
+  DailyReading: { date?: string } | undefined; // Ahora acepta fecha opcional
   BibleSearch: undefined;
   Writings: undefined;
   Favorites: undefined;
@@ -253,6 +263,41 @@ const AppNavigator: React.FC = () => {
         <RootStack.Screen
           name="Profile"
           component={ProfileScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="Account"
+          component={AccountScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="ChangePassword"
+          component={ChangePasswordScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="HelpSupport"
+          component={HelpSupportScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="ReadingSettings"
+          component={ReadingSettingsScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+        <RootStack.Screen
+          name="DailyReading"
+          component={DailyReadingScreen}
           options={{
             animation: 'slide_from_right',
           }}

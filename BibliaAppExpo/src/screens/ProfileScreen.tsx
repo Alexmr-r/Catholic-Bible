@@ -49,27 +49,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
   };
 
   const handleSettingsPress = () => {
-    Alert.alert(
-      'Ajustes de Lectura',
-      'Acceder a configuración de tamaño de letra y temas.',
-      [{text: 'Entendido'}]
-    );
+    navigation.navigate('ReadingSettings');
   };
 
   const handleAccountPress = () => {
-    Alert.alert(
-      'Mi Cuenta',
-      'Gestionar datos personales y perfil.',
-      [{text: 'Entendido'}]
-    );
+    navigation.navigate('Account');
   };
 
   const handleGuidePress = () => {
-    Alert.alert(
-      'Guía y Soporte',
-      'Centro de asistencia y documentación.',
-      [{text: 'Entendido'}]
-    );
+    navigation.navigate('HelpSupport');
   };
 
   return (
