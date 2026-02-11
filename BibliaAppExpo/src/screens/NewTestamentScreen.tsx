@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
@@ -15,7 +14,7 @@ import {NewTestamentScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book as ApiBook} from '../services/bible.service';
 import {useOfflineBible} from '../hooks/useOfflineBible';
 
-type BookCategory = 'Evangelios' | 'Historia' | 'Cartas' | 'Profetico';
+type BookCategory = 'Evangelios' | 'Hechos' | 'Cartas de Pablo' | 'Cartas Católicas' | 'Apocalipsis';
 
 type Book = {
   id: string;
@@ -32,27 +31,34 @@ const mapCategory = (apiCategory: string): BookCategory => {
   const categoryMap: Record<string, BookCategory> = {
     'Evangelios': 'Evangelios',
     'GOSPELS': 'Evangelios',
-    'Historia': 'Historia',
-    'ACTS': 'Historia',
-    'HISTORICAL': 'Historia',
-    'Cartas': 'Cartas',
-    'PAULINE_EPISTLES': 'Cartas',
-    'CATHOLIC_EPISTLES': 'Cartas',
-    'LETTERS': 'Cartas',
-    'Profetico': 'Profetico',
-    'REVELATION': 'Profetico',
-    'PROPHETIC': 'Profetico',
+    'Hechos': 'Hechos',
+    'ACTS': 'Hechos',
+    'HISTORY': 'Hechos', // ✅ Añadido - del backend
+    'HISTORICAL': 'Hechos',
+    'Historia': 'Hechos', // ✅ Añadido - display name del backend
+    'Cartas de Pablo': 'Cartas de Pablo',
+    'PAULINE_EPISTLES': 'Cartas de Pablo',
+    'PAULINE_LETTERS': 'Cartas de Pablo', // ✅ Añadido - del backend
+    'Cartas de San Pablo': 'Cartas de Pablo', // ✅ Añadido - display name del backend
+    'Cartas Católicas': 'Cartas Católicas',
+    'CATHOLIC_EPISTLES': 'Cartas Católicas',
+    'CATHOLIC_LETTERS': 'Cartas Católicas', // ✅ Añadido - del backend
+    'Apocalipsis': 'Apocalipsis',
+    'REVELATION': 'Apocalipsis',
+    'PROPHETIC': 'Apocalipsis', // ✅ Añadido - del backend
+    'Profético': 'Apocalipsis', // ✅ Añadido - display name del backend
   };
-  return categoryMap[apiCategory] || 'Cartas';
+  return categoryMap[apiCategory] || 'Cartas de Pablo';
 };
 
 // Mapeo de colores por categoría
 const getCategoryColor = (category: BookCategory): string => {
   const colorMap: Record<BookCategory, string> = {
     'Evangelios': colors.secondary,
-    'Historia': colors.gold.accent,
-    'Cartas': colors.primary.DEFAULT,
-    'Profetico': colors.charcoal.muted,
+    'Hechos': colors.gold.accent,
+    'Cartas de Pablo': colors.primary.DEFAULT,
+    'Cartas Católicas': colors.primary.accent,
+    'Apocalipsis': colors.burgundy.DEFAULT,
   };
   return colorMap[category];
 };
@@ -148,7 +154,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
     }
   };
 
-  const categories = ['Todo', 'Evangelios', 'Historia', 'Cartas', 'Profetico'];
+  const categories = ['Todo', 'Evangelios', 'Hechos', 'Cartas de Pablo', 'Cartas Católicas', 'Apocalipsis'];
 
   const filteredBooks = books.filter(book => {
     const matchesCategory = selectedCategory === 'Todo' || book.category === selectedCategory;
@@ -169,18 +175,6 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Filtro de libros
-  // TODO: Implementar filtro avanzado
-  // =====================================================
-  const handleFilter = () => {
-    Alert.alert(
-      '🔧 Filtros',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás filtrar por tipo de libro, número de capítulos, etc.',
-      [{text: 'Entendido'}]
-    );
-  };
-
-  // =====================================================
   // ✅ NAVEGACIÓN DINÁMICA - Navega a la pantalla de capítulos
   // =====================================================
   const handleBookPress = (book: Book) => {
@@ -196,9 +190,10 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
   const getCategoryTitle = (category: BookCategory): string => {
     const titles: Record<BookCategory, string> = {
       Evangelios: 'Los Evangelios',
-      Historia: 'Historia',
-      Cartas: 'Cartas de San Pablo',
-      Profetico: 'Profético',
+      Hechos: 'Hechos de los Apóstoles',
+      'Cartas de Pablo': 'Cartas de San Pablo',
+      'Cartas Católicas': 'Cartas Católicas',
+      Apocalipsis: 'Apocalipsis',
     };
     return titles[category] || category;
   };
@@ -214,12 +209,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Nuevo Testamento</Text>
-        <TouchableOpacity
-          onPress={handleFilter}
-          style={styles.filterButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="filter-list" size={24} color={colors.charcoal.dark} />
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Estado de carga */}
@@ -467,12 +457,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 8,
   },
-  filterButton: {
+  headerSpacer: {
     width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
   },
 
   // ScrollView

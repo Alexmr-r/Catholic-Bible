@@ -17,7 +17,7 @@ import {bibleService, Chapter} from '../services/bible.service';
 import {favoritesService} from '../services/favorites.service';
 import {highlightService, Highlight, HighlightColor, getHighlightHex, HIGHLIGHT_COLORS} from '../services/highlights.service';
 import {shareService} from '../services/share.service';
-import {getChapterTitle} from '../data/chapterTitles';
+import {readingHistoryService} from '../services/reading-history.service';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import {useOfflineBible} from '../hooks/useOfflineBible';
 import TextSettingsModal from '../components/TextSettingsModal';
@@ -27,6 +27,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     bookId,
     bookName,
     chapter: initialChapter,
+    testament, // Para historial de lectura
     // Parámetros desde favoritos
     fromFavorite = false, // Si viene de favoritos, ocultar navegación
     favoriteVerseNumber,  // Versículo inicial para filtrar
@@ -145,6 +146,25 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       } else {
         setChapterData(data);
       }
+
+      // ✅ Guardar en historial de lectura (solo si no viene desde favoritos y se tiene testament)
+      console.log('[ChapterReading] Verificando historial:', { fromFavorite, testament, bookId, currentChapter });
+      if (!fromFavorite && testament) {
+        try {
+          console.log('[ChapterReading] Guardando en historial...');
+          await readingHistoryService.addReading({
+            bookId,
+            bookName,
+            chapter: currentChapter,
+            testament,
+          });
+          console.log('[ChapterReading] ✅ Guardado en historial');
+        } catch (err) {
+          console.error('[ChapterReading] Error guardando en historial:', err);
+        }
+      } else {
+        console.log('[ChapterReading] No se guarda: fromFavorite=', fromFavorite, 'testament=', testament);
+      }
     } catch (err: any) {
       console.error('Error cargando capítulo:', err);
       setError('No se pudo cargar el capítulo. Verifica tu conexión.');
@@ -180,13 +200,37 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   // Navegación entre capítulos
   const handlePreviousChapter = () => {
     if (chapterData?.previousChapter) {
-      setCurrentChapter(chapterData.previousChapter.chapter);
+      const prev = chapterData.previousChapter;
+      // Si es el mismo libro, solo cambiamos capítulo
+      if (prev.bookId === bookId) {
+        setCurrentChapter(prev.chapter);
+      } else {
+        // Cambiar de libro - navegar a nueva pantalla
+        navigation.replace('ChapterReading', {
+          bookId: prev.bookId,
+          bookName: prev.bookName,
+          chapter: prev.chapter,
+          testament, // Mantener el testament actual
+        });
+      }
     }
   };
 
   const handleNextChapter = () => {
     if (chapterData?.nextChapter) {
-      setCurrentChapter(chapterData.nextChapter.chapter);
+      const next = chapterData.nextChapter;
+      // Si es el mismo libro, solo cambiamos capítulo
+      if (next.bookId === bookId) {
+        setCurrentChapter(next.chapter);
+      } else {
+        // Cambiar de libro - navegar a nueva pantalla
+        navigation.replace('ChapterReading', {
+          bookId: next.bookId,
+          bookName: next.bookName,
+          chapter: next.chapter,
+          testament, // Mantener el testament actual
+        });
+      }
     }
   };
 
@@ -577,12 +621,12 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         {/* Content */}
         <View style={styles.content}>
           {chapterData.sections.map((section, sectionIndex) => {
-            // Obtener título: usar el de la sección o buscar uno predefinido
-            const displayTitle = section.title || getChapterTitle(bookId, currentChapter);
+            // Usar solo el título del backend (si existe y no está vacío)
+            const displayTitle = section.title && section.title.trim() !== '' ? section.title : null;
 
             return (
             <View key={sectionIndex} style={styles.section}>
-              {/* Section Title */}
+              {/* Section Title - Solo mostrar si existe */}
               {displayTitle && (
               <View style={styles.sectionHeader}>
                 <Text
@@ -654,27 +698,39 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
           {/* Navigation Buttons - Solo mostrar si NO viene desde favoritos */}
           {!fromFavorite && (
             <View style={styles.navigationButtons}>
-              <TouchableOpacity
-                style={styles.navButton}
-                onPress={handlePreviousChapter}
-                activeOpacity={0.7}>
-                <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.muted} />
-                <View style={styles.navButtonText}>
-                  <Text style={styles.navButtonLabel}>ANTERIOR</Text>
-                  <Text style={styles.navButtonTitle}>Malaquías</Text>
-                </View>
-              </TouchableOpacity>
+              {chapterData.previousChapter ? (
+                <TouchableOpacity
+                  style={styles.navButton}
+                  onPress={handlePreviousChapter}
+                  activeOpacity={0.7}>
+                  <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.muted} />
+                  <View style={styles.navButtonText}>
+                    <Text style={styles.navButtonLabel}>ANTERIOR</Text>
+                    <Text style={styles.navButtonTitle}>
+                      {chapterData.previousChapter.bookName} {chapterData.previousChapter.chapter}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.navButton} />
+              )}
 
-              <TouchableOpacity
-                style={[styles.navButton, styles.navButtonRight]}
-                onPress={handleNextChapter}
-                activeOpacity={0.7}>
-                <View style={[styles.navButtonText, styles.navButtonTextRight]}>
-                  <Text style={styles.navButtonLabel}>SIGUIENTE</Text>
-                  <Text style={styles.navButtonTitle}>San Mateo 2</Text>
-                </View>
-                <MaterialIcons name="arrow-forward" size={20} color={colors.charcoal.muted} />
-              </TouchableOpacity>
+              {chapterData.nextChapter ? (
+                <TouchableOpacity
+                  style={[styles.navButton, styles.navButtonRight]}
+                  onPress={handleNextChapter}
+                  activeOpacity={0.7}>
+                  <View style={[styles.navButtonText, styles.navButtonTextRight]}>
+                    <Text style={styles.navButtonLabel}>SIGUIENTE</Text>
+                    <Text style={styles.navButtonTitle}>
+                      {chapterData.nextChapter.bookName} {chapterData.nextChapter.chapter}
+                    </Text>
+                  </View>
+                  <MaterialIcons name="arrow-forward" size={20} color={colors.charcoal.muted} />
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.navButton} />
+              )}
             </View>
           )}
         </View>

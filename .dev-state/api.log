@@ -34,75 +34,75 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.5)
 
-2026-02-11T19:38:53.099+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Starting BibliaApiApplication using Java 21.0.9 with PID 48473 (/Users/mrrobot/IdeaProjects/Biblia/BibliaBackend/target/classes started by mrrobot in /Users/mrrobot/IdeaProjects/Biblia/BibliaBackend)
-2026-02-11T19:38:53.100+01:00 DEBUG 48473 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Running with Spring Boot v3.2.5, Spring v6.1.6
-2026-02-11T19:38:53.100+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : The following 1 profile is active: "dev"
-2026-02-11T19:38:53.113+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
-2026-02-11T19:38:53.113+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
-2026-02-11T19:38:53.489+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-02-11T19:38:53.517+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 10 JPA repository interfaces.
-2026-02-11T19:38:53.822+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2026-02-11T19:38:53.828+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-02-11T19:38:53.828+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
-2026-02-11T19:38:53.846+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring embedded WebApplicationContext
-2026-02-11T19:38:53.846+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 732 ms
-2026-02-11T19:38:53.987+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-02-11T19:38:54.047+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@c82e157
-2026-02-11T19:38:54.047+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-02-11T19:38:54.057+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/biblia_db (PostgreSQL 16.11)
-2026-02-11T19:38:54.092+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 5
-2026-02-11T19:38:54.092+01:00  WARN 48473 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : outOfOrder mode is active. Migration of schema "public" may not be reproducible.
-2026-02-11T19:38:54.093+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2026-02-11T19:38:54.133+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-02-11T19:38:54.150+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
-2026-02-11T19:38:54.160+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-02-11T19:38:54.233+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-02-11T19:38:54.250+01:00  WARN 48473 --- [Biblia Católica API] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-02-11T19:38:54.665+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-02-11T19:38:54.683+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-02-11T19:38:54.832+01:00 DEBUG 48473 --- [Biblia Católica API] [  restartedMain] c.b.a.i.c.s.JwtAuthenticationFilter      : Filter 'jwtAuthenticationFilter' configured for use
-2026-02-11T19:38:54.875+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-02-11T19:38:55.699+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoint(s) beneath base path '/actuator'
-2026-02-11T19:38:55.744+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@5e95fb0f, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@698bb491, org.springframework.security.web.context.SecurityContextHolderFilter@688e98d7, org.springframework.security.web.header.HeaderWriterFilter@612345c4, org.springframework.web.filter.CorsFilter@42e25c99, org.springframework.security.web.authentication.logout.LogoutFilter@2f7b2b71, com.bibliacatolica.api.infrastructure.config.security.JwtAuthenticationFilter@42970924, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@6e80fd83, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@5a7ac035, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@53eca518, org.springframework.security.web.session.SessionManagementFilter@647d2cc8, org.springframework.security.web.access.ExceptionTranslationFilter@6a9f7191, org.springframework.security.web.access.intercept.AuthorizationFilter@3ad04a7b]
-2026-02-11T19:38:55.984+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
-2026-02-11T19:38:56.012+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/api/v1'
-2026-02-11T19:38:56.021+01:00  INFO 48473 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Started BibliaApiApplication in 3.05 seconds (process running for 3.186)
-2026-02-11T19:38:56.810+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-02-11T19:38:56.810+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-02-11T19:38:56.811+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-2026-02-11T19:38:56.820+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /actuator/health
-2026-02-11T19:38:56.824+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.827+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /actuator/health
-2026-02-11T19:38:56.947+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui.html
-2026-02-11T19:38:56.948+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.948+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui.html
-2026-02-11T19:38:56.959+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/index.html
-2026-02-11T19:38:56.959+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.959+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/index.html
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui.css
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/index.css
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui-bundle.js
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui.css
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-initializer.js
-2026-02-11T19:38:56.967+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui-bundle.js
-2026-02-11T19:38:56.968+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/index.css
-2026-02-11T19:38:56.968+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui-standalone-preset.js
-2026-02-11T19:38:56.968+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.968+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:56.968+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-initializer.js
-2026-02-11T19:38:56.968+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui-standalone-preset.js
-2026-02-11T19:38:57.029+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /api-docs/swagger-config
-2026-02-11T19:38:57.030+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:57.030+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /api-docs/swagger-config
-2026-02-11T19:38:57.040+01:00 DEBUG 48473 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api-docs
-2026-02-11T19:38:57.041+01:00 DEBUG 48473 --- [Biblia Católica API] [.0-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
-2026-02-11T19:38:57.041+01:00 DEBUG 48473 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api-docs
-2026-02-11T19:38:57.240+01:00  INFO 48473 --- [Biblia Católica API] [.0-8080-exec-10] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 195 ms
-2026-02-11T19:39:05.220+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /auth/me
-2026-02-11T19:39:05.294+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+2026-02-11T20:55:11.031+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Starting BibliaApiApplication using Java 21.0.9 with PID 52552 (/Users/mrrobot/IdeaProjects/Biblia/BibliaBackend/target/classes started by mrrobot in /Users/mrrobot/IdeaProjects/Biblia/BibliaBackend)
+2026-02-11T20:55:11.032+01:00 DEBUG 52552 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-02-11T20:55:11.032+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : The following 1 profile is active: "dev"
+2026-02-11T20:55:11.047+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-02-11T20:55:11.047+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-02-11T20:55:11.418+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-11T20:55:11.444+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 10 JPA repository interfaces.
+2026-02-11T20:55:11.747+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-02-11T20:55:11.753+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-11T20:55:11.753+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-02-11T20:55:11.769+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring embedded WebApplicationContext
+2026-02-11T20:55:11.769+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 722 ms
+2026-02-11T20:55:11.908+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-02-11T20:55:11.969+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1e101208
+2026-02-11T20:55:11.969+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-02-11T20:55:11.979+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/biblia_db (PostgreSQL 16.11)
+2026-02-11T20:55:12.013+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 5
+2026-02-11T20:55:12.014+01:00  WARN 52552 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : outOfOrder mode is active. Migration of schema "public" may not be reproducible.
+2026-02-11T20:55:12.015+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-02-11T20:55:12.054+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-02-11T20:55:12.071+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-02-11T20:55:12.081+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-02-11T20:55:12.147+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-11T20:55:12.162+01:00  WARN 52552 --- [Biblia Católica API] [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-02-11T20:55:12.583+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-02-11T20:55:12.601+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-11T20:55:12.748+01:00 DEBUG 52552 --- [Biblia Católica API] [  restartedMain] c.b.a.i.c.s.JwtAuthenticationFilter      : Filter 'jwtAuthenticationFilter' configured for use
+2026-02-11T20:55:12.785+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-02-11T20:55:13.547+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoint(s) beneath base path '/actuator'
+2026-02-11T20:55:13.595+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@61df0be0, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@591e222e, org.springframework.security.web.context.SecurityContextHolderFilter@c03312b, org.springframework.security.web.header.HeaderWriterFilter@1f21e944, org.springframework.web.filter.CorsFilter@7e961aed, org.springframework.security.web.authentication.logout.LogoutFilter@7dd21df9, com.bibliacatolica.api.infrastructure.config.security.JwtAuthenticationFilter@77fad475, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@2cc10402, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3007b413, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@11937504, org.springframework.security.web.session.SessionManagementFilter@dc18925, org.springframework.security.web.access.ExceptionTranslationFilter@dbbd1ed, org.springframework.security.web.access.intercept.AuthorizationFilter@3879c5f3]
+2026-02-11T20:55:13.824+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-02-11T20:55:13.857+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/api/v1'
+2026-02-11T20:55:13.864+01:00  INFO 52552 --- [Biblia Católica API] [  restartedMain] c.b.api.BibliaApiApplication             : Started BibliaApiApplication in 2.969 seconds (process running for 3.107)
+2026-02-11T20:55:14.654+01:00  INFO 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.a.c.c.C.[.[localhost].[/api/v1]        : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11T20:55:14.654+01:00  INFO 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-02-11T20:55:14.655+01:00  INFO 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-02-11T20:55:14.661+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /actuator/health
+2026-02-11T20:55:14.665+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.666+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /actuator/health
+2026-02-11T20:55:14.779+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui.html
+2026-02-11T20:55:14.779+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.780+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui.html
+2026-02-11T20:55:14.791+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/index.html
+2026-02-11T20:55:14.791+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.791+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/index.html
+2026-02-11T20:55:14.799+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui.css
+2026-02-11T20:55:14.799+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui-standalone-preset.js
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-ui-bundle.js
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/index.css
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui.css
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui-standalone-preset.js
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /swagger-ui/swagger-initializer.js
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-ui-bundle.js
+2026-02-11T20:55:14.800+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.801+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.801+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/index.css
+2026-02-11T20:55:14.801+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /swagger-ui/swagger-initializer.js
+2026-02-11T20:55:14.860+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api-docs/swagger-config
+2026-02-11T20:55:14.860+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.861+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api-docs/swagger-config
+2026-02-11T20:55:14.871+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api-docs
+2026-02-11T20:55:14.872+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-02-11T20:55:14.872+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /api-docs
+2026-02-11T20:55:15.076+01:00  INFO 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 201 ms
+2026-02-11T20:57:33.580+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /auth/me
+2026-02-11T20:57:33.649+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -130,9 +130,9 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:05.302+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:05.302+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /auth/me
-2026-02-11T19:39:05.308+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+2026-02-11T20:57:33.655+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:57:33.656+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /auth/me
+2026-02-11T20:57:33.661+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -160,8 +160,8 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.id=?
-2026-02-11T19:39:19.279+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing POST /auth/login
-2026-02-11T19:39:19.285+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+2026-02-11T20:57:45.890+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing POST /auth/login
+2026-02-11T20:57:45.896+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -189,11 +189,11 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:19.288+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:19.288+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured POST /auth/login
-2026-02-11T19:39:19.315+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.a.i.r.controller.AuthController  : Solicitud de login para: zelzeusyt2002@gmail.com
-2026-02-11T19:39:19.316+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.a.service.AuthenticationService    : Intento de login para: zelzeusyt2002@gmail.com
-2026-02-11T19:39:19.316+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+2026-02-11T20:57:45.899+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:57:45.900+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured POST /auth/login
+2026-02-11T20:57:45.926+01:00  INFO 52552 --- [Biblia Católica API] [0.0-8080-exec-9] c.b.a.i.a.i.r.controller.AuthController  : Solicitud de login para: zelzeusyt2002@gmail.com
+2026-02-11T20:57:45.926+01:00  INFO 52552 --- [Biblia Católica API] [0.0-8080-exec-9] c.b.a.a.service.AuthenticationService    : Intento de login para: zelzeusyt2002@gmail.com
+2026-02-11T20:57:45.927+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -221,9 +221,9 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:19.397+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.a.service.AuthenticationService    : Login exitoso para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:19.534+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /daily-reading/today
-2026-02-11T19:39:19.536+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
+2026-02-11T20:57:46.009+01:00  INFO 52552 --- [Biblia Católica API] [0.0-8080-exec-9] c.b.a.a.service.AuthenticationService    : Login exitoso para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:57:46.172+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /daily-reading/today
+2026-02-11T20:57:46.174+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -251,12 +251,12 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:19.537+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:19.537+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /daily-reading/today
-2026-02-11T19:39:19.538+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.i.a.i.r.c.DailyReadingController   : Obteniendo lectura del día
-2026-02-11T19:39:19.538+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.a.service.DailyReadingService      : Obteniendo lectura del día
-2026-02-11T19:39:19.538+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.a.service.DailyReadingService      : Obteniendo lectura para fecha: 2026-02-11
-2026-02-11T19:39:19.539+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
+2026-02-11T20:57:46.175+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:57:46.175+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /daily-reading/today
+2026-02-11T20:57:46.176+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.a.i.r.c.DailyReadingController   : Obteniendo lectura del día
+2026-02-11T20:57:46.176+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.a.service.DailyReadingService      : Obteniendo lectura del día
+2026-02-11T20:57:46.176+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.a.service.DailyReadingService      : Obteniendo lectura para fecha: 2026-02-11
+2026-02-11T20:57:46.177+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
     select
         dre1_0.id,
         dre1_0.badge,
@@ -290,8 +290,8 @@ Hibernate:
         daily_readings dre1_0 
     where
         dre1_0.date=?
-2026-02-11T19:39:19.565+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /writings?bookId=luke
-2026-02-11T19:39:19.567+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+2026-02-11T20:57:46.210+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /writings?bookId=luke
+2026-02-11T20:57:46.211+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -319,9 +319,9 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:19.568+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:19.568+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /writings?bookId=luke
-2026-02-11T19:39:19.570+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+2026-02-11T20:57:46.212+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:57:46.212+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /writings?bookId=luke
+2026-02-11T20:57:46.214+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -349,9 +349,9 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:19.571+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.a.i.r.c.WritingController        : Obteniendo escritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:19.571+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.a.service.WritingService           : Obteniendo escritos del usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 con filtro
-2026-02-11T19:39:19.580+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+2026-02-11T20:57:46.215+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] c.b.a.i.a.i.r.c.WritingController        : Obteniendo escritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:57:46.215+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] c.b.a.a.service.WritingService           : Obteniendo escritos del usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 con filtro
+2026-02-11T20:57:46.223+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] org.hibernate.SQL                        : 
     SELECT
         * 
     FROM
@@ -367,8 +367,8 @@ Hibernate:
     WHERE
         w.user_id = ? 
         AND w.verse_reference->>'bookId' = ?
-2026-02-11T19:39:27.337+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /favorites
-2026-02-11T19:39:27.339+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+2026-02-11T20:58:00.944+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /writings?sortBy=recent
+2026-02-11T20:58:00.950+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -396,9 +396,10 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:27.340+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:27.340+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /favorites
-2026-02-11T19:39:27.341+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+2026-02-11T20:58:00.952+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /writings?sortBy=recent
+2026-02-11T20:58:00.954+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:00.954+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /writings?sortBy=recent
+2026-02-11T20:58:00.955+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -426,9 +427,259 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:27.342+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.i.a.i.r.c.FavoriteController       : Obteniendo favoritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:27.342+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.a.service.FavoriteService          : Obteniendo favoritos del usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:27.343+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
+2026-02-11T20:58:00.956+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:00.956+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:00.956+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /writings?sortBy=recent
+2026-02-11T20:58:00.957+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:00.958+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.a.i.r.c.WritingController        : Obteniendo escritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:00.958+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.a.service.WritingService           : Obteniendo escritos del usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 con filtro
+2026-02-11T20:58:00.958+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.a.i.r.c.WritingController        : Obteniendo escritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:00.958+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.a.service.WritingService           : Obteniendo escritos del usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 con filtro
+2026-02-11T20:58:00.959+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+Hibernate: 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+2026-02-11T20:58:00.959+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+Hibernate: 
+    select
+        we1_0.id,
+        we1_0.content,
+        we1_0.created_at,
+        we1_0.is_favorite,
+        we1_0.tags,
+        we1_0.title,
+        we1_0.updated_at,
+        we1_0.user_id,
+        we1_0.verse_reference 
+    from
+        writings we1_0 
+    where
+        we1_0.user_id=? 
+    order by
+        we1_0.updated_at desc
+2026-02-11T20:58:02.993+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /favorites
+2026-02-11T20:58:02.993+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /favorites
+2026-02-11T20:58:02.998+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:02.998+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:03.002+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:03.002+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:03.003+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /favorites
+2026-02-11T20:58:03.003+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /favorites
+2026-02-11T20:58:03.004+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:03.004+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:03.006+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.i.a.i.r.c.FavoriteController       : Obteniendo favoritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:03.006+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.a.i.r.c.FavoriteController       : Obteniendo favoritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:03.006+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] c.b.a.a.service.FavoriteService          : Obteniendo favoritos del usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:03.006+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.a.service.FavoriteService          : Obteniendo favoritos del usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:03.007+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-3] org.hibernate.SQL                        : 
     select
         fe1_0.id,
         fe1_0.book_id,
@@ -464,68 +715,7 @@ Hibernate:
         fe1_0.user_id=? 
     order by
         fe1_0.created_at desc
-2026-02-11T19:39:27.345+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /favorites
-2026-02-11T19:39:27.346+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
-    select
-        ue1_0.id,
-        ue1_0.active,
-        ue1_0.created_at,
-        ue1_0.email,
-        ue1_0.email_verified,
-        ue1_0.full_name,
-        ue1_0.password_hash,
-        ue1_0.updated_at 
-    from
-        users ue1_0 
-    where
-        ue1_0.email=?
-Hibernate: 
-    select
-        ue1_0.id,
-        ue1_0.active,
-        ue1_0.created_at,
-        ue1_0.email,
-        ue1_0.email_verified,
-        ue1_0.full_name,
-        ue1_0.password_hash,
-        ue1_0.updated_at 
-    from
-        users ue1_0 
-    where
-        ue1_0.email=?
-2026-02-11T19:39:27.347+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:27.347+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /favorites
-2026-02-11T19:39:27.347+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
-    select
-        ue1_0.id,
-        ue1_0.active,
-        ue1_0.created_at,
-        ue1_0.email,
-        ue1_0.email_verified,
-        ue1_0.full_name,
-        ue1_0.password_hash,
-        ue1_0.updated_at 
-    from
-        users ue1_0 
-    where
-        ue1_0.email=?
-Hibernate: 
-    select
-        ue1_0.id,
-        ue1_0.active,
-        ue1_0.created_at,
-        ue1_0.email,
-        ue1_0.email_verified,
-        ue1_0.full_name,
-        ue1_0.password_hash,
-        ue1_0.updated_at 
-    from
-        users ue1_0 
-    where
-        ue1_0.email=?
-2026-02-11T19:39:27.348+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.a.i.r.c.FavoriteController       : Obteniendo favoritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:27.348+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.a.service.FavoriteService          : Obteniendo favoritos del usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:27.349+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
+2026-02-11T20:58:03.007+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
     select
         fe1_0.id,
         fe1_0.book_id,
@@ -561,8 +751,8 @@ Hibernate:
         fe1_0.user_id=? 
     order by
         fe1_0.created_at desc
-2026-02-11T19:39:27.976+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/genesis/chapters/1
-2026-02-11T19:39:27.980+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.426+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/genesis/chapters/1
+2026-02-11T20:58:04.431+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -590,11 +780,11 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:27.981+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:27.982+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/genesis/chapters/1
-2026-02-11T19:39:27.984+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] c.b.a.i.a.i.r.c.BibleController          : Obteniendo capítulo 1 de genesis
-2026-02-11T19:39:27.985+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] c.b.a.application.service.BibleService   : Obteniendo capítulo genesis.1
-2026-02-11T19:39:27.989+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.435+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:04.435+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/genesis/chapters/1
+2026-02-11T20:58:04.438+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] c.b.a.i.a.i.r.c.BibleController          : Obteniendo capítulo 1 de genesis
+2026-02-11T20:58:04.439+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] c.b.a.application.service.BibleService   : Obteniendo capítulo genesis.1
+2026-02-11T20:58:04.443+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
     select
         ce1_0.id,
         ce1_0.book_id,
@@ -616,7 +806,7 @@ Hibernate:
     where
         ce1_0.book_id=? 
         and ce1_0.chapter_number=?
-2026-02-11T19:39:27.996+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.448+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
     select
         be1_0.id,
         be1_0.abbreviation,
@@ -648,7 +838,7 @@ Hibernate:
         books be1_0 
     where
         be1_0.id=?
-2026-02-11T19:39:28.000+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.451+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
     select
         s1_0.chapter_id,
         s1_0.id,
@@ -672,7 +862,7 @@ Hibernate:
         s1_0.chapter_id=? 
     order by
         s1_0.order_index
-2026-02-11T19:39:28.002+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.453+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-8] org.hibernate.SQL                        : 
     select
         v1_0.section_id,
         v1_0.id,
@@ -700,8 +890,8 @@ Hibernate:
         v1_0.section_id=? 
     order by
         v1_0.verse_number
-2026-02-11T19:39:28.086+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /highlights/chapter?bookId=genesis&chapter=1
-2026-02-11T19:39:28.091+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.639+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /highlights/chapter?bookId=genesis&chapter=1
+2026-02-11T20:58:04.644+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -729,9 +919,9 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:28.093+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:28.093+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /highlights/chapter?bookId=genesis&chapter=1
-2026-02-11T19:39:28.096+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.647+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:04.647+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /highlights/chapter?bookId=genesis&chapter=1
+2026-02-11T20:58:04.651+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -759,9 +949,9 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:28.097+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.i.a.i.r.c.HighlightController      : Obteniendo resaltados del capítulo genesis 1 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:28.098+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.a.service.HighlightService         : Obteniendo resaltados del capítulo genesis.1 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:39:28.099+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
+2026-02-11T20:58:04.653+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.i.a.i.r.c.HighlightController      : Obteniendo resaltados del capítulo genesis 1 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:04.653+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] c.b.a.a.service.HighlightService         : Obteniendo resaltados del capítulo genesis.1 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:04.654+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-4] org.hibernate.SQL                        : 
     select
         he1_0.id,
         he1_0.book_id,
@@ -791,8 +981,8 @@ Hibernate:
         he1_0.user_id=? 
         and he1_0.book_id=? 
         and he1_0.chapter_number=?
-2026-02-11T19:39:45.362+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing POST /favorites
-2026-02-11T19:39:45.367+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+2026-02-11T20:58:06.032+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/new-testament
+2026-02-11T20:58:06.038+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -820,9 +1010,48 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:45.370+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:39:45.371+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured POST /favorites
-2026-02-11T19:39:45.380+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+2026-02-11T20:58:06.043+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:06.043+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/new-testament
+2026-02-11T20:58:06.044+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.i.a.i.r.c.BibleController          : Obteniendo libros del Nuevo Testamento
+2026-02-11T20:58:06.044+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.application.service.BibleService   : Obteniendo libros del testamento: NEW
+2026-02-11T20:58:06.045+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.testament=? 
+    order by
+        be1_0.order_index
+Hibernate: 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.testament=? 
+    order by
+        be1_0.order_index
+2026-02-11T20:58:07.396+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/acts
+2026-02-11T20:58:07.400+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -850,49 +1079,11 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:39:45.381+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.a.i.r.c.FavoriteController       : Usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 agregando favorito: genesis 1:1
-2026-02-11T19:39:45.381+01:00  INFO 48473 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.a.service.FavoriteService          : Usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73 agregando favorito: genesis 1:1
-2026-02-11T19:39:45.382+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
-    select
-        ve1_0.id,
-        ve1_0.has_note,
-        ve1_0.note_text,
-        ve1_0.section_id,
-        ve1_0.text,
-        ve1_0.verse_number 
-    from
-        verses ve1_0 
-    join
-        sections s1_0 
-            on s1_0.id=ve1_0.section_id 
-    join
-        chapters c1_0 
-            on c1_0.id=s1_0.chapter_id 
-    where
-        c1_0.book_id=? 
-        and c1_0.chapter_number=? 
-        and ve1_0.verse_number=?
-Hibernate: 
-    select
-        ve1_0.id,
-        ve1_0.has_note,
-        ve1_0.note_text,
-        ve1_0.section_id,
-        ve1_0.text,
-        ve1_0.verse_number 
-    from
-        verses ve1_0 
-    join
-        sections s1_0 
-            on s1_0.id=ve1_0.section_id 
-    join
-        chapters c1_0 
-            on c1_0.id=s1_0.chapter_id 
-    where
-        c1_0.book_id=? 
-        and c1_0.chapter_number=? 
-        and ve1_0.verse_number=?
-2026-02-11T19:39:45.384+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+2026-02-11T20:58:07.402+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:07.403+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/acts
+2026-02-11T20:58:07.404+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] c.b.a.i.a.i.r.c.BibleController          : Obteniendo libro: acts
+2026-02-11T20:58:07.404+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] c.b.a.application.service.BibleService   : Obteniendo libro: acts
+2026-02-11T20:58:07.405+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-9] org.hibernate.SQL                        : 
     select
         be1_0.id,
         be1_0.abbreviation,
@@ -924,54 +1115,8 @@ Hibernate:
         books be1_0 
     where
         be1_0.id=?
-2026-02-11T19:39:45.386+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
-    select
-        fe1_0.id,
-        fe1_0.book_id,
-        fe1_0.book_name,
-        fe1_0.chapter_number,
-        fe1_0.created_at,
-        fe1_0.note,
-        fe1_0.tags,
-        fe1_0.user_id,
-        fe1_0.verse_number,
-        fe1_0.verse_text 
-    from
-        favorites fe1_0 
-    where
-        fe1_0.id=?
-Hibernate: 
-    select
-        fe1_0.id,
-        fe1_0.book_id,
-        fe1_0.book_name,
-        fe1_0.chapter_number,
-        fe1_0.created_at,
-        fe1_0.note,
-        fe1_0.tags,
-        fe1_0.user_id,
-        fe1_0.verse_number,
-        fe1_0.verse_text 
-    from
-        favorites fe1_0 
-    where
-        fe1_0.id=?
-2026-02-11T19:39:45.395+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
-    insert 
-    into
-        favorites
-        (book_id, book_name, chapter_number, created_at, note, tags, user_id, verse_number, verse_text, id) 
-    values
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-Hibernate: 
-    insert 
-    into
-        favorites
-        (book_id, book_name, chapter_number, created_at, note, tags, user_id, verse_number, verse_text, id) 
-    values
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-2026-02-11T19:40:00.040+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /favorites
-2026-02-11T19:40:00.044+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
+2026-02-11T20:58:08.691+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/acts/chapters/2
+2026-02-11T20:58:08.695+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
     select
         ue1_0.id,
         ue1_0.active,
@@ -999,71 +1144,503 @@ Hibernate:
         users ue1_0 
     where
         ue1_0.email=?
-2026-02-11T19:40:00.047+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
-2026-02-11T19:40:00.048+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /favorites
-2026-02-11T19:40:00.050+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
+2026-02-11T20:58:08.698+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:08.698+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/acts/chapters/2
+2026-02-11T20:58:08.699+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.i.a.i.r.c.BibleController          : Obteniendo capítulo 2 de acts
+2026-02-11T20:58:08.700+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] c.b.a.application.service.BibleService   : Obteniendo capítulo acts.2
+2026-02-11T20:58:08.702+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
     select
-        ue1_0.id,
-        ue1_0.active,
-        ue1_0.created_at,
-        ue1_0.email,
-        ue1_0.email_verified,
-        ue1_0.full_name,
-        ue1_0.password_hash,
-        ue1_0.updated_at 
+        ce1_0.id,
+        ce1_0.book_id,
+        ce1_0.chapter_number,
+        ce1_0.version 
     from
-        users ue1_0 
+        chapters ce1_0 
     where
-        ue1_0.email=?
+        ce1_0.book_id=? 
+        and ce1_0.chapter_number=?
 Hibernate: 
     select
-        ue1_0.id,
-        ue1_0.active,
-        ue1_0.created_at,
-        ue1_0.email,
-        ue1_0.email_verified,
-        ue1_0.full_name,
-        ue1_0.password_hash,
-        ue1_0.updated_at 
+        ce1_0.id,
+        ce1_0.book_id,
+        ce1_0.chapter_number,
+        ce1_0.version 
     from
-        users ue1_0 
+        chapters ce1_0 
     where
-        ue1_0.email=?
-2026-02-11T19:40:00.051+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.i.a.i.r.c.FavoriteController       : Obteniendo favoritos para usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:40:00.051+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] c.b.a.a.service.FavoriteService          : Obteniendo favoritos del usuario: c324341e-68e2-4c35-a6e3-99a1f23e8d73
-2026-02-11T19:40:00.053+01:00 DEBUG 48473 --- [Biblia Católica API] [0.0-8080-exec-6] org.hibernate.SQL                        : 
+        ce1_0.book_id=? 
+        and ce1_0.chapter_number=?
+2026-02-11T20:58:08.703+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
     select
-        fe1_0.id,
-        fe1_0.book_id,
-        fe1_0.book_name,
-        fe1_0.chapter_number,
-        fe1_0.created_at,
-        fe1_0.note,
-        fe1_0.tags,
-        fe1_0.user_id,
-        fe1_0.verse_number,
-        fe1_0.verse_text 
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
     from
-        favorites fe1_0 
+        books be1_0 
     where
-        fe1_0.user_id=? 
+        be1_0.id=?
+Hibernate: 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.id=?
+2026-02-11T20:58:08.705+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
+    select
+        s1_0.chapter_id,
+        s1_0.id,
+        s1_0.order_index,
+        s1_0.title 
+    from
+        sections s1_0 
+    where
+        s1_0.chapter_id=? 
     order by
-        fe1_0.created_at desc
+        s1_0.order_index
 Hibernate: 
     select
-        fe1_0.id,
-        fe1_0.book_id,
-        fe1_0.book_name,
-        fe1_0.chapter_number,
-        fe1_0.created_at,
-        fe1_0.note,
-        fe1_0.tags,
-        fe1_0.user_id,
-        fe1_0.verse_number,
-        fe1_0.verse_text 
+        s1_0.chapter_id,
+        s1_0.id,
+        s1_0.order_index,
+        s1_0.title 
     from
-        favorites fe1_0 
+        sections s1_0 
     where
-        fe1_0.user_id=? 
+        s1_0.chapter_id=? 
     order by
-        fe1_0.created_at desc
+        s1_0.order_index
+2026-02-11T20:58:08.706+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-7] org.hibernate.SQL                        : 
+    select
+        v1_0.section_id,
+        v1_0.id,
+        v1_0.has_note,
+        v1_0.note_text,
+        v1_0.text,
+        v1_0.verse_number 
+    from
+        verses v1_0 
+    where
+        v1_0.section_id=? 
+    order by
+        v1_0.verse_number
+Hibernate: 
+    select
+        v1_0.section_id,
+        v1_0.id,
+        v1_0.has_note,
+        v1_0.note_text,
+        v1_0.text,
+        v1_0.verse_number 
+    from
+        verses v1_0 
+    where
+        v1_0.section_id=? 
+    order by
+        v1_0.verse_number
+2026-02-11T20:58:08.902+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /highlights/chapter?bookId=acts&chapter=2
+2026-02-11T20:58:08.906+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:08.908+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:08.909+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /highlights/chapter?bookId=acts&chapter=2
+2026-02-11T20:58:08.911+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:08.912+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] c.b.a.i.a.i.r.c.HighlightController      : Obteniendo resaltados del capítulo acts 2 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:08.913+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] c.b.a.a.service.HighlightService         : Obteniendo resaltados del capítulo acts.2 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:08.914+01:00 DEBUG 52552 --- [Biblia Católica API] [.0-8080-exec-10] org.hibernate.SQL                        : 
+    select
+        he1_0.id,
+        he1_0.book_id,
+        he1_0.chapter_number,
+        he1_0.color,
+        he1_0.created_at,
+        he1_0.user_id,
+        he1_0.verse_number 
+    from
+        highlights he1_0 
+    where
+        he1_0.user_id=? 
+        and he1_0.book_id=? 
+        and he1_0.chapter_number=?
+Hibernate: 
+    select
+        he1_0.id,
+        he1_0.book_id,
+        he1_0.chapter_number,
+        he1_0.color,
+        he1_0.created_at,
+        he1_0.user_id,
+        he1_0.verse_number 
+    from
+        highlights he1_0 
+    where
+        he1_0.user_id=? 
+        and he1_0.book_id=? 
+        and he1_0.chapter_number=?
+2026-02-11T20:58:12.518+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/acts/chapters/2
+2026-02-11T20:58:12.524+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:12.527+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:12.528+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/acts/chapters/2
+2026-02-11T20:58:12.529+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.i.a.i.r.c.BibleController          : Obteniendo capítulo 2 de acts
+2026-02-11T20:58:12.529+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] c.b.a.application.service.BibleService   : Obteniendo capítulo acts.2
+2026-02-11T20:58:12.530+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        ce1_0.id,
+        ce1_0.book_id,
+        ce1_0.chapter_number,
+        ce1_0.version 
+    from
+        chapters ce1_0 
+    where
+        ce1_0.book_id=? 
+        and ce1_0.chapter_number=?
+Hibernate: 
+    select
+        ce1_0.id,
+        ce1_0.book_id,
+        ce1_0.chapter_number,
+        ce1_0.version 
+    from
+        chapters ce1_0 
+    where
+        ce1_0.book_id=? 
+        and ce1_0.chapter_number=?
+2026-02-11T20:58:12.531+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.id=?
+Hibernate: 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.id=?
+2026-02-11T20:58:12.532+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        s1_0.chapter_id,
+        s1_0.id,
+        s1_0.order_index,
+        s1_0.title 
+    from
+        sections s1_0 
+    where
+        s1_0.chapter_id=? 
+    order by
+        s1_0.order_index
+Hibernate: 
+    select
+        s1_0.chapter_id,
+        s1_0.id,
+        s1_0.order_index,
+        s1_0.title 
+    from
+        sections s1_0 
+    where
+        s1_0.chapter_id=? 
+    order by
+        s1_0.order_index
+2026-02-11T20:58:12.533+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-2] org.hibernate.SQL                        : 
+    select
+        v1_0.section_id,
+        v1_0.id,
+        v1_0.has_note,
+        v1_0.note_text,
+        v1_0.text,
+        v1_0.verse_number 
+    from
+        verses v1_0 
+    where
+        v1_0.section_id=? 
+    order by
+        v1_0.verse_number
+Hibernate: 
+    select
+        v1_0.section_id,
+        v1_0.id,
+        v1_0.has_note,
+        v1_0.note_text,
+        v1_0.text,
+        v1_0.verse_number 
+    from
+        verses v1_0 
+    where
+        v1_0.section_id=? 
+    order by
+        v1_0.verse_number
+2026-02-11T20:58:12.705+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /highlights/chapter?bookId=acts&chapter=2
+2026-02-11T20:58:12.711+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:12.715+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:12.715+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /highlights/chapter?bookId=acts&chapter=2
+2026-02-11T20:58:12.716+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:12.717+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.i.a.i.r.c.HighlightController      : Obteniendo resaltados del capítulo acts 2 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:12.717+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] c.b.a.a.service.HighlightService         : Obteniendo resaltados del capítulo acts.2 para usuario c324341e-68e2-4c35-a6e3-99a1f23e8d73
+2026-02-11T20:58:12.718+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-1] org.hibernate.SQL                        : 
+    select
+        he1_0.id,
+        he1_0.book_id,
+        he1_0.chapter_number,
+        he1_0.color,
+        he1_0.created_at,
+        he1_0.user_id,
+        he1_0.verse_number 
+    from
+        highlights he1_0 
+    where
+        he1_0.user_id=? 
+        and he1_0.book_id=? 
+        and he1_0.chapter_number=?
+Hibernate: 
+    select
+        he1_0.id,
+        he1_0.book_id,
+        he1_0.chapter_number,
+        he1_0.color,
+        he1_0.created_at,
+        he1_0.user_id,
+        he1_0.verse_number 
+    from
+        highlights he1_0 
+    where
+        he1_0.user_id=? 
+        and he1_0.book_id=? 
+        and he1_0.chapter_number=?
+2026-02-11T20:58:16.735+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /bible/books/old-testament
+2026-02-11T20:58:16.741+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+Hibernate: 
+    select
+        ue1_0.id,
+        ue1_0.active,
+        ue1_0.created_at,
+        ue1_0.email,
+        ue1_0.email_verified,
+        ue1_0.full_name,
+        ue1_0.password_hash,
+        ue1_0.updated_at 
+    from
+        users ue1_0 
+    where
+        ue1_0.email=?
+2026-02-11T20:58:16.744+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.c.s.JwtAuthenticationFilter      : Usuario autenticado: zelzeusyt2002@gmail.com
+2026-02-11T20:58:16.745+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /bible/books/old-testament
+2026-02-11T20:58:16.746+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.i.a.i.r.c.BibleController          : Obteniendo libros del Antiguo Testamento
+2026-02-11T20:58:16.746+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] c.b.a.application.service.BibleService   : Obteniendo libros del testamento: OLD
+2026-02-11T20:58:16.748+01:00 DEBUG 52552 --- [Biblia Católica API] [0.0-8080-exec-5] org.hibernate.SQL                        : 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.testament=? 
+    order by
+        be1_0.order_index
+Hibernate: 
+    select
+        be1_0.id,
+        be1_0.abbreviation,
+        be1_0.author,
+        be1_0.category,
+        be1_0.description,
+        be1_0.historical_context,
+        be1_0.name,
+        be1_0.order_index,
+        be1_0.testament,
+        be1_0.total_chapters 
+    from
+        books be1_0 
+    where
+        be1_0.testament=? 
+    order by
+        be1_0.order_index

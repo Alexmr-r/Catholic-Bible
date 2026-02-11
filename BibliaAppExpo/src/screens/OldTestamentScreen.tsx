@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
@@ -15,7 +14,7 @@ import {OldTestamentScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book as ApiBook} from '../services/bible.service';
 import {useOfflineBible} from '../hooks/useOfflineBible';
 
-type BookCategory = 'Pentateuco' | 'Históricos' | 'Sapienciales' | 'Profetas';
+type BookCategory = 'Pentateuco' | 'Históricos' | 'Sapienciales' | 'Profetas Mayores' | 'Profetas Menores';
 
 type Book = {
   id: string;
@@ -36,10 +35,10 @@ const mapCategory = (apiCategory: string): BookCategory => {
     'HISTORICAL': 'Históricos',
     'Sapienciales': 'Sapienciales',
     'WISDOM': 'Sapienciales',
-    'Profetas': 'Profetas',
-    'PROPHETS': 'Profetas',
-    'MAJOR_PROPHETS': 'Profetas',
-    'MINOR_PROPHETS': 'Profetas',
+    'Profetas Mayores': 'Profetas Mayores',
+    'PROPHETS_MAJOR': 'Profetas Mayores',
+    'Profetas Menores': 'Profetas Menores',
+    'PROPHETS_MINOR': 'Profetas Menores',
   };
   return categoryMap[apiCategory] || 'Pentateuco';
 };
@@ -50,7 +49,8 @@ const getCategoryColor = (category: BookCategory): string => {
     'Pentateuco': colors.secondary,
     'Históricos': colors.gold.accent,
     'Sapienciales': colors.primary.DEFAULT,
-    'Profetas': colors.charcoal.muted,
+    'Profetas Mayores': colors.burgundy.DEFAULT,
+    'Profetas Menores': colors.burgundy.accent,
   };
   return colorMap[category];
 };
@@ -150,7 +150,7 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
     }
   };
 
-  const categories = ['Todo', 'Pentateuco', 'Históricos', 'Sapienciales', 'Profetas'];
+  const categories = ['Todo', 'Pentateuco', 'Históricos', 'Sapienciales', 'Profetas Mayores', 'Profetas Menores'];
 
   const filteredBooks = books.filter(book => {
     const matchesCategory = selectedCategory === 'Todo' || book.category === selectedCategory;
@@ -171,18 +171,6 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Filtro de libros
-  // TODO: Implementar filtro avanzado
-  // =====================================================
-  const handleFilter = () => {
-    Alert.alert(
-      '🔧 Filtros',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás filtrar por tipo de libro, número de capítulos, etc.',
-      [{text: 'Entendido'}]
-    );
-  };
-
-  // =====================================================
   // ✅ NAVEGACIÓN DINÁMICA - Navega a la pantalla de capítulos
   // =====================================================
   const handleBookPress = (book: Book) => {
@@ -200,7 +188,8 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
       Pentateuco: 'Pentateuco',
       Históricos: 'Libros Históricos',
       Sapienciales: 'Libros Sapienciales',
-      Profetas: 'Profetas Mayores',
+      'Profetas Mayores': 'Profetas Mayores',
+      'Profetas Menores': 'Profetas Menores',
     };
     return titles[category];
   };
@@ -216,12 +205,7 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Antiguo Testamento</Text>
-        <TouchableOpacity
-          onPress={handleFilter}
-          style={styles.filterButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="filter-list" size={24} color={colors.charcoal.dark} />
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Estado de carga */}
@@ -471,12 +455,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 8,
   },
-  filterButton: {
+  headerSpacer: {
     width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
   },
 
   // ScrollView

@@ -62,6 +62,7 @@ export type RootStackParamList = {
     bookId: string;
     bookName: string;
     chapter: number;
+    testament?: 'old' | 'new'; // Añadido para historial
     // Desde favoritos: ocultar navegación
     fromFavorite?: boolean;
     // Opcional: para mostrar versículos específicos (desde favoritos)

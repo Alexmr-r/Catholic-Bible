@@ -17,6 +17,9 @@ import {BibleSearchScreenProps} from '../navigation/AppNavigator';
 import {bibleService, SearchResult} from '../services/bible.service';
 import {useOfflineBible} from '../hooks/useOfflineBible';
 import {useIsOnline} from '../contexts/NetworkContext';
+import {readingHistoryService, ReadingHistoryItem} from '../services/reading-history.service';
+import {smartSearchService, SmartSearchResult} from '../services/smart-search.service';
+import {useFocusEffect} from '@react-navigation/native';
 
 type RecentSearch = {
   id: string;
@@ -28,12 +31,42 @@ type RecentSearch = {
 const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [smartResults, setSmartResults] = useState<SmartSearchResult[]>([]);
+  const [suggestions, setSuggestions] = useState<SmartSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [lastReading, setLastReading] = useState<ReadingHistoryItem | null>(null);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   // ✅ Hook para modo offline
   const {isBibleDownloaded, needsDownload} = useOfflineBible();
   const isOnline = useIsOnline();
+
+  // Cargar última lectura y búsquedas recientes cuando la pantalla recibe foco
+  useFocusEffect(
+    React.useCallback(() => {
+      loadLastReading();
+      loadRecentSearches();
+    }, [])
+  );
+
+  const loadLastReading = async () => {
+    const reading = await readingHistoryService.getLastReading();
+    console.log('[BibleSearch] Última lectura:', reading);
+    setLastReading(reading);
+  };
+
+  const loadRecentSearches = async () => {
+    const history = await readingHistoryService.getSearchHistory();
+    // Convertir al formato RecentSearch (tomar solo las primeras 3)
+    const formatted: RecentSearch[] = history.slice(0, 3).map((item, index) => ({
+      id: index.toString(),
+      text: item.query,
+      category: item.resultCount ? `${item.resultCount} resultados` : 'Búsqueda',
+      iconColor: colors.primary.DEFAULT,
+    }));
+    setRecentSearches(formatted);
+  };
 
   // Mostrar alerta si está offline y no tiene Biblia descargada
   useEffect(() => {
@@ -51,32 +84,6 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       );
     }
   }, [needsDownload]);
-
-  // =====================================================
-  // 🔴 MOCKEADO - Búsquedas recientes
-  // TODO: Reemplazar con datos del usuario desde API
-  // GET /api/user/recent-searches
-  // =====================================================
-  const recentSearches: RecentSearch[] = [
-    {
-      id: '1',
-      text: 'Juan 3:16',
-      category: 'Nuevo Testamento',
-      iconColor: colors.primary.DEFAULT,
-    },
-    {
-      id: '2',
-      text: 'Salmo 23',
-      category: 'Salmos',
-      iconColor: colors.primary.DEFAULT,
-    },
-    {
-      id: '3',
-      text: '"Amor y paciencia"',
-      category: 'Búsqueda de texto',
-      iconColor: colors.burgundy.accent,
-    },
-  ];
 
   // =====================================================
   // ✅ NAVEGACIÓN IMPLEMENTADA - Perfil de usuario
@@ -108,27 +115,40 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     try {
       setIsSearching(true);
       setHasSearched(true);
+      setSuggestions([]); // Limpiar sugerencias
 
-      if (isOnline) {
-        // ✅ CON CONEXIÓN: Buscar en API
-        const response = await bibleService.searchVerses(searchQuery.trim(), { pageSize: 20 });
-        setSearchResults(response.results);
-      } else if (isBibleDownloaded) {
-        // ✅ SIN CONEXIÓN + BIBLIA DESCARGADA: Buscar offline
-        const {BibleOfflineService} = await import('../services/english-bible-download.service');
-        const offlineResults = await BibleOfflineService.searchVerses(searchQuery.trim(), 20);
+      // ✅ BÚSQUEDA INTELIGENTE
+      const smartResultsData = await smartSearchService.search(searchQuery.trim());
+      setSmartResults(smartResultsData);
 
-        // Convertir al formato de SearchResult
-        const formattedResults: SearchResult[] = offlineResults.map(r => ({
-          bookId: r.bookId,
-          bookName: r.bookName,
-          chapter: r.chapter,
-          verse: r.verse,
-          text: r.text,
-          highlightedText: r.text,
-        }));
-        setSearchResults(formattedResults);
+      // Si hay resultados inteligentes (libros, capítulos, categorías), no buscar versículos
+      const hasDirectResults = smartResultsData.some(r => r.type === 'book' || r.type === 'chapter' || r.type === 'category');
+
+      if (!hasDirectResults) {
+        // Buscar también en versículos
+        if (isOnline) {
+          const response = await bibleService.searchVerses(searchQuery.trim(), { pageSize: 20 });
+          setSearchResults(response.results);
+        } else if (isBibleDownloaded) {
+          const {BibleOfflineService} = await import('../services/english-bible-download.service');
+          const offlineResults = await BibleOfflineService.searchVerses(searchQuery.trim(), 20);
+          const formattedResults: SearchResult[] = offlineResults.map(r => ({
+            bookId: r.bookId,
+            bookName: r.bookName,
+            chapter: r.chapter,
+            verse: r.verse,
+            text: r.text,
+            highlightedText: r.text,
+          }));
+          setSearchResults(formattedResults);
+        }
+      } else {
+        setSearchResults([]);
       }
+
+      // Guardar búsqueda en historial
+      await readingHistoryService.addSearch(searchQuery.trim(), smartResultsData.length);
+      await loadRecentSearches();
     } catch (err: any) {
       console.error('Error en búsqueda:', err);
       Alert.alert('Error', 'No se pudo realizar la búsqueda. Verifica tu conexión.');
@@ -137,10 +157,77 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     }
   };
 
+  // Mostrar sugerencias mientras escribe
+  const handleSearchQueryChange = (text: string) => {
+    setSearchQuery(text);
+    if (text.length >= 2) {
+      const sug = smartSearchService.getSuggestions(text);
+      setSuggestions(sug);
+    } else {
+      setSuggestions([]);
+    }
+    // Limpiar resultados si se borra la búsqueda
+    if (text.length === 0) {
+      setHasSearched(false);
+      setSmartResults([]);
+      setSearchResults([]);
+    }
+  };
+
+  // Manejar selección de resultado inteligente
+  const handleSmartResultPress = (result: SmartSearchResult) => {
+    setSuggestions([]);
+
+    switch (result.type) {
+      case 'book':
+        // Navegar a la lista de capítulos del libro
+        navigation.navigate('BookChapters', {
+          bookId: result.bookId!,
+          bookName: result.bookName!,
+          totalChapters: 50, // Se obtendrá del API
+          testament: result.testament!,
+        });
+        break;
+
+      case 'chapter':
+        // Navegar directamente al capítulo
+        navigation.navigate('ChapterReading', {
+          bookId: result.bookId!,
+          bookName: result.bookName!,
+          chapter: result.chapter!,
+          testament: result.testament,
+        });
+        break;
+
+      case 'verse':
+        // Navegar al capítulo con el versículo
+        navigation.navigate('ChapterReading', {
+          bookId: result.bookId!,
+          bookName: result.bookName!,
+          chapter: result.chapter!,
+          testament: result.testament,
+          fromFavorite: true, // Para mostrar solo ese versículo
+          favoriteVerseNumber: result.verse,
+        });
+        break;
+
+      case 'category':
+        // Navegar al testamento correspondiente
+        if (result.testament === 'old') {
+          navigation.navigate('OldTestament');
+        } else {
+          navigation.navigate('NewTestament');
+        }
+        break;
+    }
+  };
+
   // Limpiar búsqueda
   const clearSearch = () => {
     setSearchQuery('');
     setSearchResults([]);
+    setSmartResults([]);
+    setSuggestions([]);
     setHasSearched(false);
   };
 
@@ -166,11 +253,22 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   };
 
   // =====================================================
-  // ✅ NAVEGACIÓN IMPLEMENTADA - Continuar lectura
-  // Navega a la pantalla de lectura diaria
+  // ✅ IMPLEMENTADO - Continuar Lectura
+  // Navega a la última lectura del usuario
   // =====================================================
   const handleContinueReading = () => {
-    navigation.navigate('DailyReading', {});
+    if (lastReading) {
+      // Navegar a la última lectura guardada
+      navigation.navigate('ChapterReading', {
+        bookId: lastReading.bookId,
+        bookName: lastReading.bookName,
+        chapter: lastReading.chapter,
+        testament: lastReading.testament,
+      });
+    } else {
+      // Si no hay historial, ir a la lectura del día
+      navigation.navigate('DailyReading', {});
+    }
   };
 
   // =====================================================
@@ -190,29 +288,34 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Búsqueda reciente seleccionada
-  // TODO: Navegar a resultado específico
+  // ✅ IMPLEMENTADO - Búsqueda reciente seleccionada
+  // Repetir la búsqueda
   // =====================================================
   const handleRecentSearch = (search: RecentSearch) => {
-    Alert.alert(
-      '🔍 Búsqueda reciente',
-      `Funcionalidad mockeada para demo.\n\nSeleccionaste: ${search.text}\nCategoría: ${search.category}\n\nEn producción, aquí verás directamente el versículo o resultados.`,
-      [{text: 'Entendido'}]
-    );
+    setSearchQuery(search.text);
+    // Ejecutar la búsqueda automáticamente
+    setTimeout(() => {
+      handleSearch();
+    }, 100);
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Borrar búsquedas recientes
-  // TODO: Implementar borrado de historial
-  // DELETE /api/user/recent-searches
+  // ✅ IMPLEMENTADO - Borrar búsquedas recientes
   // =====================================================
-  const handleClearSearches = () => {
+  const handleClearSearches = async () => {
     Alert.alert(
       '🗑️ Borrar búsquedas',
-      'Funcionalidad en desarrollo.\n\n¿Deseas borrar todas las búsquedas recientes?',
+      '¿Deseas borrar todas las búsquedas recientes?',
       [
         {text: 'Cancelar', style: 'cancel'},
-        {text: 'Borrar', style: 'destructive'},
+        {
+          text: 'Borrar',
+          style: 'destructive',
+          onPress: async () => {
+            await readingHistoryService.clearSearchHistory();
+            await loadRecentSearches();
+          },
+        },
       ]
     );
   };
@@ -241,10 +344,10 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar versículo, palabra clave..."
+            placeholder="Buscar libro, capítulo, versículo..."
             placeholderTextColor={`${colors.charcoal.muted}80`}
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={handleSearchQueryChange}
             onSubmitEditing={handleSearch}
             returnKeyType="search"
           />
@@ -268,6 +371,86 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
         </View>
       </View>
 
+      {/* Sugerencias mientras escribe */}
+      {suggestions.length > 0 && !hasSearched && (
+        <View style={styles.suggestionsContainer}>
+          <Text style={styles.suggestionsTitle}>Sugerencias</Text>
+          {suggestions.map((suggestion, index) => (
+            <TouchableOpacity
+              key={`sug-${index}`}
+              style={styles.suggestionItem}
+              onPress={() => handleSmartResultPress(suggestion)}
+              activeOpacity={0.7}>
+              <MaterialIcons
+                name={
+                  suggestion.type === 'book' ? 'menu-book' :
+                  suggestion.type === 'chapter' ? 'article' :
+                  suggestion.type === 'category' ? 'folder' : 'format-quote'
+                }
+                size={20}
+                color={colors.gold.DEFAULT}
+              />
+              <View style={styles.suggestionTextContainer}>
+                <Text style={styles.suggestionTitle}>{suggestion.title}</Text>
+                <Text style={styles.suggestionSubtitle}>{suggestion.subtitle}</Text>
+              </View>
+              <MaterialIcons name="arrow-forward-ios" size={16} color={colors.charcoal.muted} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* Resultados inteligentes (libros, capítulos, categorías) */}
+      {!isSearching && smartResults.length > 0 && (
+        <View style={styles.smartResultsContainer}>
+          <Text style={styles.smartResultsTitle}>Resultados</Text>
+          <ScrollView style={styles.smartResultsList} showsVerticalScrollIndicator={false}>
+            {smartResults.map((result, index) => (
+              <TouchableOpacity
+                key={`smart-${index}`}
+                style={styles.smartResultCard}
+                onPress={() => handleSmartResultPress(result)}
+                activeOpacity={0.7}>
+                <View style={[
+                  styles.smartResultIcon,
+                  {backgroundColor:
+                    result.type === 'book' ? colors.gold.light :
+                    result.type === 'chapter' ? colors.primary.light :
+                    result.type === 'category' ? colors.secondary + '30' :
+                    colors.burgundy.light
+                  }
+                ]}>
+                  <MaterialIcons
+                    name={
+                      result.type === 'book' ? 'menu-book' :
+                      result.type === 'chapter' ? 'article' :
+                      result.type === 'category' ? 'folder' : 'format-quote'
+                    }
+                    size={24}
+                    color={
+                      result.type === 'book' ? colors.gold.dark :
+                      result.type === 'chapter' ? colors.primary.DEFAULT :
+                      result.type === 'category' ? colors.secondary :
+                      colors.burgundy.DEFAULT
+                    }
+                  />
+                </View>
+                <View style={styles.smartResultContent}>
+                  <Text style={styles.smartResultTitle}>{result.title}</Text>
+                  <Text style={styles.smartResultSubtitle}>{result.subtitle}</Text>
+                  {result.text && (
+                    <Text style={styles.smartResultText} numberOfLines={2}>
+                      {result.text}
+                    </Text>
+                  )}
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Resultados de búsqueda */}
       {isSearching && (
         <View style={styles.searchingContainer}>
@@ -276,7 +459,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
         </View>
       )}
 
-      {!isSearching && hasSearched && searchResults.length === 0 && (
+      {!isSearching && hasSearched && searchResults.length === 0 && smartResults.length === 0 && (
         <View style={styles.noResultsContainer}>
           <MaterialIcons name="search-off" size={48} color={colors.charcoal.muted} />
           <Text style={styles.noResultsText}>No se encontraron resultados</Text>
@@ -436,7 +619,10 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                     <View style={styles.cardBadge}>
                       <MaterialIcons name="bookmark" size={16} color="rgba(255, 255, 255, 0.9)" />
                       <Text style={[styles.badgeText, {color: 'rgba(255, 255, 255, 0.9)'}]}>
-                        SALMO 23
+                        {lastReading
+                          ? `${lastReading.bookName.toUpperCase()} ${lastReading.chapter}`
+                          : 'LECTURA DEL DÍA'
+                        }
                       </Text>
                     </View>
                     <Text style={styles.cardTitle}>Continuar{'\n'}lectura</Text>
@@ -456,7 +642,10 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   <View style={styles.cardBadge}>
                     <MaterialIcons name="bookmark" size={16} color="rgba(255, 255, 255, 0.9)" />
                     <Text style={[styles.badgeText, {color: 'rgba(255, 255, 255, 0.9)'}]}>
-                      SALMO 23
+                      {lastReading
+                        ? `${lastReading.bookName.toUpperCase()} ${lastReading.chapter}`
+                        : 'LECTURA DEL DÍA'
+                      }
                     </Text>
                   </View>
                   <Text style={styles.cardTitle}>Continuar{'\n'}lectura</Text>
@@ -789,6 +978,114 @@ const styles = StyleSheet.create({
 
   bottomSpacer: {
     height: 20,
+  },
+
+  // Sugerencias
+  suggestionsContainer: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderRadius: 12,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    maxHeight: 300,
+  },
+  suggestionsTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.charcoal.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.cream,
+  },
+  suggestionTextContainer: {
+    flex: 1,
+    marginLeft: 10,
+    marginRight: 8,
+  },
+  suggestionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.charcoal.dark,
+  },
+  suggestionSubtitle: {
+    fontSize: 11,
+    color: colors.charcoal.muted,
+    marginTop: 2,
+  },
+
+  // Resultados inteligentes
+  smartResultsContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    marginBottom: 16,
+  },
+  smartResultsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.charcoal.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  smartResultsList: {
+    flex: 1,
+  },
+  smartResultCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  smartResultIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  smartResultContent: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  smartResultTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.charcoal.dark,
+  },
+  smartResultSubtitle: {
+    fontSize: 13,
+    color: colors.charcoal.muted,
+    marginTop: 2,
+  },
+  smartResultText: {
+    fontSize: 12,
+    color: colors.charcoal.muted,
+    fontStyle: 'italic',
+    marginTop: 4,
   },
 });
 

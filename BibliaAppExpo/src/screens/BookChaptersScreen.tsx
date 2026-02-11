@@ -46,6 +46,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
       bookId,
       bookName,
       chapter,
+      testament, // Añadir testament para el historial
     });
   };
 
