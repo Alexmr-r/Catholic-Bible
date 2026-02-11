@@ -10,7 +10,6 @@ import {
   Alert,
   ActivityIndicator,
   Keyboard,
-  Share,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -18,6 +17,7 @@ import {colors} from '../theme/colors';
 import {DailyReadingScreenProps} from '../navigation/AppNavigator';
 import {dailyReadingService, DailyReading} from '../services/daily-reading.service';
 import {writingsService} from '../services/writings.service';
+import {shareService} from '../services/share.service';
 import {readingProgressService} from '../services/reading-progress.service';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import {useIsOnline} from '../contexts/NetworkContext';
@@ -317,30 +317,21 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   };
 
   // =====================================================
-  // ✅ CONECTADO - Compartir lectura
+  // ✅ CONECTADO - Compartir lectura del día
   // =====================================================
   const handleShare = async () => {
     if (!dailyReading) return;
 
     try {
-      const message = `📖 Lectura del día - ${formatDate(dailyReading.date)}\n\n${dailyReading.biblicalReference}\n\n"${dailyReading.readingText}"\n\n🙏 Compartido desde Biblia App`;
-
-      const result = await Share.share({
-        message: message,
-        title: `Lectura del día - ${dailyReading.biblicalReference}`,
+      const result = await shareService.shareDailyReading({
+        date: dailyReading.date,
+        reference: dailyReading.biblicalReference,
+        text: dailyReading.readingText,
+        reflection: reflection.trim() || undefined,
       });
 
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // Compartido con actividad específica (iOS)
-          console.log('Compartido con:', result.activityType);
-        } else {
-          // Compartido (Android)
-          console.log('Contenido compartido');
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // Usuario canceló
-        console.log('Compartir cancelado');
+      if (result.action === 'error') {
+        Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
       }
     } catch (error: any) {
       Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');

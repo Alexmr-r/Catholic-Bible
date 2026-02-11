@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
@@ -14,6 +15,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {writingsService} from '../services/writings.service';
 import {bibleService} from '../services/bible.service';
+import {shareService} from '../services/share.service';
 import {useFocusEffect} from '@react-navigation/native';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import TextSettingsModal from '../components/TextSettingsModal';
@@ -93,8 +95,29 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
     navigation.goBack();
   };
 
-  const handleShare = () => {
-    Alert.alert('Compartir', 'Funcionalidad próximamente disponible.');
+  const handleShare = async () => {
+    try {
+      const reference = bookName && chapter && verse
+        ? `${bookName} ${chapter}:${verse}`
+        : '';
+
+      let message = `✍️ ${title || 'Mi escrito'}\n\n`;
+      if (reference) {
+        message += `📖 Basado en: ${reference}\n\n`;
+      }
+      message += `${content}\n\n— Compartido desde Biblia App`;
+
+      console.log('[WritingDetail] Llamando a Share.share()...');
+
+      const result = await Share.share({
+        message: message,
+      });
+
+      console.log('[WritingDetail] Resultado:', result);
+    } catch (error: any) {
+      console.error('Error compartiendo escrito:', error);
+      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+    }
   };
 
   const handleToggleFavorite = async () => {

@@ -7,9 +7,8 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Share,
   Modal,
-  Pressable,
+  Share,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {colors} from '../theme/colors';
@@ -17,6 +16,7 @@ import {ChapterReadingScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Chapter} from '../services/bible.service';
 import {favoritesService} from '../services/favorites.service';
 import {highlightService, Highlight, HighlightColor, getHighlightHex, HIGHLIGHT_COLORS} from '../services/highlights.service';
+import {shareService} from '../services/share.service';
 import {getChapterTitle} from '../data/chapterTitles';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import {useOfflineBible} from '../hooks/useOfflineBible';
@@ -206,37 +206,42 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
   // Compartir capítulo completo
   const handleShareChapter = async () => {
-    setShowOptionsMenu(false);
-    if (!chapterData) return;
+    console.log('[ChapterReading] handleShareChapter llamado');
+
+    if (!chapterData) {
+      console.log('[ChapterReading] No hay chapterData');
+      return;
+    }
 
     try {
-      // Obtener todo el texto del capítulo
+      // Generar texto del capítulo
       let chapterText = '';
       chapterData.sections.forEach(section => {
         if (section.title) {
-          chapterText += `\n📖 ${section.title}\n\n`;
+          chapterText += `\n📜 ${section.title}\n\n`;
         }
         section.verses.forEach(verse => {
           chapterText += `${verse.number}. ${verse.text}\n`;
         });
       });
 
-      const reference = `${bookName} ${currentChapter}`;
-      const message = `📖 ${reference}\n${chapterText}\n🙏 Compartido desde Biblia App`;
+      const message = `📖 ${bookName} ${currentChapter}\n${chapterText}\n— Compartido desde Biblia App`;
 
-      await Share.share({
+      console.log('[ChapterReading] Llamando a Share.share()...');
+
+      const result = await Share.share({
         message: message,
-        title: reference,
       });
+
+      console.log('[ChapterReading] Resultado:', result);
     } catch (error: any) {
+      console.error('[ChapterReading] Error:', error);
       Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
-      console.error('Error compartiendo capítulo:', error);
     }
   };
 
   // Escuchar audio (próximamente)
   const handleListenAudio = () => {
-    setShowOptionsMenu(false);
     Alert.alert(
       '🎧 Audio del capítulo',
       'Esta función estará disponible próximamente.\n\nPodrás escuchar la lectura del capítulo en audio.',
@@ -389,21 +394,33 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         });
       });
 
-      const reference = selectedVerses.length === 1
-        ? `${bookName} ${currentChapter}:${minVerse}`
-        : `${bookName} ${currentChapter}:${minVerse}-${maxVerse}`;
+      let result;
 
-      const message = `📖 ${reference}\n\n${versesText}\n🙏 Compartido desde Biblia App`;
+      if (selectedVerses.length === 1) {
+        // Versículo individual
+        const verseData = chapterData.sections
+          .flatMap(s => s.verses)
+          .find(v => v.number === minVerse);
 
-      const result = await Share.share({
-        message: message,
-        title: reference,
-      });
+        result = await shareService.shareVerse({
+          bookName,
+          chapter: currentChapter,
+          verseNumber: minVerse,
+          verseText: verseData?.text || '',
+        });
+      } else {
+        // Múltiples versículos
+        result = await shareService.shareVerses({
+          bookName,
+          chapter: currentChapter,
+          startVerse: minVerse,
+          endVerse: maxVerse,
+          versesText: versesText.trim(),
+        });
+      }
 
-      if (result.action === Share.sharedAction) {
-        console.log('Versículos compartidos');
-      } else if (result.action === Share.dismissedAction) {
-        console.log('Compartir cancelado');
+      if (result.action === 'error') {
+        Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
       }
 
       cancelSelection();
@@ -450,7 +467,6 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
   // Añadir capítulo completo a favoritos
   const handleAddChapterToFavorites = async () => {
-    setShowOptionsMenu(false); // Cerrar modal
     if (!chapterData) return;
 
     try {
@@ -734,14 +750,23 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         transparent={true}
         animationType="fade"
         onRequestClose={() => setShowOptionsMenu(false)}>
-        <Pressable
-          style={styles.optionsModalOverlay}
-          onPress={() => setShowOptionsMenu(false)}>
+        <View style={styles.optionsModalOverlay}>
+          {/* Overlay para cerrar al tocar fuera */}
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
+            activeOpacity={1}
+            onPress={() => setShowOptionsMenu(false)}
+          />
+
+          {/* Menú de opciones */}
           <View style={styles.optionsMenuContainer}>
             {/* Guardar capítulo completo */}
             <TouchableOpacity
               style={styles.optionsMenuItem}
-              onPress={handleAddChapterToFavorites}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                setTimeout(() => handleAddChapterToFavorites(), 100);
+              }}
               activeOpacity={0.7}>
               <View style={styles.optionsMenuIcon}>
                 <MaterialIcons name="bookmark" size={20} color={colors.gold.DEFAULT} />
@@ -752,7 +777,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
             {/* Compartir capítulo */}
             <TouchableOpacity
               style={styles.optionsMenuItem}
-              onPress={handleShareChapter}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                setTimeout(() => handleShareChapter(), 100);
+              }}
               activeOpacity={0.7}>
               <View style={styles.optionsMenuIcon}>
                 <MaterialIcons name="share" size={20} color={colors.gold.DEFAULT} />
@@ -763,7 +791,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
             {/* Escuchar audio */}
             <TouchableOpacity
               style={styles.optionsMenuItem}
-              onPress={handleListenAudio}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                setTimeout(() => handleListenAudio(), 100);
+              }}
               activeOpacity={0.7}>
               <View style={styles.optionsMenuIcon}>
                 <MaterialIcons name="headphones" size={20} color={colors.gold.DEFAULT} />
@@ -771,7 +802,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               <Text style={styles.optionsMenuText}>Escuchar audio</Text>
             </TouchableOpacity>
           </View>
-        </Pressable>
+        </View>
       </Modal>
     </View>
   );
