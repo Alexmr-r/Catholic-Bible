@@ -10,7 +10,8 @@ import {
   Share,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {writingsService} from '../services/writings.service';
@@ -19,10 +20,14 @@ import {shareService} from '../services/share.service';
 import {useFocusEffect} from '@react-navigation/native';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import TextSettingsModal from '../components/TextSettingsModal';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type WritingDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'WritingDetail'>;
 
 const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, route}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const {writingId, title: initialTitle, content: initialContent, bookId, bookName, chapter, verse, createdAt, isFavorite: initialFavorite} = route.params;
 
   // Estados mutables para título y contenido (pueden cambiar tras editar)
@@ -220,13 +225,6 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
             <MaterialIcons name="calendar-today" size={18} color={colors.primary.DEFAULT} />
             <Text style={styles.dateText}>{formatDate(createdAt)}</Text>
           </View>
-          <TouchableOpacity onPress={handleToggleFavorite}>
-            <MaterialIcons
-              name={isFavorite ? "star" : "star-border"}
-              size={20}
-              color={colors.gold?.DEFAULT || '#CFB075'}
-            />
-          </TouchableOpacity>
         </View>
 
         {/* Título del Escrito - grande como HTML */}
@@ -327,10 +325,10 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Header - igual que HTML
@@ -340,10 +338,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: 48,
-    backgroundColor: `${colors.cream}F2`,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
-    borderBottomColor: `${colors.ivory.border}99`,
+    borderBottomColor: colors.ivory.border,
   },
   headerButton: {
     width: 40,
@@ -424,7 +422,7 @@ const styles = StyleSheet.create({
 
   // Card del Versículo - EXACTAMENTE como HTML
   verseCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 32,
@@ -442,7 +440,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 6,
-    backgroundColor: colors.gold?.DEFAULT || '#CFB075',
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : colors.gold?.DEFAULT || '#CFB075',
   },
   verseCardContent: {
     padding: 20,
@@ -541,7 +539,7 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
   },
 });
 

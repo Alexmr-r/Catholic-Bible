@@ -8,8 +8,10 @@ import {
   Alert,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {GenesisReadingScreenProps} from '../navigation/AppNavigator';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 // Mock data para Génesis 1 - La Creación
 const GENESIS_1_DATA = {
@@ -53,6 +55,9 @@ const GENESIS_1_DATA = {
 };
 
 const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
   const data = GENESIS_1_DATA;
 
@@ -136,12 +141,14 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
     <View style={styles.container}>
       {/* Header Sticky */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={styles.backButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="arrow-back-ios-new" size={20} color={colors.charcoal.dark} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backButton}
+            activeOpacity={0.7}>
+            <MaterialIcons name="arrow-back-ios-new" size={20} color={colors.charcoal.dark} />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.headerCenter}>
           <View style={styles.headerTitleRow}>
@@ -191,12 +198,16 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
                 ]}
                 onPress={() => handleVersePress(verse.number)}
                 activeOpacity={0.7}>
-                <Text style={styles.verseNumber}>{verse.number}</Text>
+                <Text style={[
+                  styles.verseNumber,
+                  selectedVerse === verse.number && { color: colors.charcoal.dark }, // Highlight readability
+                ]}>{verse.number}</Text>
                 <View style={styles.verseContent}>
                   <Text
                     style={[
                       styles.verseText,
                       selectedVerse === verse.number && styles.verseTextSelected,
+                      selectedVerse === verse.number && { color: '#1A1A1A' }, // Texto oscuro sobre selección clara
                     ]}>
                     {verse.text}
                   </Text>
@@ -282,10 +293,10 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Header
@@ -294,11 +305,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 8,
-    paddingTop: 48,
+    paddingTop: Math.max(safeTop, 20) + 16,
     paddingBottom: 8,
-    backgroundColor: `${colors.cream}F2`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
-    borderBottomColor: `${colors.ivory.border}99`,
+    borderBottomColor: colors.ivory.border,
+  },
+  headerLeft: {
+    width: 80,
+    alignItems: 'flex-start',
   },
   backButton: {
     width: 40,
@@ -337,6 +352,8 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: 80,
+    justifyContent: 'flex-end',
   },
   iconButton: {
     width: 40,
@@ -371,7 +388,7 @@ const styles = StyleSheet.create({
   chapterTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: colors.burgundy.accent,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.burgundy.accent,
     fontStyle: 'italic',
     textAlign: 'center',
     marginBottom: 8,
@@ -380,7 +397,7 @@ const styles = StyleSheet.create({
   chapterDivider: {
     width: 64,
     height: 3,
-    backgroundColor: `${colors.gold.accent}80`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}80` : `${colors.gold.accent}80`,
     borderRadius: 999,
   },
 
@@ -397,7 +414,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   verseRowSelected: {
-    backgroundColor: `${colors.primary.DEFAULT}20`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}20` : `${colors.primary.DEFAULT}20`,
   },
   verseNumber: {
     fontSize: 11,
@@ -419,7 +436,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   verseTextSelected: {
-    backgroundColor: `${colors.primary.DEFAULT}20`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}40` : `${colors.primary.DEFAULT}20`,
     borderRadius: 2,
   },
   noteButton: {
@@ -462,28 +479,29 @@ const styles = StyleSheet.create({
   navButtonTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.charcoal.dark,
+    color: colors.charcoal.DEFAULT,
   },
 
   // Floating Toolbar
   floatingToolbar: {
     position: 'absolute',
-    top: 80,
-    left: '50%',
-    transform: [{translateX: -130}],
+    top: 90,
+    alignSelf: 'center', // Centrado y más estrecho
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.charcoal.dark,
-    borderRadius: 24,
+    backgroundColor: '#1C1C1E', // Color premium casi negro
+    borderRadius: 30, // Forma de cápsula/pill
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     gap: 16,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 100,
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)', // Borde sutil premium
+    zIndex: 1000,
   },
   toolbarButton: {
     alignItems: 'center',

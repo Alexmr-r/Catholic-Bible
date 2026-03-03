@@ -6,22 +6,51 @@ import {
   TouchableOpacity,
   ScrollView,
   FlatList,
-  Alert,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useFocusEffect} from '@react-navigation/native';
-import {colors} from '../theme/colors';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {WritingsScreenProps} from '../navigation/AppNavigator';
 import {writingsService, Writing} from '../services/writings.service';
 
+// Listas de libros para filtrado
+const oldTestamentIds = [
+  'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
+  'joshua', 'judges', 'ruth', '1samuel', '2samuel', '1kings', '2kings',
+  '1chronicles', '2chronicles', 'ezra', 'nehemiah', 'tobit', 'judith',
+  'esther', '1maccabees', '2maccabees', 'job', 'psalms', 'proverbs',
+  'ecclesiastes', 'songofsolomon', 'wisdom', 'sirach',
+  'isaiah', 'jeremiah', 'lamentations', 'baruch', 'ezekiel', 'daniel',
+  'hosea', 'joel', 'amos', 'obadiah', 'jonah', 'micah', 'nahum',
+  'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi'
+];
+
+const newTestamentIds = [
+  'matthew', 'mark', 'luke', 'john', 'acts',
+  'romans', '1corinthians', '2corinthians', 'galatians', 'ephesians',
+  'philippians', 'colossians', '1thessalonians', '2thessalonians',
+  '1timothy', '2timothy', 'titus', 'philemon', 'hebrews',
+  'james', '1peter', '2peter', '1john', '2john', '3john', 'jude', 'revelation'
+];
+
 const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
-  const [activeFilter, setActiveFilter] = useState<'recent' | 'oldest' | 'title'>('recent');
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+
+  // Estado de filtro actualizado: todos, antiguo, nuevo (como en Favoritos)
+  const [activeFilter, setActiveFilter] = useState<'todos' | 'antiguo' | 'nuevo'>('todos');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [writings, setWritings] = useState<Writing[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // =====================================================
   // ✅ CONECTADO A API - Cargar escritos
@@ -31,8 +60,10 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
       if (showLoader) setIsLoading(true);
       setError(null);
 
+      // Cargar todos los escritos (ordenados por recientes) y filtrar en cliente
+      // para evitar lógica compleja en backend por ahora
       const response = await writingsService.getWritings({
-        sortBy: activeFilter,
+        sortBy: 'recent',
       });
       setWritings(response.writings);
     } catch (err: any) {
@@ -44,16 +75,16 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
     }
   };
 
-  // Cargar al cambiar filtro
+  // Cargar al iniciar
   useEffect(() => {
     loadWritings();
-  }, [activeFilter]);
+  }, []);
 
   // Recargar al volver a la pantalla
   useFocusEffect(
     useCallback(() => {
       loadWritings(false);
-    }, [activeFilter])
+    }, [])
   );
 
   const onRefresh = () => {
@@ -61,20 +92,82 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
     loadWritings(false);
   };
 
-  const handleBack = () => {
-    navigation.goBack();
+  // =====================================================
+  // ✅ FILTRADO Y BÚSQUEDA INTELIGENTE
+  // =====================================================
+
+  // Normalizar texto: quitar acentos y convertir a minúsculas
+  const normalize = (text: string) =>
+    text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Mapa de nombres de libros en español → bookId en inglés
+  const bookNameMap: Record<string, string[]> = {
+    genesis: ['genesis'], exodo: ['exodus'], levitico: ['leviticus'],
+    numeros: ['numbers'], deuteronomio: ['deuteronomy'], josue: ['joshua'],
+    jueces: ['judges'], rut: ['ruth'], samuel: ['1samuel', '2samuel'],
+    reyes: ['1kings', '2kings'], cronicas: ['1chronicles', '2chronicles'],
+    esdras: ['ezra'], nehemias: ['nehemiah'], tobias: ['tobit'],
+    judit: ['judith'], ester: ['esther'], macabeos: ['1maccabees', '2maccabees'],
+    job: ['job'], salmo: ['psalms'], salmos: ['psalms'],
+    proverbios: ['proverbs'], eclesiastes: ['ecclesiastes'],
+    cantar: ['songofsolomon'], cantares: ['songofsolomon'],
+    sabiduria: ['wisdom'], siracida: ['sirach'], siracides: ['sirach'],
+    isaias: ['isaiah'], jeremias: ['jeremiah'], lamentaciones: ['lamentations'],
+    baruc: ['baruch'], ezequiel: ['ezekiel'], daniel: ['daniel'],
+    oseas: ['hosea'], joel: ['joel'], amos: ['amos'], abdias: ['obadiah'],
+    jonas: ['jonah'], miqueas: ['micah'], nahum: ['nahum'],
+    habacuc: ['habakkuk'], sofonias: ['zephaniah'], ageo: ['haggai'],
+    zacarias: ['zechariah'], malaquias: ['malachi'],
+    mateo: ['matthew'], marcos: ['mark'], lucas: ['luke'], juan: ['john'],
+    hechos: ['acts'], romanos: ['romans'],
+    corintios: ['1corinthians', '2corinthians'],
+    galatas: ['galatians'], efesios: ['ephesians'],
+    filipenses: ['philippians'], colosenses: ['colossians'],
+    tesalonicenses: ['1thessalonians', '2thessalonians'],
+    timoteo: ['1timothy', '2timothy'], tito: ['titus'],
+    filemon: ['philemon'], hebreos: ['hebrews'],
+    santiago: ['james'], pedro: ['1peter', '2peter'],
+    judas: ['jude'], apocalipsis: ['revelation'],
   };
 
-  // =====================================================
-  // 🔴 MOCKEADO - Búsqueda de escritos (pendiente UI)
-  // =====================================================
-  const handleSearch = () => {
-    Alert.alert(
-      '🔍 Búsqueda',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás buscar entre tus escritos.',
-      [{text: 'Entendido'}]
-    );
-  };
+  const filteredWritings = writings.filter(writing => {
+    // 1. Filtrar por testamento (Tab)
+    if (activeFilter === 'antiguo') {
+      if (!writing.bookId || !oldTestamentIds.includes(writing.bookId.toLowerCase())) return false;
+    } else if (activeFilter === 'nuevo') {
+      if (!writing.bookId || !newTestamentIds.includes(writing.bookId.toLowerCase())) return false;
+    }
+
+    // 2. Filtrar por búsqueda inteligente
+    if (!searchQuery.trim()) return true;
+
+    // Dividir la búsqueda en palabras individuales
+    const queryWords = normalize(searchQuery).split(/\s+/).filter(w => w.length > 0);
+
+    // Campos en los que buscar
+    const searchableFields = [
+      normalize(writing.title),
+      normalize(writing.content),
+      ...(writing.tags || []).map(t => normalize(t)),
+      normalize(writing.bookName || ''),
+      writing.chapter?.toString() || '',
+      writing.verse?.toString() || '',
+      writing.bookId?.toLowerCase() || '',
+    ];
+
+    // Añadir nombres en español del libro
+    const bookIdLower = writing.bookId?.toLowerCase() || '';
+    const spanishNames = Object.entries(bookNameMap)
+      .filter(([, ids]) => ids.includes(bookIdLower))
+      .map(([name]) => name);
+    searchableFields.push(...spanishNames);
+
+    // Crear un solo string de todos los campos
+    const allText = searchableFields.join(' ');
+
+    // TODAS las palabras de la búsqueda deben coincidir
+    return queryWords.every(word => allText.includes(word));
+  });
 
   // =====================================================
   // ✅ CONECTADO A API - Ver detalle/Editar escrito
@@ -119,8 +212,8 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
         <View style={styles.textContainer}>
           <View style={styles.quoteLine} />
           <View style={styles.reflexionContent}>
-            {/* Título del escrito - solo si existe */}
-            {item.title && (
+            {/* Título del escrito - solo si existe y es diferente al versículo */}
+            {item.title && !(item.bookName && item.chapter && item.verse && item.title === `${item.bookName} ${item.chapter}:${item.verse}`) && (
               <Text style={styles.writingTitle} numberOfLines={1}>
                 {item.title}
               </Text>
@@ -143,48 +236,35 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
     </TouchableOpacity>
   );
 
-  // Estado de carga
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-        <Text style={styles.loadingText}>Cargando escritos...</Text>
-      </View>
-    );
-  }
-
-  // Estado de error
-  if (error) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => loadWritings()}>
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onStartShouldSetResponder={() => { Keyboard.dismiss(); return false; }}>
       {/* Header Sticky */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBack}
-          activeOpacity={0.7}
-          style={styles.headerButton}>
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
         <Text style={styles.headerTitle}>Escritos Personales</Text>
-        <TouchableOpacity
-          onPress={handleSearch}
-          activeOpacity={0.7}
-          style={styles.headerButton}>
-          <MaterialIcons name="search" size={24} color={colors.primary.DEFAULT} />
-        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
 
-      {/* Filters */}
+      {/* Search Bar - Estilo igual a Favoritos */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <MaterialIcons
+            name="search"
+            size={20}
+            color={colors.charcoal.muted}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar en tus escritos..."
+            placeholderTextColor={`${colors.charcoal.muted}80`}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      </View>
+
+      {/* Filters - Estilo igual a Favoritos */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -193,155 +273,153 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
         <TouchableOpacity
           style={[
             styles.filterChip,
-            activeFilter === 'recent' && styles.filterChipActive,
+            activeFilter === 'todos' && styles.filterChipActive,
           ]}
-          onPress={() => setActiveFilter('recent')}
+          onPress={() => setActiveFilter('todos')}
           activeOpacity={0.7}>
           <Text
             style={[
               styles.filterText,
-              activeFilter === 'recent' && styles.filterTextActive,
+              activeFilter === 'todos' && styles.filterTextActive,
             ]}>
-            Más recientes
+            Todos
           </Text>
-          <MaterialIcons
-            name="expand-more"
-            size={18}
-            color={activeFilter === 'recent' ? '#FFFFFF' : colors.ink.light}
-          />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.filterChip,
-            activeFilter === 'oldest' && styles.filterChipActive,
+            activeFilter === 'antiguo' && styles.filterChipActive,
           ]}
-          onPress={() => setActiveFilter('oldest')}
+          onPress={() => setActiveFilter('antiguo')}
           activeOpacity={0.7}>
           <Text
             style={[
               styles.filterText,
-              activeFilter === 'oldest' && styles.filterTextActive,
+              activeFilter === 'antiguo' && styles.filterTextActive,
             ]}>
-            Más antiguos
+            Antiguo Testamento
           </Text>
-          <MaterialIcons
-            name="expand-more"
-            size={18}
-            color={activeFilter === 'oldest' ? '#FFFFFF' : colors.ink.light}
-          />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.filterChip,
-            activeFilter === 'title' && styles.filterChipActive,
+            activeFilter === 'nuevo' && styles.filterChipActive,
           ]}
-          onPress={() => setActiveFilter('title')}
+          onPress={() => setActiveFilter('nuevo')}
           activeOpacity={0.7}>
           <Text
             style={[
               styles.filterText,
-              activeFilter === 'title' && styles.filterTextActive,
+              activeFilter === 'nuevo' && styles.filterTextActive,
             ]}>
-            Por título
+            Nuevo Testamento
           </Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Empty State */}
-      {writings.length === 0 && (
-        <View style={styles.emptyState}>
-          <MaterialIcons name="edit-note" size={64} color={colors.charcoal.muted} />
-          <Text style={styles.emptyTitle}>Sin escritos aún</Text>
-          <Text style={styles.emptySubtitle}>
-            Tus reflexiones y notas de la Biblia aparecerán aquí
-          </Text>
+      {/* Estado de carga */}
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.burgundy.DEFAULT} />
+          <Text style={styles.loadingText}>Cargando escritos...</Text>
+        </View>
+      )}
+
+      {/* Estado de error */}
+      {error && !isLoading && (
+        <View style={styles.errorContainer}>
+          <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => loadWritings()}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
         </View>
       )}
 
       {/* Writings List */}
-      <FlatList
-        data={writings}
-        renderItem={renderWritingCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary.DEFAULT]}
-            tintColor={colors.primary.DEFAULT}
-          />
-        }
-      />
-
+      {!isLoading && !error && (
+        <FlatList
+          data={filteredWritings}
+          renderItem={renderWritingCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[styles.listContent, {flexGrow: 1}]}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.burgundy.DEFAULT}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name={searchQuery ? "search-off" : "edit-note"} size={48} color={colors.charcoal.muted} />
+              <Text style={styles.emptyText}>
+                {searchQuery.trim()
+                  ? `No se encontraron resultados para "${searchQuery}"`
+                  : activeFilter !== 'todos' 
+                    ? 'No tienes escritos en esta sección'
+                    : 'Aún no tienes escritos personales'}
+              </Text>
+              {!searchQuery && activeFilter === 'todos' && (
+                <Text style={styles.emptySubtitle}>
+                  Tus reflexiones aparecerán aquí
+                </Text>
+              )}
+            </View>
+          }
+        />
+      )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
-  // Loading & Error states
-  centerContent: {
+  // Loading y Error states
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 40,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
     color: colors.charcoal.muted,
   },
-  errorText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: colors.burgundy.DEFAULT,
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
-  retryButton: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: colors.primary.DEFAULT,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-
-  // Empty State
-  emptyState: {
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    marginTop: 40,
   },
-  emptyTitle: {
+  errorText: {
     marginTop: 16,
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.charcoal.DEFAULT,
-  },
-  emptySubtitle: {
-    marginTop: 8,
-    fontSize: 14,
+    fontSize: 16,
     color: colors.charcoal.muted,
     textAlign: 'center',
   },
-
-  // Verse Reference in cards
-  verseReference: {
-    marginTop: 4,
-    fontSize: 12,
-    color: colors.primary.DEFAULT,
-    fontWeight: '500',
+  retryButton: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: colors.burgundy.DEFAULT,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 
   // Header
@@ -349,33 +427,62 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingTop: 48,
-    backgroundColor: `${colors.cream}F2`,
+    paddingHorizontal: 20,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingBottom: 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.charcoal.dark,
-    flex: 1,
     textAlign: 'center',
   },
+  headerSpacer: {
+    width: 40,
+    height: 36,
+  },
 
-  // Filters
+  // Search Bar (IGUAL A FAVORITOS)
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: isDarkMode ? colors.ivory.shade : '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.ivory.border,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.charcoal.DEFAULT,
+  },
+
+  // Filters (IGUAL A FAVORITOS)
   filtersContainer: {
-    maxHeight: 80,
+    paddingVertical: 8,
+    flexGrow: 0,
+    minHeight: 60,
   },
   filtersContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 16,
     gap: 12,
@@ -387,9 +494,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.primary.light : '#FFFFFF',
     borderWidth: 1,
-    borderColor: colors.ivory.border,
+    borderColor: isDarkMode ? colors.primary.light : colors.ivory.border,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -404,7 +511,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.charcoal.muted,
+    color: isDarkMode ? colors.charcoal.DEFAULT : colors.charcoal.muted,
   },
   filterTextActive: {
     color: '#FFFFFF',
@@ -413,23 +520,23 @@ const styles = StyleSheet.create({
 
   // List
   listContent: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 20,
     gap: 16,
   },
 
-  // Writing Card (basado en HTML)
+  // Writing Card
   writingCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
+    borderRadius: 16, // Igual a Favoritos (antes era 12)
     padding: 20,
     borderWidth: 1,
     borderColor: colors.ivory.border,
-    shadowColor: colors.primary.DEFAULT,
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 3,
+    shadowColor: '#000', // Sombra más sutil como en Favoritos
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardContent: {
     // Contenedor del contenido principal
@@ -438,10 +545,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 10,
   },
   verseTitle: {
-    fontSize: 18,
+    fontSize: 16, // Igual a Favoritos
     fontWeight: '700',
     color: colors.burgundy.accent,
     flex: 1,
@@ -480,10 +587,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   contentText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: `${colors.charcoal.DEFAULT}CC`,
-    marginBottom: 0,
+    fontSize: 18, // Igual a Favoritos (verseText es 18)
+    lineHeight: 28,
+    color: colors.charcoal.DEFAULT,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -492,7 +598,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.ivory.border,
     paddingTop: 12,
-    marginTop: 16,
+    marginTop: 8,
   },
   viewButton: {
     flexDirection: 'row',
@@ -505,6 +611,27 @@ const styles = StyleSheet.create({
     color: colors.primary.DEFAULT,
   },
 
+  // Empty State (Ajustado para que parezca al de Favoritos)
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 16,
+    textAlign: 'center',
+    color: colors.charcoal.muted,
+    lineHeight: 24,
+  },
+  emptySubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    color: colors.charcoal.muted,
+    textAlign: 'center',
+  },
 });
 
 export default WritingsScreen;

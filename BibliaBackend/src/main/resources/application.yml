@@ -11,6 +11,15 @@ spring:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
 
+  # AI Configuration
+  ai:
+    ollama:
+      base-url: http://biblia-ollama:11434
+      chat:
+        options:
+          model: llama3.2:1b
+          temperature: 0.2
+
   # JPA Configuration
   jpa:
     open-in-view: false
@@ -99,6 +108,10 @@ spring:
     username: biblia_user
     password: biblia_secret_2024
     driver-class-name: org.postgresql.Driver
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
 
   jpa:
     show-sql: true

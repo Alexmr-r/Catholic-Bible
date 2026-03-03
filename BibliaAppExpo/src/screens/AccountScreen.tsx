@@ -19,7 +19,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {useAuth} from '../contexts/AuthContext';
 import {apiClient} from '../services/api.client';
 
@@ -28,6 +29,8 @@ type AccountScreenProps = {
 };
 
 const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const {user, refreshAuth} = useAuth();
 
   // Estados del formulario
@@ -245,16 +248,16 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
 
   // Header
@@ -265,7 +268,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     paddingTop: 56,
-    backgroundColor: `${colors.ivory.DEFAULT}CC`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 0,
   },
   backButton: {
@@ -316,7 +319,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     borderWidth: 1,
-    borderColor: `${colors.gold.DEFAULT}33`,
+    borderColor: isDarkMode ? colors.primary.DEFAULT : `${colors.gold.DEFAULT}33`,
   },
   avatar: {
     width: '100%',
@@ -326,7 +329,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: colors.gold.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -338,7 +341,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
     borderWidth: 2,
-    borderColor: colors.ivory.DEFAULT,
+    borderColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
 
   // Form Section
@@ -351,15 +354,15 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: '500',
-    color: colors.ink.light,
+    color: colors.charcoal.muted,
     letterSpacing: 2,
     marginLeft: 4,
   },
   input: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.ivory.shade : '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.ivory.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -367,8 +370,8 @@ const styles = StyleSheet.create({
     color: colors.charcoal.DEFAULT,
   },
   inputDisabled: {
-    backgroundColor: '#F8FAFC',
-    color: colors.ink.light,
+    backgroundColor: isDarkMode ? colors.background.dark : '#F8FAFC',
+    color: colors.charcoal.muted,
   },
 
   // Password Button
@@ -376,9 +379,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: colors.ivory.border,
     borderRadius: 12,
     padding: 16,
     shadowColor: colors.charcoal.DEFAULT,
@@ -401,11 +404,11 @@ const styles = StyleSheet.create({
 
   // Save Button
   saveButton: {
-    backgroundColor: colors.burgundy.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
     paddingVertical: 16,
     borderRadius: 9999,
     alignItems: 'center',
-    shadowColor: colors.burgundy.DEFAULT,
+    shadowColor: colors.primary.DEFAULT,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -416,7 +419,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
   },
@@ -429,7 +432,7 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 12,
     fontWeight: '300',
-    color: colors.ink.light,
+    color: colors.charcoal.muted,
   },
 });
 

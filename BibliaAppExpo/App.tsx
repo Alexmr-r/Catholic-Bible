@@ -4,16 +4,24 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { TextSettingsProvider } from './src/contexts/TextSettingsContext';
 import { NetworkProvider } from './src/contexts/NetworkContext';
 
+import { ThemeProvider } from './src/contexts/ThemeContext';
+
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 export default function App() {
   return (
-    <NetworkProvider>
-      <AuthProvider>
-        <TextSettingsProvider>
-          <StatusBar style="dark" />
-          <AppNavigator />
-        </TextSettingsProvider>
-      </AuthProvider>
-    </NetworkProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <NetworkProvider>
+          <AuthProvider>
+            <TextSettingsProvider>
+              <StatusBar style="auto" />
+              <AppNavigator />
+            </TextSettingsProvider>
+          </AuthProvider>
+        </NetworkProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 

@@ -9,9 +9,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {BookChaptersScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book} from '../services/bible.service';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const HORIZONTAL_PADDING = 16;
@@ -21,6 +23,10 @@ const BUTTON_SIZE = (SCREEN_WIDTH - (HORIZONTAL_PADDING * 2) - (GAP * (COLUMNS -
 
 const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, route}) => {
   const { bookId, bookName, totalChapters, testament } = route.params;
+
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
 
   const [bookInfo, setBookInfo] = useState<Book | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,12 +118,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
             {testament === 'old' ? 'ANTIGUO TESTAMENTO' : 'NUEVO TESTAMENTO'}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={handleInfo}
-          style={styles.infoButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="info-outline" size={24} color={colors.charcoal.muted} />
-        </TouchableOpacity>
+        <View style={styles.infoButton} />
       </View>
 
       {isLoading ? (
@@ -149,7 +150,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
               <MaterialIcons
                 name="menu-book"
                 size={140}
-                color={colors.charcoal.DEFAULT}
+                color={isDarkMode ? colors.charcoal.muted : colors.charcoal.DEFAULT}
                 style={styles.infoIcon}
               />
             </View>
@@ -173,10 +174,10 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
   loadingContainer: {
     flex: 1,
@@ -190,9 +191,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 48,
+    paddingTop: Math.max(safeTop, 20) + 16,
     paddingBottom: 12,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
 
   // Info Card
   infoCard: {
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.paper : colors.ivory.DEFAULT,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
   chapterButton: {
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',

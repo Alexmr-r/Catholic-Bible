@@ -12,23 +12,28 @@ import {
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
 import {BibleSearchScreenProps} from '../navigation/AppNavigator';
+import {useTheme} from '../contexts/ThemeContext';
 import {bibleService, SearchResult} from '../services/bible.service';
 import {useOfflineBible} from '../hooks/useOfflineBible';
 import {useIsOnline} from '../contexts/NetworkContext';
 import {readingHistoryService, ReadingHistoryItem} from '../services/reading-history.service';
 import {smartSearchService, SmartSearchResult} from '../services/smart-search.service';
 import {useFocusEffect} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type RecentSearch = {
   id: string;
   text: string;
   category: string;
-  iconColor: string;
 };
 
 const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode, toggleTheme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [smartResults, setSmartResults] = useState<SmartSearchResult[]>([]);
@@ -63,7 +68,6 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       id: index.toString(),
       text: item.query,
       category: item.resultCount ? `${item.resultCount} resultados` : 'Búsqueda',
-      iconColor: colors.primary.DEFAULT,
     }));
     setRecentSearches(formatted);
   };
@@ -154,6 +158,8 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       Alert.alert('Error', 'No se pudo realizar la búsqueda. Verifica tu conexión.');
     } finally {
       setIsSearching(false);
+      const { Keyboard } = await import('react-native');
+      Keyboard.dismiss();
     }
   };
 
@@ -325,12 +331,20 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       {/* Header - Fixed */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Buscador</Text>
-        <TouchableOpacity
-          onPress={handleProfile}
-          style={styles.profileButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="account-circle" size={28} color={colors.charcoal.dark} />
-        </TouchableOpacity>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+          <TouchableOpacity
+            onPress={toggleTheme}
+            style={styles.profileButton}
+            activeOpacity={0.7}>
+            <MaterialIcons name={isDarkMode ? "light-mode" : "dark-mode"} size={26} color={colors.charcoal.dark} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleProfile}
+            style={styles.profileButton}
+            activeOpacity={0.7}>
+            <MaterialIcons name="account-circle" size={28} color={colors.charcoal.dark} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search Bar - Fixed */}
@@ -417,7 +431,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                     result.type === 'book' ? colors.gold.light :
                     result.type === 'chapter' ? colors.primary.light :
                     result.type === 'category' ? colors.secondary + '30' :
-                    colors.burgundy.light
+                    colors.burgundy.accent
                   }
                 ]}>
                   <MaterialIcons
@@ -428,7 +442,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                     }
                     size={24}
                     color={
-                      result.type === 'book' ? colors.gold.dark :
+                      result.type === 'book' ? colors.gold.DEFAULT :
                       result.type === 'chapter' ? colors.primary.DEFAULT :
                       result.type === 'category' ? colors.secondary :
                       colors.burgundy.DEFAULT
@@ -515,8 +529,8 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   style={styles.cardOverlay}>
                   <View style={styles.cardContent}>
                     <View style={styles.cardBadge}>
-                      <View style={[styles.badgeDot, {backgroundColor: colors.gold.accent}]} />
-                      <Text style={[styles.badgeText, {color: colors.gold.accent}]}>
+                      <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'old' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
+                      <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
                         46 LIBROS
                       </Text>
                     </View>
@@ -535,8 +549,8 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                 style={[styles.cardBackground, styles.cardOverlay]}>
                 <View style={styles.cardContent}>
                   <View style={styles.cardBadge}>
-                    <View style={[styles.badgeDot, {backgroundColor: colors.gold.accent}]} />
-                    <Text style={[styles.badgeText, {color: colors.gold.accent}]}>
+                    <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'old' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
+                    <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
                       46 LIBROS
                     </Text>
                   </View>
@@ -566,8 +580,8 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   style={styles.cardOverlay}>
                   <View style={styles.cardContent}>
                     <View style={styles.cardBadge}>
-                      <View style={[styles.badgeDot, {backgroundColor: '#FFFFFF'}]} />
-                      <Text style={[styles.badgeText, {color: 'rgba(255, 255, 255, 0.9)'}]}>
+                      <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'new' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
+                      <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
                         27 LIBROS
                       </Text>
                     </View>
@@ -586,8 +600,8 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                 style={[styles.cardBackground, styles.cardOverlay]}>
                 <View style={styles.cardContent}>
                   <View style={styles.cardBadge}>
-                    <View style={[styles.badgeDot, {backgroundColor: '#FFFFFF'}]} />
-                    <Text style={[styles.badgeText, {color: 'rgba(255, 255, 255, 0.9)'}]}>
+                    <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'new' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
+                    <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
                       27 LIBROS
                     </Text>
                   </View>
@@ -676,8 +690,8 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
               onPress={() => handleRecentSearch(search)}
               activeOpacity={0.7}>
               <View style={styles.recentItemContent}>
-                <View style={[styles.recentIcon, {borderColor: `${search.iconColor}33`}]}>
-                  <MaterialIcons name="history" size={20} color={search.iconColor} />
+                <View style={[styles.recentIcon, {borderColor: `${colors.primary.DEFAULT}33`}]}>
+                  <MaterialIcons name="history" size={20} color={colors.primary.DEFAULT} />
                 </View>
                 <View style={styles.recentTextContainer}>
                   <Text style={styles.recentText}>{search.text}</Text>
@@ -697,14 +711,25 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
         <View style={styles.bottomSpacer} />
       </ScrollView>
       )}
+
+      {/* Floating Action Button for AI (when not searching) */}
+      {!isSearching && !hasSearched && (
+        <TouchableOpacity
+          style={styles.fabAI}
+          onPress={() => navigation.navigate('AIAssistant')}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons name="auto-awesome" size={28} color="#FFFFFF" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
 
   // Búsqueda
@@ -744,10 +769,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.charcoal.muted,
   },
+  suggestionHighlight: {
+    color: isDarkMode ? colors.primary.DEFAULT : colors.primary.DEFAULT,
+    fontWeight: '700',
+  },
+  // Results
   resultsContainer: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 16,
+    paddingBottom: 20,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
+  },
+  resultsCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.charcoal.muted,
+    marginBottom: 12,
   },
   resultsTitle: {
     fontSize: 14,
@@ -759,12 +797,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   resultCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.surface.dark : colors.surface.light,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: colors.ivory.border,
+    borderColor: isDarkMode ? colors.ivory.border : colors.ivory.border,
   },
   resultHeader: {
     marginBottom: 8,
@@ -786,9 +824,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 12,
-    backgroundColor: colors.cream,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingBottom: 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
     zIndex: 10,
@@ -807,13 +845,13 @@ const styles = StyleSheet.create({
   searchSection: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     zIndex: 10,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : colors.surface.light,
     borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.ivory.border,
@@ -934,7 +972,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : colors.surface.light,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -982,7 +1020,7 @@ const styles = StyleSheet.create({
 
   // Sugerencias
   suggestionsContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : colors.surface.light,
     marginHorizontal: 16,
     marginTop: 8,
     marginBottom: 16,
@@ -994,6 +1032,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     maxHeight: 300,
+    borderWidth: isDarkMode ? 1 : 0,
+    borderColor: colors.ivory.border,
   },
   suggestionsTitle: {
     fontSize: 11,
@@ -1011,7 +1051,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: colors.cream,
+    borderBottomColor: isDarkMode ? colors.ivory.border : colors.cream,
   },
   suggestionTextContainer: {
     flex: 1,
@@ -1050,7 +1090,7 @@ const styles = StyleSheet.create({
   smartResultCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.surface.dark : colors.surface.light,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -1059,6 +1099,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 2,
+    borderWidth: isDarkMode ? 1 : 0,
+    borderColor: colors.ivory.border,
   },
   smartResultIcon: {
     width: 48,
@@ -1086,6 +1128,27 @@ const styles = StyleSheet.create({
     color: colors.charcoal.muted,
     fontStyle: 'italic',
     marginTop: 4,
+  },
+  
+  // Floating Action Button AI
+  fabAI: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.primary.DEFAULT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.primary.DEFAULT,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    zIndex: 99,
   },
 });
 

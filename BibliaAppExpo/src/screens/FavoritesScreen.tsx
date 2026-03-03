@@ -10,13 +10,36 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Keyboard,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {FavoritesScreenProps, RootStackParamList} from '../navigation/AppNavigator';
 import {favoritesService, Favorite as ApiFavorite} from '../services/favorites.service';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+
+// Listas de libros para filtrado client-side (igual que WritingsScreen)
+const oldTestamentIds = [
+  'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
+  'joshua', 'judges', 'ruth', '1samuel', '2samuel', '1kings', '2kings',
+  '1chronicles', '2chronicles', 'ezra', 'nehemiah', 'tobit', 'judith',
+  'esther', '1maccabees', '2maccabees', 'job', 'psalms', 'proverbs',
+  'ecclesiastes', 'songofsolomon', 'wisdom', 'sirach',
+  'isaiah', 'jeremiah', 'lamentations', 'baruch', 'ezekiel', 'daniel',
+  'hosea', 'joel', 'amos', 'obadiah', 'jonah', 'micah', 'nahum',
+  'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi'
+];
+
+const newTestamentIds = [
+  'matthew', 'mark', 'luke', 'john', 'acts',
+  'romans', '1corinthians', '2corinthians', 'galatians', 'ephesians',
+  'philippians', 'colossians', '1thessalonians', '2thessalonians',
+  '1timothy', '2timothy', 'titus', 'philemon', 'hebrews',
+  'james', '1peter', '2peter', '1john', '2john', '3john', 'jude', 'revelation'
+];
 
 type Favorite = {
   id: string;
@@ -34,6 +57,10 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
   // Usar el navigation del RootStack para poder navegar a ChapterReading
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
+  const { colors, isDarkMode, toggleTheme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+
   const [activeFilter, setActiveFilter] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -49,10 +76,8 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
       if (showLoading) setIsLoading(true);
       setError(null);
 
-      const testament = activeFilter === 'antiguo' ? 'old' :
-                       activeFilter === 'nuevo' ? 'new' : undefined;
-
-      const response = await favoritesService.getFavorites({ testament });
+      // Cargar TODOS los favoritos y filtrar client-side (igual que WritingsScreen)
+      const response = await favoritesService.getFavorites();
 
       // Transformar al formato local
       const transformedFavorites: Favorite[] = response.favorites.map((fav: ApiFavorite) => {
@@ -92,16 +117,16 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
     }
   };
 
-  // Recargar al cambiar filtro
+  // Cargar al iniciar
   useEffect(() => {
     loadFavorites();
-  }, [activeFilter]);
+  }, []);
 
   // Recargar cuando la pantalla obtiene foco
   useFocusEffect(
     useCallback(() => {
       loadFavorites(false);
-    }, [activeFilter])
+    }, [])
   );
 
   const onRefresh = () => {
@@ -110,31 +135,79 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
   };
 
   // =====================================================
-  // ✅ BÚSQUEDA LOCAL - Filtra en tiempo real
+  // ✅ BÚSQUEDA INTELIGENTE - Filtra en tiempo real
   // =====================================================
+
+  // Normalizar texto: quitar acentos y convertir a minúsculas
+  const normalize = (text: string) =>
+    text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Mapa de nombres de libros en español → bookId en inglés
+  const bookNameMap: Record<string, string[]> = {
+    genesis: ['genesis'], exodo: ['exodus'], levitico: ['leviticus'],
+    numeros: ['numbers'], deuteronomio: ['deuteronomy'], josue: ['joshua'],
+    jueces: ['judges'], rut: ['ruth'], samuel: ['1samuel', '2samuel'],
+    reyes: ['1kings', '2kings'], cronicas: ['1chronicles', '2chronicles'],
+    esdras: ['ezra'], nehemias: ['nehemiah'], tobias: ['tobit'],
+    judit: ['judith'], ester: ['esther'], macabeos: ['1maccabees', '2maccabees'],
+    job: ['job'], salmo: ['psalms'], salmos: ['psalms'],
+    proverbios: ['proverbs'], eclesiastes: ['ecclesiastes'],
+    cantar: ['songofsolomon'], cantares: ['songofsolomon'],
+    sabiduria: ['wisdom'], siracida: ['sirach'], siracides: ['sirach'],
+    isaias: ['isaiah'], jeremias: ['jeremiah'], lamentaciones: ['lamentations'],
+    baruc: ['baruch'], ezequiel: ['ezekiel'], daniel: ['daniel'],
+    oseas: ['hosea'], joel: ['joel'], amos: ['amos'], abdias: ['obadiah'],
+    jonas: ['jonah'], miqueas: ['micah'], nahum: ['nahum'],
+    habacuc: ['habakkuk'], sofonias: ['zephaniah'], ageo: ['haggai'],
+    zacarias: ['zechariah'], malaquias: ['malachi'],
+    mateo: ['matthew'], marcos: ['mark'], lucas: ['luke'], juan: ['john'],
+    hechos: ['acts'], romanos: ['romans'],
+    corintios: ['1corinthians', '2corinthians'],
+    galatas: ['galatians'], efesios: ['ephesians'],
+    filipenses: ['philippians'], colosenses: ['colossians'],
+    tesalonicenses: ['1thessalonians', '2thessalonians'],
+    timoteo: ['1timothy', '2timothy'], tito: ['titus'],
+    filemon: ['philemon'], hebreos: ['hebrews'],
+    santiago: ['james'], pedro: ['1peter', '2peter'],
+    judas: ['jude'], apocalipsis: ['revelation'],
+  };
+
   const filteredFavorites = favorites.filter((favorite) => {
+    // 1. Filtrar por testamento (client-side)
+    if (activeFilter === 'antiguo') {
+      if (!favorite.bookId || !oldTestamentIds.includes(favorite.bookId.toLowerCase())) return false;
+    } else if (activeFilter === 'nuevo') {
+      if (!favorite.bookId || !newTestamentIds.includes(favorite.bookId.toLowerCase())) return false;
+    }
+
+    // 2. Filtrar por búsqueda inteligente
     if (searchQuery.trim() === '') return true;
 
-    return favorite.verse.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      favorite.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      favorite.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    // Dividir la búsqueda en palabras individuales
+    const queryWords = normalize(searchQuery).split(/\s+/).filter(w => w.length > 0);
+
+    // Campos en los que buscar
+    const searchableFields = [
+      normalize(favorite.verse),
+      normalize(favorite.text),
+      ...favorite.tags.map(t => normalize(t)),
+      favorite.chapter.toString(),
+      favorite.bookId?.toLowerCase() || '',
+    ];
+
+    // Verificar si el bookId coincide con algún nombre en español
+    const bookIdLower = favorite.bookId?.toLowerCase() || '';
+    const spanishNames = Object.entries(bookNameMap)
+      .filter(([, ids]) => ids.includes(bookIdLower))
+      .map(([name]) => name);
+    searchableFields.push(...spanishNames);
+
+    // Crear un solo string de todos los campos para buscar
+    const allText = searchableFields.join(' ');
+
+    // TODAS las palabras de la búsqueda deben coincidir en algún campo
+    return queryWords.every(word => allText.includes(word));
   });
-
-  // =====================================================
-  // 🔴 MOCKEADO - Editar favoritos
-  // TODO: Implementar modo edición
-  // =====================================================
-  const handleEdit = () => {
-    Alert.alert('En desarrollo', 'Modo edición próximamente');
-  };
-
-  // =====================================================
-  // 🔴 MOCKEADO - Filtrar favoritos
-  // TODO: Implementar filtros avanzados
-  // =====================================================
-  const handleFilter = () => {
-    Alert.alert('En desarrollo', 'Filtros avanzados próximamente');
-  };
 
   // =====================================================
   // ✅ CONECTADO A API - Eliminar favorito
@@ -219,24 +292,12 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onStartShouldSetResponder={() => { Keyboard.dismiss(); return false; }}>
       {/* Header Sticky */}
       <View style={styles.header}>
+        <View style={styles.headerSpacer} />
         <Text style={styles.headerTitle}>Favoritos</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            onPress={handleEdit}
-            style={styles.headerButton}
-            activeOpacity={0.7}>
-            <MaterialIcons name="edit" size={22} color={colors.charcoal.muted} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleFilter}
-            style={styles.headerButton}
-            activeOpacity={0.7}>
-            <MaterialIcons name="filter-list" size={22} color={colors.charcoal.muted} />
-          </TouchableOpacity>
-        </View>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Search Bar */}
@@ -311,22 +372,6 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
             Nuevo Testamento
           </Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.filterChip,
-            activeFilter === 'salmos' && styles.filterChipActive,
-          ]}
-          onPress={() => setActiveFilter('salmos')}
-          activeOpacity={0.7}>
-          <Text
-            style={[
-              styles.filterText,
-              activeFilter === 'salmos' && styles.filterTextActive,
-            ]}>
-            Salmos
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
 
 
@@ -351,39 +396,41 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
 
       {/* Favorites List */}
       {!isLoading && !error && (
-      <FlatList
-        data={filteredFavorites}
-        renderItem={renderFavoriteCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.burgundy.DEFAULT}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <MaterialIcons name="favorite-border" size={48} color={colors.charcoal.muted} />
-            <Text style={styles.emptyText}>
-              {searchQuery.trim()
-                ? `No se encontraron resultados para "${searchQuery}"`
-                : 'No tienes favoritos en esta categoría'}
-            </Text>
-          </View>
-        }
-      />
+        <FlatList
+          data={filteredFavorites}
+          renderItem={renderFavoriteCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[styles.listContent, {flexGrow: 1}]}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.burgundy.DEFAULT}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="favorite-border" size={48} color={colors.charcoal.muted} />
+              <Text style={styles.emptyText}>
+                {searchQuery.trim()
+                  ? `No se encontraron resultados para "${searchQuery}"`
+                  : 'No tienes favoritos en esta categoría'}
+              </Text>
+            </View>
+          }
+        />
       )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Loading y Error states
@@ -428,40 +475,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 12,
-    backgroundColor: `${colors.cream}F2`,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingBottom: 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.charcoal.dark,
-    flex: 1,
+    textAlign: 'center',
   },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  headerButton: {
+  headerSpacer: {
     width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
+    height: 36,
   },
 
   // Search
   searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.ivory.shade : '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.ivory.border,
@@ -485,6 +525,8 @@ const styles = StyleSheet.create({
   // Filters
   filtersContainer: {
     paddingVertical: 8,
+    flexGrow: 0,
+    minHeight: 60,
   },
   filtersContent: {
     paddingHorizontal: 20,
@@ -499,9 +541,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.primary.light : '#FFFFFF',
     borderWidth: 1,
-    borderColor: colors.ivory.border,
+    borderColor: isDarkMode ? colors.primary.light : colors.ivory.border,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -510,13 +552,13 @@ const styles = StyleSheet.create({
     minHeight: 42,
   },
   filterChipActive: {
-    backgroundColor: colors.primary.DEFAULT,
-    borderColor: colors.primary.DEFAULT,
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : colors.primary.DEFAULT,
+    borderColor: isDarkMode ? colors.primary.DEFAULT : colors.primary.DEFAULT,
   },
   filterText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.charcoal.muted,
+    color: isDarkMode ? colors.charcoal.DEFAULT : colors.charcoal.muted,
     flexShrink: 1,
     flexGrow: 0,
   },
@@ -535,7 +577,7 @@ const styles = StyleSheet.create({
 
   // Favorite Card
   favoriteCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,

@@ -14,7 +14,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import type {RootStackParamList} from '../navigation/AppNavigator';
 import {EnglishBibleDownloadService} from '../services/english-bible-download.service';
@@ -29,6 +30,8 @@ interface DownloadState {
 type ManageDownloadsScreenProps = NativeStackScreenProps<RootStackParamList, 'ManageDownloads'>;
 
 const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const [downloadState, setDownloadState] = useState<DownloadState>({
     isDownloaded: false,
     isDownloading: false,
@@ -242,14 +245,15 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   header: {
     flexDirection: 'row',
@@ -258,7 +262,7 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     paddingBottom: 16,
     paddingHorizontal: 20,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   backButton: {
     width: 40,
@@ -301,18 +305,18 @@ const styles = StyleSheet.create({
 
   // Download Card
   downloadCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     borderLeftWidth: 4,
-    borderLeftColor: colors.gold.DEFAULT,
+    borderLeftColor: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.05,
     shadowRadius: 15,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: colors.ivory.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -329,7 +333,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: `${colors.gold.DEFAULT}15`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}15` : `${colors.gold.DEFAULT}15`,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -351,7 +355,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}15` : '#ECFDF5',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -405,10 +409,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: colors.gold.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
     borderRadius: 12,
     paddingVertical: 16,
-    shadowColor: colors.gold.DEFAULT,
+    shadowColor: colors.primary.DEFAULT,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -417,7 +421,7 @@ const styles = StyleSheet.create({
   downloadButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
   },
 
   // Delete Button
@@ -452,13 +456,13 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: colors.gold.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
     borderRadius: 4,
   },
   progressText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.gold.DEFAULT,
+    color: colors.primary.DEFAULT,
     width: 40,
     textAlign: 'right',
   },
@@ -473,11 +477,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: `${colors.gold.DEFAULT}08`,
+    backgroundColor: isDarkMode ? colors.paper : `${colors.gold.DEFAULT}08`,
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: `${colors.gold.DEFAULT}15`,
+    borderColor: colors.ivory.border,
   },
   infoText: {
     flex: 1,

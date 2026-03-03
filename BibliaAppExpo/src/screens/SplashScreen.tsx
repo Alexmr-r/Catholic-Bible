@@ -9,12 +9,16 @@
 
 import React, {useEffect} from 'react';
 import {View, StyleSheet, Animated} from 'react-native';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 
 interface SplashScreenProps {
   onFinish: () => void;
 }
 
 const SplashScreen: React.FC<SplashScreenProps> = ({onFinish}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
 
@@ -78,10 +82,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({onFinish}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FDFBF7', // bible-ivory del HTML
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -98,7 +102,7 @@ const styles = StyleSheet.create({
     width: 144, // 36 * 4 (w-36 en Tailwind = 9rem = 144px)
     height: 144,
     borderRadius: 72,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     // Sombra sutil elevada (subtle-elevated del HTML)
@@ -109,7 +113,7 @@ const styles = StyleSheet.create({
     elevation: 4,
     // Borde blanco semi-transparente
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.5)',
   },
 
   // Icono de la Biblia
@@ -126,7 +130,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 8,
     height: 80,
-    backgroundColor: '#DBCFB0', // champagne-gold del HTML
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
     borderRadius: 4,
     zIndex: 10,
   },
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 56, // w-14 = 3.5rem = 56px
     height: 8,
-    backgroundColor: '#DBCFB0', // champagne-gold del HTML
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
     borderRadius: 4,
     top: 24, // mt-6 = 1.5rem = 24px
     zIndex: 10,
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 12,
     borderBottomWidth: 3,
-    borderBottomColor: '#DBCFB0', // champagne-gold del HTML
+    borderBottomColor: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
     borderRadius: 24, // 50% en CSS
     borderTopWidth: 0,
     borderLeftWidth: 0,

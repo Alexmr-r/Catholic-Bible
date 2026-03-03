@@ -15,11 +15,14 @@ import {
   Pressable,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {RegisterScreenProps} from '../navigation/AppNavigator';
 import {useAuth} from '../contexts/AuthContext';
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const {height} = useWindowDimensions();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -148,7 +151,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   ref={fullNameRef}
                   style={styles.input}
                   placeholder="Tu nombre"
-                  placeholderTextColor={`${colors.charcoal.muted}80`}
+                  placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                   value={fullName}
                   onChangeText={setFullName}
                   autoCapitalize="words"
@@ -172,7 +175,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                   ref={emailRef}
                   style={styles.input}
                   placeholder="ejemplo@email.com"
-                  placeholderTextColor={`${colors.charcoal.muted}80`}
+                  placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -196,8 +199,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                 <TextInput
                   ref={passwordRef}
                   style={[styles.input, styles.passwordInput]}
-                  placeholder="Ingresa tu contraseña"
-                  placeholderTextColor={`${colors.charcoal.muted}80`}
+                   placeholder="Ingresa tu contraseña"
+                  placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -231,8 +234,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                 <TextInput
                   ref={confirmPasswordRef}
                   style={[styles.input, styles.passwordInput]}
-                  placeholder="Repite tu contraseña"
-                  placeholderTextColor={`${colors.charcoal.muted}80`}
+                   placeholder="Repite tu contraseña"
+                  placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
@@ -300,10 +303,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   fullHeight: {
     flex: 1,
@@ -349,7 +352,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: `${colors.gold.DEFAULT}20`, // fondo gold/20
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}20` : `${colors.gold.DEFAULT}20`,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -427,8 +430,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ivory.shade, // usa el mismo fondo que los inputs
   },
   checkboxBoxChecked: {
-    backgroundColor: colors.burgundy.DEFAULT,
-    borderColor: colors.burgundy.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
+    borderColor: colors.primary.DEFAULT,
   },
   termsText: {
     flex: 1,
@@ -443,11 +446,11 @@ const styles = StyleSheet.create({
   registerButton: {
     width: '100%',
     height: 48,
-    backgroundColor: colors.burgundy.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.burgundy.DEFAULT,
+    shadowColor: colors.primary.DEFAULT,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -457,7 +460,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   registerButtonText: {
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,

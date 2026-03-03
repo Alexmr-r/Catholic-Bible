@@ -14,9 +14,12 @@ import {
   Platform,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 
 const SendMessageScreen: React.FC<{navigation: any}> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -118,31 +121,31 @@ const SendMessageScreen: React.FC<{navigation: any}> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: colors.cream},
-  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, backgroundColor: colors.cream},
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
+  container: {flex: 1, backgroundColor: isDarkMode ? colors.background.dark : colors.cream},
+  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, backgroundColor: isDarkMode ? colors.background.dark : colors.cream},
   backButton: {width: 40, height: 40, alignItems: 'flex-start', justifyContent: 'center'},
   headerTitle: {fontSize: 18, fontWeight: '600', color: colors.charcoal.DEFAULT, fontFamily: 'serif'},
   headerSpacer: {width: 40},
   keyboardView: {flex: 1},
   content: {flex: 1, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100, justifyContent: 'space-between'},
   iconSection: {alignItems: 'center', marginBottom: 24},
-  iconContainer: {width: 64, height: 64, borderRadius: 32, backgroundColor: colors.gold.DEFAULT + '15', alignItems: 'center', justifyContent: 'center', marginBottom: 16},
+  iconContainer: {width: 64, height: 64, borderRadius: 32, backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}1A` : colors.gold.DEFAULT + '15', alignItems: 'center', justifyContent: 'center', marginBottom: 16},
   iconTitle: {fontSize: 18, fontWeight: '600', color: colors.charcoal.DEFAULT, fontFamily: 'serif', marginBottom: 6},
   iconSubtitle: {fontSize: 14, color: colors.charcoal.muted, textAlign: 'center', lineHeight: 20},
   form: {flex: 1, gap: 20, justifyContent: 'center'},
   inputGroup: {gap: 8},
   inputLabel: {fontSize: 10, fontWeight: '600', letterSpacing: 2, color: colors.charcoal.muted, paddingLeft: 4},
-  inputContainer: {flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.ivory.border, paddingHorizontal: 16},
+  inputContainer: {flexDirection: 'row', alignItems: 'center', backgroundColor: isDarkMode ? colors.ivory.shade : '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: colors.ivory.border, paddingHorizontal: 16},
   inputIcon: {marginRight: 12},
   input: {flex: 1, fontSize: 15, color: colors.charcoal.DEFAULT, paddingVertical: 16},
   textareaContainer: {alignItems: 'flex-start', paddingTop: 16},
   textareaIcon: {marginTop: 2, marginRight: 12},
   textarea: {minHeight: 140, paddingTop: 0},
-  sendButton: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.burgundy.DEFAULT, paddingVertical: 16, borderRadius: 16, marginTop: 8, shadowColor: colors.burgundy.DEFAULT, shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4},
+  sendButton: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: colors.primary.DEFAULT, paddingVertical: 16, borderRadius: 16, marginTop: 8, shadowColor: colors.primary.DEFAULT, shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4},
   sendButtonDisabled: {opacity: 0.7},
-  sendButtonText: {fontSize: 15, fontWeight: '600', color: '#FFFFFF'},
-  infoBox: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.cream, borderRadius: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.gold.DEFAULT + '30', padding: 20, marginTop: 24},
+  sendButtonText: {fontSize: 15, fontWeight: '600', color: isDarkMode ? colors.charcoal.dark : '#FFFFFF'},
+  infoBox: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: isDarkMode ? colors.background.dark : colors.cream, borderRadius: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.ivory.border, padding: 20, marginTop: 24},
   infoText: {flex: 1, fontSize: 13, color: colors.charcoal.muted, lineHeight: 18},
 });
 

@@ -55,8 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/daily-reading/**").permitAll()
 
                         // Todo lo demás requiere autenticación
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -95,4 +94,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-

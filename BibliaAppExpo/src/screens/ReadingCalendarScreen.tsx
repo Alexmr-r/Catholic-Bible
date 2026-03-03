@@ -18,12 +18,14 @@ import {
   Dimensions,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {readingProgressService, CalendarMonth} from '../services/reading-progress.service';
 import {dailyReadingService} from '../services/daily-reading.service';
 import {writingsService} from '../services/writings.service';
 import {useIsOnline} from '../contexts/NetworkContext';
 import type {DailyReading} from '../services/daily-reading.service';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CALENDAR_PADDING = 24;
@@ -42,6 +44,10 @@ const MONTH_NAMES = [
 const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1); // 1-12
   const [monthData, setMonthData] = useState<CalendarMonth | null>(null);
@@ -518,10 +524,10 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Header
@@ -530,9 +536,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 48,
+    paddingTop: Math.max(safeTop, 20) + 16,
     paddingBottom: 12,
-    backgroundColor: `${colors.cream}F5`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
@@ -572,7 +578,7 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.burgundy.DEFAULT,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.burgundy.DEFAULT,
     fontFamily: 'serif',
   },
   monthNavigation: {
@@ -633,13 +639,13 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   dayCellSelected: {
-    backgroundColor: colors.primary.DEFAULT, // Verde para día seleccionado
+    backgroundColor: colors.primary.DEFAULT,
     borderRadius: 9999,
   },
   dayCompletedBg: {
     position: 'absolute',
     inset: 4,
-    backgroundColor: `${colors.gold.DEFAULT}26`, // 15% opacity
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}33` : `${colors.gold.DEFAULT}26`,
     borderRadius: 9999,
     zIndex: 0,
   },
@@ -656,13 +662,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   dayNumberSelected: {
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     fontWeight: '700',
   },
 
   // Reading Card
   readingCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 16,
     marginHorizontal: 24,
     marginBottom: 32,
@@ -718,7 +724,7 @@ const styles = StyleSheet.create({
   },
   readingCardDivider: {
     height: 1,
-    backgroundColor: `${colors.charcoal.muted}20`,
+    backgroundColor: isDarkMode ? `${colors.charcoal.muted}30` : `${colors.charcoal.muted}20`,
     marginBottom: 16,
   },
   readingCardFooter: {
@@ -745,7 +751,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
-    color: colors.burgundy.DEFAULT,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.burgundy.DEFAULT,
     textTransform: 'uppercase',
   },
   readingCardButtonPrimary: {
@@ -758,12 +764,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     textTransform: 'uppercase',
   },
   // Estilos para tarjeta offline (mismo tamaño que readingCard)
   offlineCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 16,
     marginHorizontal: 24,
     marginBottom: 32,
@@ -774,7 +780,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: isDarkMode ? colors.ivory.border : '#E2E8F0',
     borderStyle: 'dashed',
     alignItems: 'center',
   },
@@ -782,7 +788,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: isDarkMode ? `${colors.charcoal.muted}20` : '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,

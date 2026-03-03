@@ -9,8 +9,10 @@ import {
   Alert,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {useAuth} from '../contexts/AuthContext';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type ProfileScreenProps = {
   navigation: any;
@@ -18,6 +20,9 @@ type ProfileScreenProps = {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
   const {user, logout} = useAuth();
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
 
   const handleLogout = async () => {
     Alert.alert(
@@ -68,7 +73,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
           onPress={handleBack}
           activeOpacity={0.7}
           style={styles.backButton}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color={colors.charcoal.DEFAULT} />
+          <MaterialIcons name="arrow-back-ios-new" size={24} color={isDarkMode ? colors.charcoal.muted : colors.charcoal.DEFAULT} />
         </TouchableOpacity>
       </View>
 
@@ -152,18 +157,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: 48,
-    backgroundColor: colors.ivory.DEFAULT,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
@@ -220,7 +225,7 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderRadius: 12,

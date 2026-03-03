@@ -1,0 +1,1036 @@
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/ios/AudioPlayer.swift b/node_modules/react-native-sherpa-onnx-offline-tts/ios/AudioPlayer.swift
+index e65303d..0666d51 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/ios/AudioPlayer.swift
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/ios/AudioPlayer.swift
+@@ -1,307 +1,306 @@
+-//  AudioPlayer.swift
+-//
+-//  Updated: 26-Apr-2025
+-//
+-//  Changes
+-//  --------
+-//  • setupAudioSession(): removed .defaultToSpeaker, added .allowBluetooth / .allowBluetoothA2DP
+-//  • Added buffer-completion handler that sends –1 when the queue is empty and playback stops
+-//  • Guard to send that completion flag only once per playback run
+-//
+ 
+ import Foundation
+ import AVFoundation
+ import Accelerate
+ 
+-class AudioPlayer: NSObject {
+-    // MARK: - Properties
++protocol AudioPlayerDelegate: AnyObject {
++    func didFinishPlayback()
++    func didUpdateVolume(_ volume: Float)
++    func didUpdateProgress(_ progress: Float)
++}
+ 
++class AudioPlayer: NSObject {
+     private let audioEngine = AVAudioEngine()
+     private let audioPlayerNode = AVAudioPlayerNode()
++    
+     private let audioFormat: AVAudioFormat
+-    private var audioQueue: [Data] = []
+-    private let queueLock = NSLock()
+-    private var isProcessing = false
++    weak var delegate: AudioPlayerDelegate?
+     
+-    private var playbackId: Int = 0
+-    private var enqueueClosed: Bool = true
+-    private var pendingScheduled: Int = 0
+-    private var didSignalFinish: Bool = false
++    // MARK: - Estado de la cola
++    struct AudioChunk {
++        let data: Data
++        let progress: Float // 0.0 to 1.0
++    }
+     
+-    // Volume Monitoring
++    // State management
++    private let queueLock = NSLock()
++    private var audioQueue: [AudioChunk] = []
++    private var pendingScheduled = 0
++    private var enqueueClosed = false
++    private var didSignalFinish = false
++    private var currentPlaybackId: Int = 0
++    
++    // Volume management
++    private var currentVolume: Float = 0
+     private var volumeTimer: Timer?
+-    private var currentVolume: Float = 0.0
+-    private let volumeUpdateInterval: TimeInterval = 0.2
++    private let volumeUpdateInterval: TimeInterval = 0.05
++    private var isPausedByUser = false
+ 
+-    // End-of-playback tracking
+-    private var sentCompletion = false
+-
+-    // Delegate
+-    weak var delegate: AudioPlayerDelegate?
+-
+-    // MARK: - Initialization
++    // Concurrency Protection
++    private let audioProcessingQueue = DispatchQueue(label: "com.biblia.audio.processing")
++    private var isPlayingActive = false
+ 
+     init(sampleRate: Double, channels: AVAudioChannelCount) {
+         self.audioFormat = AVAudioFormat(
+             commonFormat: .pcmFormatFloat32,
+             sampleRate: sampleRate,
+             channels: channels,
+-            interleaved: true
++            interleaved: false
+         )!
+         
+         super.init()
+-
+         setupAudioSession()
+         setupAudioEngine()
++        startVolumeTimer()
+         
+         NotificationCenter.default.addObserver(
+             self,
+             selector: #selector(handleInterruption),
+             name: AVAudioSession.interruptionNotification,
+-            object: AVAudioSession.sharedInstance()
++            object: nil
+         )
+-
+-        DispatchQueue.global(qos: .background).async { self.processAudioQueue() }
+-        DispatchQueue.main.async { self.startVolumeTimer() }
+-    }
+-
+-    deinit {
+-        stop()
+-        audioEngine.mainMixerNode.removeTap(onBus: 0)
+-        NotificationCenter.default.removeObserver(self)
+-        deactivateAudioSession()
+     }
+ 
+-    // MARK: - Audio Session
+-
+     private func setupAudioSession() {
++        let session = AVAudioSession.sharedInstance()
+         do {
+-            let session = AVAudioSession.sharedInstance()
+-            try session.setCategory(
+-                .playback,
+-                mode: .default,
+-                options: [.mixWithOthers, .allowBluetooth, .allowBluetoothA2DP] // ← no .defaultToSpeaker
+-            )
+-            try session.setActive(true, options: [])
+-            print("Audio session set up for Bluetooth or speaker")
+-        } catch {
+-            print("Failed to set up AVAudioSession: \(error)")
+-        }
+-    }
+-
+-    private func deactivateAudioSession() {
+-        do {
+-            try AVAudioSession.sharedInstance().setActive(false)
++            try session.setCategory(.playback, mode: .spokenAudio, options: [.allowBluetooth, .allowBluetoothA2DP])
++            try session.setActive(true)
+         } catch {
+-            print("Failed to deactivate AVAudioSession: \(error)")
++            NSLog("[AudioPlayer] Failed to setup audio session: %@", error.localizedDescription)
+         }
+     }
+ 
+-    // MARK: - Engine
+-
+     private func setupAudioEngine() {
+         audioEngine.attach(audioPlayerNode)
+-        audioEngine.connect(audioPlayerNode, to: audioEngine.mainMixerNode, format: audioFormat)
+-        addAudioTap()
++        
++        let mixer = audioEngine.mainMixerNode
++        audioEngine.connect(audioPlayerNode, to: mixer, format: audioFormat)
++        
++        // Add volume tap
++        mixer.installTap(onBus: 0, bufferSize: 1024, format: nil) { [weak self] buffer, _ in
++            guard let self = self else { return }
++            let frameCount = vDSP_Length(buffer.frameLength)
++            if let channelData = buffer.floatChannelData {
++                var sum: Float = 0
++                vDSP_rmsqv(channelData[0], 1, &sum, frameCount)
++                self.currentVolume = sum
++            }
++        }
+ 
+         do {
+             try audioEngine.start()
++            mixer.outputVolume = 1.0
++            NSLog("[AudioPlayer] Engine started. Format: %@", audioFormat.description)
+         } catch {
+-            print("Failed to start AVAudioEngine: \(error)")
++            NSLog("[AudioPlayer] Engine start error: %@", error.localizedDescription)
++        }
++    }
++
++    private func startVolumeTimer() {
++        volumeTimer = Timer.scheduledTimer(withTimeInterval: volumeUpdateInterval, repeats: true) { [weak self] _ in
++            guard let self = self else { return }
++            // Si está pausado marcamos 0 pero NO enviamos el evento -1.0
++            let vol = (self.isPlayingActive && !self.isPausedByUser) ? self.currentVolume : 0.0
++            self.delegate?.didUpdateVolume(vol)
+         }
+     }
+ 
+-    // MARK: - Public play API
++    private var lastProgress: Float = 0.0
+ 
+-    func playAudioData(from audio: SherpaOnnxGeneratedAudioWrapper) {
+-        let sampleCount = Int(audio.n)
+-        let data = Data(bytes: audio.samples, count: sampleCount * MemoryLayout<Float>.size)
++    // MARK: - API Pública
+ 
++    func beginPlayback(playbackId: Int) {
++        NSLog("[AudioPlayer] New Playback Sequence: %d", playbackId)
+         queueLock.lock()
+-        audioQueue.append(data)
+-        sentCompletion = false                 // reset “finished” flag for this run
++        self.currentPlaybackId = playbackId
++        self.audioQueue.removeAll()
++        self.pendingScheduled = 0
++        self.enqueueClosed = false
++        self.didSignalFinish = false
++        self.isPlayingActive = true
++        self.isPausedByUser = false
++        self.lastProgress = 0.0
+         queueLock.unlock()
+-    }
+         
+-    // MARK: - Processing loop
+-
+-    private func processAudioQueue() {
+-        isProcessing = true
+-        while isProcessing {
+-            queueLock.lock()
+-            if !audioQueue.isEmpty {
+-                let data = audioQueue.removeFirst()
+-                queueLock.unlock()
+-
+-                guard let pcmBuf = AVAudioPCMBuffer(
+-                    pcmFormat: audioFormat,
+-                    frameCapacity: AVAudioFrameCount(data.count) / audioFormat.streamDescription.pointee.mBytesPerFrame
+-                ) else {
+-                    continue
+-                }
+-                pcmBuf.frameLength = pcmBuf.frameCapacity
+-
+-                // copy bytes
+-                data.withUnsafeBytes { rbp in
+-                    pcmBuf.floatChannelData!.pointee.assign(
+-                        from: rbp.baseAddress!.assumingMemoryBound(to: Float.self),
+-                        count: Int(pcmBuf.frameLength)
+-                    )
+-                }
+-
+-                // schedule with completion handler
+-                audioPlayerNode.scheduleBuffer(pcmBuf, at: nil, options: []) { [weak self] in
+-                    guard let self = self else { return }
+-                    self.checkForPlaybackEnd()
+-                }
+-
+-                if !audioPlayerNode.isPlaying { audioPlayerNode.play() }
+-            } else {
+-                queueLock.unlock()
+-                usleep(10_000)
+-            }
++        DispatchQueue.main.async {
++            self.audioPlayerNode.stop()
++            self.audioPlayerNode.reset()
+         }
+     }
+ 
+-    // Called from every buffer’s completion handler
+-    private func checkForPlaybackEnd() {
++    func playAudioData(from audio: SherpaOnnxGeneratedAudioWrapper, progress: Float) {
++        let samples = audio.samples
++        guard !samples.isEmpty else { return }
++        
++        let startProgress = self.lastProgress
++        let endProgress = progress
++        self.lastProgress = endProgress
++        
++        let sampleCount = samples.count
++        let chunkSize = Int(self.audioFormat.sampleRate * 0.5) // Tramos de 0.5 segundos para refresco ultra fuido
++        
+         queueLock.lock()
+-        let finished = enqueueClosed && audioQueue.isEmpty && pendingScheduled == 0
+-        let shouldSignal = finished && !didSignalFinish
+-        if shouldSignal { didSignalFinish = true }
++        var offset = 0
++        while offset < sampleCount {
++            let length = min(chunkSize, sampleCount - offset)
++            let currentChunkProgress = startProgress + (endProgress - startProgress) * Float(offset + length) / Float(sampleCount)
++            
++            let slice = Array(samples[offset..<(offset + length)])
++            let dataCopy = Data(bytes: slice, count: length * MemoryLayout<Float>.size)
++            
++            audioQueue.append(AudioChunk(data: dataCopy, progress: currentChunkProgress))
++            offset += length
++        }
++        let active = isPlayingActive
+         queueLock.unlock()
+         
+-        if shouldSignal {
+-            DispatchQueue.main.async {
+-                self.audioPlayerNode.stop()
+-                self.delegate?.didUpdateVolume(-1.0) // <-- this will now resolve the promise
++        if active {
++            audioProcessingQueue.async { [weak self] in
++                while self?.processNextBuffer() == true { }
+             }
+         }
+     }
+ 
+-
+-    // MARK: - Volume metering
+-
+-    private func addAudioTap() {
+-        let mixer = audioEngine.mainMixerNode
+-        mixer.installTap(onBus: 0, bufferSize: 1024, format: mixer.outputFormat(forBus: 0)) { [weak self] buf, _ in
+-            guard let self else { return }
+-            let channels = Int(buf.format.channelCount)
+-            var rms: Float = 0
+-            if let chData = buf.floatChannelData {
+-                let frames = Int(buf.frameLength)
+-                for c in 0..<channels {
+-                    var sum: Float = 0
+-                    vDSP_rmsqv(chData[c], 1, &sum, vDSP_Length(frames))
+-                    rms += sum
+-                }
+-                self.currentVolume = rms / Float(channels)
+-            }
++    func endEnqueue() {
++        queueLock.lock()
++        enqueueClosed = true
++        queueLock.unlock()
++        audioProcessingQueue.async { [weak self] in
++            self?.checkForPlaybackEnd()
+         }
+     }
+ 
+-    private func startVolumeTimer() {
+-        volumeTimer = Timer.scheduledTimer(withTimeInterval: volumeUpdateInterval, repeats: true) { [weak self] _ in
+-            guard let self else { return }
+-            DispatchQueue.main.async {
+-                self.delegate?.didUpdateVolume(self.currentVolume)
+-            }
++    func stopPlayback() {
++        NSLog("[AudioPlayer] Stopping playback and clearing queues")
++        queueLock.lock()
++        isPlayingActive = false
++        audioQueue.removeAll()
++        pendingScheduled = 0
++        queueLock.unlock()
++        
++        DispatchQueue.main.async {
++            self.audioPlayerNode.stop()
+         }
+     }
+ 
+-    // MARK: - Interruptions
+-
+-    @objc private func handleInterruption(notification: Notification) {
+-        guard
+-            let info = notification.userInfo,
+-            let typeRaw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+-            let type = AVAudioSession.InterruptionType(rawValue: typeRaw)
+-        else { return }
+-
+-        switch type {
+-        case .began:
+-            audioPlayerNode.pause()
+-
+-        case .ended:
+-            do {
+-                let session = AVAudioSession.sharedInstance()
+-                try session.setCategory(
+-                    .playback,
+-                    mode: .default,
+-                    options: [.mixWithOthers, .allowBluetooth, .allowBluetoothA2DP]
+-                )
+-                try session.setActive(true, options: [])
+-                if !audioEngine.isRunning { try audioEngine.start() }
+-                if !audioPlayerNode.isPlaying && !audioQueue.isEmpty { audioPlayerNode.play() }
+-            } catch {
+-                print("Could not resume after interruption: \(error)")
+-            }
++    func pausePlayback() {
++        queueLock.lock()
++        guard isPlayingActive, !isPausedByUser else {
++            queueLock.unlock()
++            return
++        }
++        isPausedByUser = true
++        queueLock.unlock()
+         
+-        @unknown default: break
++        DispatchQueue.main.async {
++            self.audioPlayerNode.pause()
+         }
+     }
+ 
+-    func beginPlayback(playbackId: Int) {
++    func resumePlayback() {
+         queueLock.lock()
+-        self.playbackId = playbackId
+-        self.enqueueClosed = false
+-        self.didSignalFinish = false
+-        self.pendingScheduled = 0
+-        self.audioQueue.removeAll()
+-        self.currentVolume = 0
++        guard isPlayingActive, isPausedByUser else {
++            queueLock.unlock()
++            return
++        }
++        isPausedByUser = false
+         queueLock.unlock()
+         
++        // Al reanudar, tenemos que arrancar el engine o el nodo si está pausado
+         DispatchQueue.main.async {
+             if !self.audioEngine.isRunning {
+                 try? self.audioEngine.start()
+             }
+-            self.audioPlayerNode.stop()
+-            self.audioPlayerNode.reset()
++            self.audioPlayerNode.play()
+         }
+     }
+ 
+-    func endEnqueue() {
++    // MARK: - Procesamiento
++
++    @discardableResult
++    private func processNextBuffer() -> Bool {
+         queueLock.lock()
+-        enqueueClosed = true
++        guard isPlayingActive, !audioQueue.isEmpty else {
++            queueLock.unlock()
++            return false
++        }
++        
++        // Evitar sobrecargar el reproductor (mantener un buffer de ~5 segundos)
++        if pendingScheduled >= 10 {
++            queueLock.unlock()
++            return false
++        }
++        
++        let chunk = audioQueue.removeFirst()
++        let data = chunk.data
++        let currentProgress = chunk.progress
++        pendingScheduled += 1
+         queueLock.unlock()
+-        checkForPlaybackEnd()
+-    }
+ 
+-    // MARK: - Stop
++        let frameCount = AVAudioFrameCount(data.count / MemoryLayout<Float>.size)
++        guard let pcmBuf = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: frameCount) else { return false }
++        pcmBuf.frameLength = frameCount
+ 
+-    func stopAndTearDown() {
+-        isProcessing = false
++        data.withUnsafeBytes { rbp in
++            if let ptr = pcmBuf.floatChannelData?.pointee {
++                ptr.assign(from: rbp.baseAddress!.assumingMemoryBound(to: Float.self), count: Int(frameCount))
++            }
++        }
+ 
+-        queueLock.lock()
+-        audioQueue.removeAll()
+-        enqueueClosed = true
+-        pendingScheduled = 0
+-        queueLock.unlock()
++        audioPlayerNode.scheduleBuffer(pcmBuf, at: nil, options: []) { [weak self] in
++            guard let self = self else { return }
++            self.queueLock.lock()
++            self.pendingScheduled -= 1
++            self.queueLock.unlock()
+             
+-        DispatchQueue.main.async {
+-            self.volumeTimer?.invalidate()
+-            self.volumeTimer = nil
++            DispatchQueue.main.async {
++                self.delegate?.didUpdateProgress(currentProgress)
++            }
+             
+-            self.audioPlayerNode.stop()
+-            self.audioPlayerNode.reset()
++            self.audioProcessingQueue.async {
++                self.checkForPlaybackEnd()
++                self.processNextBuffer()
++            }
++        }
+ 
+-            self.audioEngine.stop()
+-            self.audioEngine.reset()
++        DispatchQueue.main.async {
++            if self.isPlayingActive && !self.audioPlayerNode.isPlaying {
++                self.audioPlayerNode.play()
++            }
++        }
+         
+-            self.audioEngine.mainMixerNode.removeTap(onBus: 0)
++        return true
++    }
+ 
+-            self.deactivateAudioSession()
++    private func checkForPlaybackEnd() {
++        queueLock.lock()
++        let finished = enqueueClosed && audioQueue.isEmpty && pendingScheduled <= 0
++        let shouldSignal = finished && !didSignalFinish && isPlayingActive
++        if shouldSignal { didSignalFinish = true }
++        queueLock.unlock()
+ 
+-            self.delegate?.didUpdateVolume(-1.0)
++        if shouldSignal {
++            NSLog("[AudioPlayer] Playback sequence FINISHED")
++            DispatchQueue.main.async {
++                self.delegate?.didUpdateVolume(-1.0)
++                self.delegate?.didFinishPlayback()
++            }
+         }
+     }
+ 
++    @objc private func handleInterruption(notification: Notification) {
++        guard let info = notification.userInfo,
++              let typeRaw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
++              let type = AVAudioSession.InterruptionType(rawValue: typeRaw) else { return }
+ 
+-    func stop() {
+-        isProcessing = false
++        if type == .began {
++            stopPlayback()
++        }
++    }
++    
++    deinit {
+         volumeTimer?.invalidate()
+         audioEngine.stop()
+-        audioPlayerNode.stop()
+-        delegate?.didUpdateVolume(-1.0)        // also inform on manual stop
+     }
+ }
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnx.swift b/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnx.swift
+index a2921b8..831cd87 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnx.swift
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnx.swift
+@@ -752,9 +752,9 @@ func sherpaOnnxOfflineTtsConfig(
+ 
+ class SherpaOnnxGeneratedAudioWrapper {
+   /// A pointer to the underlying counterpart in C
+-  let audio: UnsafePointer<SherpaOnnxGeneratedAudio>!
++  let audio: UnsafePointer<SherpaOnnxGeneratedAudio>?
+ 
+-  init(audio: UnsafePointer<SherpaOnnxGeneratedAudio>!) {
++  init(audio: UnsafePointer<SherpaOnnxGeneratedAudio>?) {
+     self.audio = audio
+   }
+ 
+@@ -765,27 +765,30 @@ class SherpaOnnxGeneratedAudioWrapper {
+   }
+ 
+   var n: Int32 {
++    guard let audio = audio else { return 0 }
+     return audio.pointee.n
+   }
+ 
+   var sampleRate: Int32 {
++    guard let audio = audio else { return 0 }
+     return audio.pointee.sample_rate
+   }
+ 
+   var samples: [Float] {
+-    if let p = audio.pointee.samples {
+-      var samples: [Float] = []
+-      for index in 0..<n {
+-        samples.append(p[Int(index)])
+-      }
+-      return samples
+-    } else {
+-      let samples: [Float] = []
+-      return samples
++    guard let audio = audio, let p = audio.pointee.samples else {
++      return []
++    }
++    
++    var samples: [Float] = []
++    samples.reserveCapacity(Int(n))
++    for index in 0..<n {
++      samples.append(p[Int(index)])
+     }
++    return samples
+   }
+ 
+   func save(filename: String) -> Int32 {
++    guard let audio = audio else { return -1 }
+     return SherpaOnnxWriteWave(audio.pointee.samples, n, sampleRate, toCPointer(filename))
+   }
+ }
+@@ -800,13 +803,16 @@ typealias TtsCallbackWithArg = (
+ 
+ class SherpaOnnxOfflineTtsWrapper {
+   /// A pointer to the underlying counterpart in C
+-  let tts: OpaquePointer!
++  let tts: OpaquePointer?
+ 
+   /// Constructor taking a model config
+-  init(
++  init?(
+     config: UnsafePointer<SherpaOnnxOfflineTtsConfig>!
+   ) {
+     tts = SherpaOnnxCreateOfflineTts(config)
++    if tts == nil {
++      return nil
++    }
+   }
+ 
+   deinit {
+@@ -815,7 +821,14 @@ class SherpaOnnxOfflineTtsWrapper {
+     }
+   }
+ 
++  var sampleRate: Int32 {
++    return tts != nil ? SherpaOnnxOfflineTtsSampleRate(tts) : 0
++  }
++
+   func generate(text: String, sid: Int = 0, speed: Float = 1.0) -> SherpaOnnxGeneratedAudioWrapper {
++    guard let tts = tts else {
++      return SherpaOnnxGeneratedAudioWrapper(audio: nil)
++    }
+     let audio: UnsafePointer<SherpaOnnxGeneratedAudio>? = SherpaOnnxOfflineTtsGenerate(
+       tts, toCPointer(text), Int32(sid), speed)
+ 
+@@ -1067,9 +1080,11 @@ class SherpaOnnxOfflinePunctuationWrapper {
+   }
+ 
+   func addPunct(text: String) -> String {
+-    let cText = SherpaOfflinePunctuationAddPunct(ptr, toCPointer(text))
+-    let ans = String(cString: cText!)
+-    SherpaOfflinePunctuationFreeText(cText)
++    guard let nonNilPtr = ptr else { return "" }
++    let cText = SherpaOfflinePunctuationAddPunct(nonNilPtr, toCPointer(text))
++    guard let nonNilCText = cText else { return "" }
++    let ans = String(cString: nonNilCText)
++    SherpaOfflinePunctuationFreeText(nonNilCText)
+     return ans
+   }
+ }
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.mm b/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.mm
+index b808dd8..624501c 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.mm
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.mm
+@@ -1,24 +1,29 @@
+ #import <React/RCTBridgeModule.h>
+ 
+-@interface RCT_EXTERN_MODULE(TTSManager, NSObject)
++@interface RCT_EXTERN_MODULE (TTSManager, NSObject)
+ 
+ // Initialize method exposed to React Native
+-RCT_EXTERN_METHOD(initializeTTS:(double)sampleRate channels:(NSInteger)channels modelId:(NSString *)modelId)
++RCT_EXTERN_METHOD(initializeTTS : (double)sampleRate channels : (NSInteger)
++                      channels modelId : (NSString *)modelId resolver : (
++                          RCTPromiseResolveBlock)
++                          resolver rejecter : (RCTPromiseRejectBlock)rejecter)
+ 
+ // Generate and Play method exposed to React Native
+-RCT_EXTERN_METHOD(generateAndPlay:(NSString *)text 
+-                  sid:(NSInteger)sid 
+-                  speed:(double)speed 
+-                  resolver:(RCTPromiseResolveBlock)resolver 
+-                  rejecter:(RCTPromiseRejectBlock)rejecter)
++RCT_EXTERN_METHOD(generateAndPlay : (NSString *)text sid : (
++    NSInteger)sid speed : (double)speed resolver : (RCTPromiseResolveBlock)
++                      resolver rejecter : (RCTPromiseRejectBlock)rejecter)
+ 
+ // Deinitialize method exposed to React Native
+ RCT_EXTERN_METHOD(deinitialize)
+ 
+-RCT_EXTERN_METHOD(generateAndSave:(NSString *)text
+-                  path:(NSString *)path
+-                  fileType:(NSString *)fileType
+-                  resolver:(RCTPromiseResolveBlock)resolver
+-                  rejecter:(RCTPromiseRejectBlock)rejecter)
++RCT_EXTERN_METHOD(stopPlayback)
++
++RCT_EXTERN_METHOD(
++    generateAndSave : (NSString *)text path : (NSString *)
++        path fileType : (NSString *)fileType resolver : (RCTPromiseResolveBlock)
++            resolver rejecter : (RCTPromiseRejectBlock)rejecter)
++
++RCT_EXTERN_METHOD(pausePlayback)
++RCT_EXTERN_METHOD(resumePlayback)
+ 
+ @end
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.swift b/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.swift
+index 09a6a04..4acca87 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.swift
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/ios/SherpaOnnxOfflineTts.swift
+@@ -3,12 +3,7 @@
+ import Foundation
+ import AVFoundation
+ import React
+-
+-// Define a protocol for volume updates
+-protocol AudioPlayerDelegate: AnyObject {
+-    func didUpdateVolume(_ volume: Float)
+-    func didFinishPlayback(_ playbackId: Int)
+-}
++import Accelerate
+ 
+ @objc(TTSManager)
+ class TTSManager: RCTEventEmitter, AudioPlayerDelegate {
+@@ -32,53 +27,119 @@ class TTSManager: RCTEventEmitter, AudioPlayerDelegate {
+     
+     // Specify the events that can be emitted
+     override func supportedEvents() -> [String]! {
+-        return ["VolumeUpdate"]
++        return ["VolumeUpdate", "ProgressUpdate"]
+     }
+     
+-    // Initialize TTS and Audio Player
+-    @objc(initializeTTS:channels:modelId:)
+-    func initializeTTS(_ sampleRate: Double, channels: Int, modelId: String) {
+-        self.currentSampleRate = sampleRate
+-        self.currentChannels = channels
+-        self.realTimeAudioPlayer = AudioPlayer(sampleRate: sampleRate, channels: AVAudioChannelCount(channels))
+-        self.realTimeAudioPlayer?.delegate = self // Set delegate to receive volume updates
+-        self.tts = createOfflineTts(modelId: modelId)
++    @objc(initializeTTS:channels:modelId:resolver:rejecter:)
++    func initializeTTS(_ sampleRate: Double, channels: Int, modelId: String,
++                       resolver: @escaping RCTPromiseResolveBlock,
++                       rejecter: @escaping RCTPromiseRejectBlock) {
++        
++        DispatchQueue.global(qos: .userInitiated).async {
++            NSLog("[TTSManager] initializeTTS starting on background thread...")
++            self.currentSampleRate = sampleRate
++            self.currentChannels = channels
++            
++            // TTS setup
++            let ttsWrapper = createOfflineTts(modelId: modelId)
++            self.tts = ttsWrapper
++            
++            if let tts = self.tts {
++                var actualSR = Double(tts.sampleRate)
++                if actualSR <= 0 || actualSR.isNaN {
++                    NSLog("[TTSManager] WARNING: Model reported invalid sample rate: %.1f. Falling back to 22050.", actualSR)
++                    actualSR = 22050
++                }
++                NSLog("[TTSManager] TTS initialized successfully. REAL Sample Rate: %.1f", actualSR)
++                
++                self.currentSampleRate = actualSR
++                self.currentChannels = channels
++                
++                // AudioPlayer setup with ACTUAL rate
++                let player = AudioPlayer(sampleRate: actualSR, channels: AVAudioChannelCount(channels))
++                player.delegate = self
++                self.realTimeAudioPlayer = player
++                
++                DispatchQueue.main.async {
++                    resolver("Initialized")
++                }
++            } else {
++                NSLog("[TTSManager] ERROR: Failed to create tts wrapper.")
++                DispatchQueue.main.async {
++                    rejecter("INIT_ERROR", "Failed to create TTS wrapper. Check model paths.", nil)
++                }
++            }
++        }
+     }
+ 
++    private var isGenerating = false
++
+     // Generate audio and play in real-time
+     @objc(generateAndPlay:sid:speed:resolver:rejecter:)
+     func generateAndPlay(_ text: String, sid: Int, speed: Double,
+                         resolver: @escaping RCTPromiseResolveBlock,
+                         rejecter: @escaping RCTPromiseRejectBlock) {
+         
++        if isGenerating {
++            NSLog("[TTSManager] Warning: Already generating, ignoring request")
++            rejecter("BUSY", "TTS is already generating audio", nil)
++            return
++        }
++        
++        isGenerating = true
++        NSLog("[TTSManager] generateAndPlay starting for text: %@", text)
++
+         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+         guard !trimmedText.isEmpty else {
++            isGenerating = false
+             rejecter("EMPTY_TEXT", "Input text is empty", nil)
+             return
+         }
+ 
+         guard tts != nil, let player = realTimeAudioPlayer else {
++            isGenerating = false
+             rejecter("NOT_INITIALIZED", "TTS is not initialized", nil)
+             return
+         }
+ 
+-        // new playback id
++        // 1. Limpiar cualquier resto anterior
++        player.stopPlayback() 
++
++        // 2. Iniciar nueva secuencia
+         playbackSeq += 1
+         let playbackId = playbackSeq
+         activePlaybackId = playbackId
+         pendingPromises[playbackId] = (resolve: resolver, reject: rejecter)
+ 
+-        // IMPORTANT: this sets the same playbackId inside AudioPlayer
+         player.beginPlayback(playbackId: playbackId)
+ 
+-        let sentences = splitText(trimmedText, maxWords: 15)
+-        for sentence in sentences {
+-            let processedSentence = sentence.hasSuffix(".") ? sentence : "\(sentence)."
+-            generateAudio(for: processedSentence, sid: sid, speed: speed)
+-        }
++        // 3. Procesar en hilo de fondo para no bloquear el Bridge de React Native
++        DispatchQueue.global(qos: .userInitiated).async {
++            let sentences = self.splitText(trimmedText, maxWords: 15)
++            let totalSentences = sentences.count
++            var currentIndex = 0
++            
++            for sentence in sentences {
++                if self.activePlaybackId != playbackId { break } 
++                if !self.isGenerating { break }
++                
++                let processedSentence = sentence.hasSuffix(".") ? sentence : "\(sentence)."
+                 
+-        // IMPORTANT: tells AudioPlayer no more buffers are coming
+-        player.endEnqueue()
++                // Calculamos progreso que este trozo representará (ej 1 de 5 => 0.2)
++                currentIndex += 1
++                let progress = Float(currentIndex) / Float(totalSentences)
++                
++                self.generateAudio(for: processedSentence, sid: sid, speed: speed, progress: progress)
++            }
++
++            // Finalizar carga
++            DispatchQueue.main.async {
++                if self.activePlaybackId == playbackId {
++                    player.endEnqueue()
++                }
++                self.isGenerating = false
++            }
++        }
+     }
+ 
+     @objc(generateAndSave:path:fileType:resolver:rejecter:)
+@@ -172,18 +233,20 @@ class TTSManager: RCTEventEmitter, AudioPlayerDelegate {
+     }
+     
+     // Helper function to generate and play audio
+-    private func generateAudio(for text: String, sid: Int, speed: Double) {
+-        print("Generating audio for \(text)")
++    private func generateAudio(for text: String, sid: Int, speed: Double, progress: Float) {
++        NSLog("[TTSManager] Generating audio for: %@", text)
+         let startTime = Date()
+         guard let audio = tts?.generate(text: text, sid: sid, speed: Float(speed)) else {
+-            print("Error: TTS was never initialised")
++            NSLog("[TTSManager] Error: TTS was never initialised")
+             return
+         }
+         let endTime = Date()
+         let generationTime = endTime.timeIntervalSince(startTime)
+-        print("Time taken for TTS generation: \(generationTime) seconds")
++        let sampleCount = audio.n
++        let currentSR = audio.sampleRate
++        NSLog("[TTSManager] TTS generation took %.3fs for %d samples at %d Hz", generationTime, sampleCount, currentSR)
+         
+-        realTimeAudioPlayer?.playAudioData(from: audio)
++        realTimeAudioPlayer?.playAudioData(from: audio, progress: progress)
+     }
+     
+     // Clean up resources
+@@ -193,13 +256,33 @@ class TTSManager: RCTEventEmitter, AudioPlayerDelegate {
+         }
+         pendingPromises.removeAll()
+ 
+-        self.realTimeAudioPlayer?.stopAndTearDown()
++        self.realTimeAudioPlayer?.stopPlayback()
+         self.realTimeAudioPlayer = nil
+         self.tts = nil
+     }
+ 
+-    func didFinishPlayback(_ playbackId: Int) {
+-        if let p = pendingPromises.removeValue(forKey: playbackId) {
++    @objc func stopPlayback() {
++        for (_, p) in pendingPromises {
++            p.reject("STOPPED", "Playback stopped by stopPlayback()", nil)
++        }
++        pendingPromises.removeAll()
++        self.realTimeAudioPlayer?.stopPlayback()
++        self.isGenerating = false
++        self.activePlaybackId = -1
++    }
++    
++    @objc func pausePlayback() {
++        self.realTimeAudioPlayer?.pausePlayback()
++    }
++    
++    @objc func resumePlayback() {
++        self.realTimeAudioPlayer?.resumePlayback()
++    }
++    
++    func didFinishPlayback() {
++        let id = activePlaybackId
++        if let p = pendingPromises.removeValue(forKey: id) {
++            NSLog("[TTSManager] Playback finished for id: %d", id)
+             p.resolve("Playback finished")
+         }
+     }
+@@ -219,6 +302,10 @@ class TTSManager: RCTEventEmitter, AudioPlayerDelegate {
+         }
+     }
+     
++    func didUpdateProgress(_ progress: Float) {
++        sendEvent(withName: "ProgressUpdate", body: ["progress": progress])
++    }
++
+     private func resolveOutputURL(path: String?, fileExt: String) throws -> URL {
+         let fm = FileManager.default
+ 
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/ios/ViewModel.swift b/node_modules/react-native-sherpa-onnx-offline-tts/ios/ViewModel.swift
+index 04374be..ec2dc47 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/ios/ViewModel.swift
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/ios/ViewModel.swift
+@@ -11,6 +11,7 @@ import Foundation
+ struct ModelPaths: Codable {
+     let modelPath: String
+     let tokensPath: String
++    let lexiconPath: String?
+     let dataDirPath: String
+ }
+ 
+@@ -18,7 +19,7 @@ struct ModelPaths: Codable {
+ func createOfflineTts(modelId: String) -> SherpaOnnxOfflineTtsWrapper? {
+     // Convert the JSON string to Data
+     guard let data = modelId.data(using: .utf8) else {
+-        print("Kislaytts Invalid modelId string. Ensure it's a valid JSON.")
++        NSLog("Kislaytts Invalid modelId string. Ensure it's a valid JSON.")
+         return nil
+     }
+     
+@@ -28,16 +29,20 @@ func createOfflineTts(modelId: String) -> SherpaOnnxOfflineTtsWrapper? {
+     do {
+         paths = try decoder.decode(ModelPaths.self, from: data)
+     } catch {
+-        print("Kislaytts Failed to decode modelId JSON: \(error)")
++        NSLog("Kislaytts Failed to decode modelId JSON: %@", error.localizedDescription)
+         return nil
+     }
+     
+-    print("Kislaytts Very good parsed till here");
++    NSLog("Kislaytts Very good parsed till here");
++    NSLog("[ViewModel] Model path: %@", paths.modelPath)
++    NSLog("[ViewModel] Tokens path: %@", paths.tokensPath)
++    NSLog("[ViewModel] Lexicon path: %@", paths.lexiconPath ?? "None")
++    NSLog("[ViewModel] Data dir path: %@", paths.dataDirPath)
+     
+     // Configure the VITS model
+     let vitsConfig = sherpaOnnxOfflineTtsVitsModelConfig(
+         model: paths.modelPath,
+-        lexicon: "", // Assuming lexicon is not needed; set accordingly if required
++        lexicon: paths.lexiconPath ?? "",
+         tokens: paths.tokensPath,
+         dataDir: paths.dataDirPath
+     )
+@@ -45,7 +50,7 @@ func createOfflineTts(modelId: String) -> SherpaOnnxOfflineTtsWrapper? {
+     // Configure the overall model configuration
+     let modelConfig = sherpaOnnxOfflineTtsModelConfig(vits: vitsConfig)
+     var config = sherpaOnnxOfflineTtsConfig(model: modelConfig)
+-    print("Kislaytts successfully created config");
++    NSLog("Kislaytts successfully created config");
+     // Initialize and return the TTS wrapper
+     return SherpaOnnxOfflineTtsWrapper(config: &config)
+ }
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/lib/commonjs/index.js b/node_modules/react-native-sherpa-onnx-offline-tts/lib/commonjs/index.js
+index 625b8df..e204128 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/lib/commonjs/index.js
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/lib/commonjs/index.js
+@@ -13,11 +13,21 @@ const addVolumeListener = callback => {
+   });
+   return sub;
+ };
++const addProgressListener = callback => {
++  let sub = emitter.addListener('ProgressUpdate', event => {
++    callback(event.progress);
++  });
++  return sub;
++};
+ var _default = exports.default = {
+   initialize: modelId => nativeTTS.initializeTTS(22050, 1, modelId),
+   generateAndPlay: (text, sid, speed) => nativeTTS.generateAndPlay(text, sid, speed),
+   generateAndSave: (text, path, fileType) => nativeTTS.generateAndSave(text, path ?? null, fileType ?? 'wav'),
+   deinitialize: () => nativeTTS.deinitialize(),
+-  addVolumeListener
++  stop: () => nativeTTS.stopPlayback(),
++  pause: () => nativeTTS.pausePlayback(),
++  resume: () => nativeTTS.resumePlayback(),
++  addVolumeListener,
++  addProgressListener
+ };
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/lib/module/index.js b/node_modules/react-native-sherpa-onnx-offline-tts/lib/module/index.js
+index 1d975da..2226fa1 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/lib/module/index.js
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/lib/module/index.js
+@@ -9,11 +9,21 @@ const addVolumeListener = callback => {
+   });
+   return sub;
+ };
++const addProgressListener = callback => {
++  let sub = emitter.addListener('ProgressUpdate', event => {
++    callback(event.progress);
++  });
++  return sub;
++};
+ export default {
+   initialize: modelId => nativeTTS.initializeTTS(22050, 1, modelId),
+   generateAndPlay: (text, sid, speed) => nativeTTS.generateAndPlay(text, sid, speed),
+   generateAndSave: (text, path, fileType) => nativeTTS.generateAndSave(text, path ?? null, fileType ?? 'wav'),
+   deinitialize: () => nativeTTS.deinitialize(),
+-  addVolumeListener
++  stop: () => nativeTTS.stopPlayback(),
++  pause: () => nativeTTS.pausePlayback(),
++  resume: () => nativeTTS.resumePlayback(),
++  addVolumeListener,
++  addProgressListener
+ };
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-sherpa-onnx-offline-tts/src/index.tsx b/node_modules/react-native-sherpa-onnx-offline-tts/src/index.tsx
+index 24da1e8..c2315ad 100644
+--- a/node_modules/react-native-sherpa-onnx-offline-tts/src/index.tsx
++++ b/node_modules/react-native-sherpa-onnx-offline-tts/src/index.tsx
+@@ -11,6 +11,13 @@ const addVolumeListener = (callback: (v: number) => void) => {
+   return sub;
+ };
+ 
++const addProgressListener = (callback: (p: number) => void) => {
++  let sub = emitter.addListener('ProgressUpdate', (event: any) => {
++    callback(event.progress);
++  });
++  return sub;
++};
++
+ export default {
+   initialize: (modelId: string) => nativeTTS.initializeTTS(22050, 1, modelId),
+   generateAndPlay: (text: any, sid: any, speed: any) =>
+@@ -18,5 +25,9 @@ export default {
+   generateAndSave: (text: string, path?: string, fileType?: TTSAudioFileType) =>
+     nativeTTS.generateAndSave(text, path ?? null, fileType ?? 'wav'),
+   deinitialize: () => nativeTTS.deinitialize(),
++  stop: () => nativeTTS.stopPlayback(),
++  pause: () => nativeTTS.pausePlayback(),
++  resume: () => nativeTTS.resumePlayback(),
+   addVolumeListener,
++  addProgressListener,
+ };

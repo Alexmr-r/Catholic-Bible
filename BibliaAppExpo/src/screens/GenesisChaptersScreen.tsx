@@ -9,8 +9,10 @@ import {
   Dimensions,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {GenesisChaptersScreenProps} from '../navigation/AppNavigator';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const HORIZONTAL_PADDING = 16;
@@ -19,6 +21,9 @@ const COLUMNS = 5;
 const BUTTON_SIZE = (SCREEN_WIDTH - (HORIZONTAL_PADDING * 2) - (GAP * (COLUMNS - 1))) / COLUMNS;
 
 const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const totalChapters = 50;
   const currentChapter = 1; // Capítulo actual habilitado
   const bookmarkedChapter = 21; // Capítulo con favorito
@@ -107,12 +112,7 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
           <Text style={styles.headerTitle}>Génesis</Text>
           <Text style={styles.headerSubtitle}>ANTIGUO TESTAMENTO</Text>
         </View>
-        <TouchableOpacity
-          onPress={handleInfo}
-          style={styles.infoButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="info-outline" size={24} color={colors.charcoal.muted} />
-        </TouchableOpacity>
+        <View style={styles.infoButton} />
       </View>
 
       <ScrollView
@@ -160,10 +160,10 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Header
@@ -172,9 +172,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 48,
+    paddingTop: Math.max(safeTop, 20) + 16,
     paddingBottom: 12,
-    backgroundColor: `${colors.cream}F2`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
     gap: 16,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 24,
     marginBottom: 32,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.ivory.border,
@@ -239,18 +239,18 @@ const styles = StyleSheet.create({
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: `${colors.gold.accent}33`,
+    backgroundColor: isDarkMode ? `${colors.burgundy.DEFAULT}33` : `${colors.gold.accent}33`,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: `${colors.gold.accent}66`,
+    borderColor: isDarkMode ? `${colors.burgundy.DEFAULT}66` : `${colors.gold.accent}66`,
     marginBottom: 12,
   },
   categoryBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.gold.dim,
+    color: isDarkMode ? colors.burgundy.DEFAULT : colors.gold.dim,
     letterSpacing: 0.5,
   },
   infoContent: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderWidth: 1,
     borderColor: colors.ivory.border,
     alignItems: 'center',
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   chapterButtonCurrent: {
     backgroundColor: colors.primary.DEFAULT,
-    borderColor: colors.primary.DEFAULT,
+    borderColor: colors.ivory.border,
     shadowColor: colors.primary.DEFAULT,
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   chapterTextCurrent: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
   },
   chapterTextBookmarked: {
     color: colors.burgundy.accent,

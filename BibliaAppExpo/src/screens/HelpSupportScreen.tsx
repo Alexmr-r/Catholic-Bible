@@ -7,13 +7,18 @@ import {
   ScrollView,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import type {RootStackParamList} from '../navigation/AppNavigator';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type HelpSupportScreenProps = NativeStackScreenProps<RootStackParamList, 'HelpSupport'>;
 
 const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const handleBack = () => {
     navigation.goBack();
   };
@@ -122,10 +127,10 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   header: {
     flexDirection: 'row',
@@ -133,8 +138,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: 48,
-    backgroundColor: colors.ivory.DEFAULT,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
@@ -181,7 +186,7 @@ const styles = StyleSheet.create({
   topicCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     paddingHorizontal: 20,
     paddingVertical: 18,
     borderRadius: 24,
@@ -212,12 +217,12 @@ const styles = StyleSheet.create({
 
   // Contact Card
   contactCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: `${colors.ivory.border}80`,
+    borderColor: colors.ivory.border,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 8},
     shadowOpacity: 0.03,
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: `${colors.gold.DEFAULT}10`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}1A` : `${colors.gold.DEFAULT}10`,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -253,13 +258,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: `${colors.gold.DEFAULT}66`,
-    backgroundColor: `${colors.gold.DEFAULT}08`,
+    borderColor: isDarkMode ? colors.primary.DEFAULT : `${colors.gold.DEFAULT}66`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}1A` : `${colors.gold.DEFAULT}08`,
   },
   contactButtonText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.gold.DEFAULT,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
     letterSpacing: 1.2,
   },
 });

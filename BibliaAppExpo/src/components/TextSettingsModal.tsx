@@ -17,7 +17,8 @@ import {
   Dimensions,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {useTextSettings, FontFamily} from '../contexts/TextSettingsContext';
 import Slider from '@react-native-community/slider';
 
@@ -27,6 +28,8 @@ interface TextSettingsModalProps {
 }
 
 const TextSettingsModal: React.FC<TextSettingsModalProps> = ({visible, onClose}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const {settings, updateFontSize, updateFontFamily} = useTextSettings();
   const slideAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -146,7 +149,7 @@ const TextSettingsModal: React.FC<TextSettingsModalProps> = ({visible, onClose})
                   onValueChange={updateFontSize}
                   minimumTrackTintColor={colors.primary.DEFAULT}
                   maximumTrackTintColor={colors.ivory.border}
-                  thumbTintColor={colors.gold.DEFAULT}
+                  thumbTintColor={colors.primary.DEFAULT}
                 />
               </View>
 
@@ -159,7 +162,7 @@ const TextSettingsModal: React.FC<TextSettingsModalProps> = ({visible, onClose})
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(54, 69, 79, 0.3)', // charcoal/30
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.background.dark : '#FFFFFF',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     shadowColor: '#000',
@@ -220,7 +223,7 @@ const styles = StyleSheet.create({
 
   // Font Selector
   fontSelector: {
-    backgroundColor: colors.ivory.shade,
+    backgroundColor: isDarkMode ? colors.ivory.shade : colors.ivory.shade,
     padding: 6,
     borderRadius: 16,
     flexDirection: 'row',
@@ -241,14 +244,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   fontButtonActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 3,
     borderWidth: 1,
-    borderColor: colors.ivory.border,
+    borderColor: isDarkMode ? colors.primary.DEFAULT : colors.ivory.border,
   },
   fontButtonText: {
     fontSize: 14,
@@ -257,7 +260,7 @@ const styles = StyleSheet.create({
   },
   fontButtonTextActive: {
     fontWeight: '700',
-    color: colors.charcoal.dark,
+    color: isDarkMode ? colors.charcoal.dark : colors.charcoal.dark,
   },
 
   // Size Slider
@@ -269,7 +272,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   percentageBadge: {
-    backgroundColor: `${colors.primary.DEFAULT}15`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}33` : `${colors.primary.DEFAULT}15`,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 9999,
@@ -284,7 +287,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 20,
-    backgroundColor: `${colors.ivory.shade}80`,
+    backgroundColor: isDarkMode ? colors.paper : `${colors.ivory.shade}80`,
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 24,

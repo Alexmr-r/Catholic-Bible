@@ -12,9 +12,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
 import {LoginScreenProps} from '../navigation/AppNavigator';
 import {useAuth} from '../contexts/AuthContext';
+import {useTheme} from '../contexts/ThemeContext';
 
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const {height} = useWindowDimensions();
@@ -22,6 +23,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { colors, isDarkMode, toggleTheme } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
 
   const { login } = useAuth();
 
@@ -100,9 +104,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             onPress={handleBack}
             activeOpacity={0.7}>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleHelp} activeOpacity={0.7}>
-            <Text style={styles.helpText}>Ayuda</Text>
-          </TouchableOpacity>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 16}}>
+            <TouchableOpacity onPress={toggleTheme} activeOpacity={0.7}>
+              <MaterialIcons name={isDarkMode ? "light-mode" : "dark-mode"} size={24} color={colors.charcoal.dark} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleHelp} activeOpacity={0.7}>
+              <Text style={styles.helpText}>Ayuda</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.scrollView}>
@@ -145,7 +154,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                 <TextInput
                   style={styles.input}
                   placeholder="ejemplo@email.com"
-                  placeholderTextColor={`${colors.charcoal.muted}80`}
+                  placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -167,7 +176,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                 <TextInput
                   style={[styles.input, styles.passwordInput]}
                   placeholder="••••••••"
-                  placeholderTextColor={`${colors.charcoal.muted}80`}
+                  placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -180,7 +189,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                   <MaterialIcons
                     name={showPassword ? 'visibility' : 'visibility-off'}
                     size={20}
-                    color={colors.charcoal.muted}
+                    color={isDarkMode ? colors.primary.DEFAULT : colors.charcoal.muted}
                   />
                 </TouchableOpacity>
               </View>
@@ -223,7 +232,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               style={styles.socialButton}
               onPress={handleAppleLogin}
               activeOpacity={0.7}>
-              <MaterialIcons name="apple" size={22} color={colors.charcoal.DEFAULT} />
+              <MaterialIcons name="apple" size={22} color={isDarkMode ? colors.charcoal.dark : colors.charcoal.DEFAULT} />
               <Text style={styles.socialButtonText}>Apple</Text>
             </TouchableOpacity>
 
@@ -249,10 +258,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
   innerContainer: {
     flex: 1,
@@ -301,7 +310,7 @@ const styles = StyleSheet.create({
     width: 112,
     height: 112,
     borderRadius: 56,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.primary.light : colors.surface.light,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000000',
@@ -310,40 +319,40 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: isDarkMode ? 'rgba(230, 179, 25, 0.3)' : 'rgba(255, 255, 255, 0.5)',
   },
   iconContainer: {
-    width: 62, // Escalado de 80px a 112px (80 * 112/144 = 62)
-    height: 75, // Escalado de 96px a 112px (96 * 112/144 = 75)
+    width: 62, 
+    height: 75, 
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
   crossVertical: {
     position: 'absolute',
-    width: 6, // Escalado de 8px
-    height: 62, // Escalado de 80px
-    backgroundColor: '#DBCFB0', // champagne-gold
+    width: 6, 
+    height: 62, 
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : '#DBCFB0', 
     borderRadius: 3,
     zIndex: 10,
   },
   crossHorizontal: {
     position: 'absolute',
-    width: 44, // Escalado de 56px
-    height: 6, // Escalado de 8px
-    backgroundColor: '#DBCFB0', // champagne-gold
+    width: 44, 
+    height: 6, 
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : '#DBCFB0', 
     borderRadius: 3,
-    top: 19, // Escalado de 24px
+    top: 19, 
     zIndex: 10,
   },
   bookCurve: {
     position: 'absolute',
-    bottom: 3, // Ajustado para que sea proporcional (4 * 112/144 = 3.1)
-    width: 37, // Escalado de 48px
-    height: 9, // Escalado de 12px
+    bottom: 3, 
+    width: 37, 
+    height: 9, 
     borderBottomWidth: 2,
-    borderBottomColor: '#DBCFB0', // champagne-gold
-    borderRadius: 19, // 50%
+    borderBottomColor: isDarkMode ? colors.primary.DEFAULT : '#DBCFB0', 
+    borderRadius: 19, 
     borderTopWidth: 0,
     borderLeftWidth: 0,
     borderRightWidth: 0,
@@ -358,7 +367,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.charcoal.muted,
+    color: isDarkMode ? colors.charcoal.muted : colors.charcoal.muted,
   },
   form: {
     width: '100%',
@@ -373,6 +382,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginBottom: 6,
     marginLeft: 4,
+    opacity: isDarkMode ? 0.8 : 1,
   },
   inputWrapper: {
     position: 'relative',
@@ -394,7 +404,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: colors.ivory.border,
   },
   passwordInput: {
     paddingRight: 48,
@@ -417,12 +427,12 @@ const styles = StyleSheet.create({
   loginButton: {
     width: '100%',
     height: 48,
-    backgroundColor: colors.burgundy.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    shadowColor: colors.burgundy.DEFAULT,
+    shadowColor: colors.primary.DEFAULT,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -432,7 +442,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   loginButtonText: {
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -446,12 +456,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.ivory.border,
+    backgroundColor: isDarkMode ? colors.primary.light : colors.ivory.border,
   },
   dividerText: {
     fontSize: 10,
     fontWeight: '700',
-    color: colors.charcoal.muted,
+    color: isDarkMode ? colors.charcoal.muted : colors.charcoal.muted,
     letterSpacing: 2.5,
     marginHorizontal: 16,
   },
@@ -465,10 +475,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 48,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.background.dark : colors.surface.light,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.ivory.border,
+    borderColor: isDarkMode ? colors.primary.light : colors.ivory.border,
     gap: 12,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
@@ -479,7 +489,7 @@ const styles = StyleSheet.create({
   socialButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.charcoal.DEFAULT,
+    color: isDarkMode ? colors.charcoal.dark : colors.charcoal.DEFAULT,
   },
   registerSection: {
     flexDirection: 'row',
@@ -489,7 +499,7 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 14,
-    color: colors.charcoal.muted,
+    color: isDarkMode ? colors.charcoal.muted : colors.charcoal.muted,
   },
   registerLink: {
     fontSize: 14,

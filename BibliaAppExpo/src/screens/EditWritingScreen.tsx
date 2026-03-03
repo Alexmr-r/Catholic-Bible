@@ -20,8 +20,10 @@ import {
   Platform,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {writingsService} from '../services/writings.service';
 import {readingProgressService} from '../services/reading-progress.service';
@@ -29,6 +31,9 @@ import {readingProgressService} from '../services/reading-progress.service';
 type EditWritingScreenProps = NativeStackScreenProps<RootStackParamList, 'EditWriting'>;
 
 const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const {
     writingId,
     initialTitle,
@@ -252,10 +257,10 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Header - igual que HTML
@@ -265,10 +270,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: 48,
-    backgroundColor: `${colors.cream}F2`,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
-    borderBottomColor: `${colors.ivory.border}99`,
+    borderBottomColor: colors.ivory.border,
   },
   headerButton: {
     width: 40,
@@ -305,7 +310,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 9999,
-    backgroundColor: colors.ivory.shade,
+    backgroundColor: isDarkMode ? colors.ivory.shade : colors.ivory.shade,
   },
   dateText: {
     fontSize: 12,
@@ -321,7 +326,7 @@ const styles = StyleSheet.create({
   editBadgeText: {
     fontSize: 12,
     fontStyle: 'italic',
-    color: colors.gold.DEFAULT,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
     fontFamily: 'serif',
   },
 
@@ -346,7 +351,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: `${colors.gold.DEFAULT}66`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}66` : `${colors.gold.DEFAULT}66`,
   },
 
   // Contenido Editable
@@ -453,7 +458,7 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 48,
     borderRadius: 12,
-    backgroundColor: colors.primary.DEFAULT, // Verde sage de la app
+    backgroundColor: colors.primary.DEFAULT,
     shadowColor: colors.primary.DEFAULT,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
@@ -466,7 +471,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
   },
 });
 

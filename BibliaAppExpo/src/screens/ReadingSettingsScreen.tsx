@@ -17,7 +17,8 @@ import {
 import {LinearGradient} from 'expo-linear-gradient';
 import {MaterialIcons} from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 
 type ReadingSettingsScreenProps = {
@@ -25,6 +26,8 @@ type ReadingSettingsScreenProps = {
 };
 
 const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const {settings, updateFontSize, updateFontFamily} = useTextSettings();
 
   // Determinar el label del tamaño
@@ -46,7 +49,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
           onPress={handleBack}
           activeOpacity={0.7}
           style={styles.backButton}>
-          <MaterialIcons name="chevron-left" size={28} color={colors.gold.DEFAULT} />
+          <MaterialIcons name="chevron-left" size={28} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ajustes de Lectura</Text>
         <View style={styles.headerSpacer} />
@@ -78,9 +81,9 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                 step={5}
                 value={settings.fontSize}
                 onValueChange={updateFontSize}
-                minimumTrackTintColor={colors.gold.DEFAULT}
-                maximumTrackTintColor="#e2e8f0"
-                thumbTintColor="#FFFFFF"
+                minimumTrackTintColor={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT}
+                maximumTrackTintColor={isDarkMode ? colors.ivory.border : "#e2e8f0"}
+                thumbTintColor={isDarkMode ? colors.primary.DEFAULT : "#FFFFFF"}
               />
 
               <MaterialIcons name="format-size" size={28} color={colors.ink.light} />
@@ -180,7 +183,9 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
 
               {/* Gradient Overlay */}
               <LinearGradient
-                colors={['rgba(250, 249, 246, 0)', 'rgba(250, 249, 246, 0.9)']}
+                colors={isDarkMode 
+                  ? ['rgba(26, 22, 13, 0)', 'rgba(26, 22, 13, 1)'] 
+                  : ['rgba(250, 249, 246, 0)', 'rgba(250, 249, 246, 1)']}
                 style={styles.previewGradient}
                 pointerEvents="none"
               />
@@ -196,10 +201,10 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
 
   // Header
@@ -210,7 +215,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     paddingTop: 56,
-    backgroundColor: `${colors.ivory.DEFAULT}F2`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 0,
     position: 'relative',
     zIndex: 40,
@@ -258,7 +263,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 2.4,
-    color: colors.ink.light,
+    color: colors.charcoal.muted,
     textTransform: 'uppercase',
     marginBottom: 16,
   },
@@ -271,12 +276,12 @@ const styles = StyleSheet.create({
   sizeBadgeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.gold.DEFAULT,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
   },
 
   // Slider Card
   sliderCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: isDarkMode ? colors.paper : 'rgba(255, 255, 255, 0.4)',
     padding: 20,
     borderRadius: 32,
     borderWidth: 1,
@@ -315,7 +320,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 2,
     borderColor: 'transparent',
-    backgroundColor: 'rgba(148, 163, 184, 0.08)', // slate-100/50
+    backgroundColor: isDarkMode ? colors.ivory.shade : 'rgba(148, 163, 184, 0.08)', 
     padding: 20,
     borderRadius: 20,
     alignItems: 'center',
@@ -323,8 +328,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   typographyCardActive: {
-    borderColor: colors.gold.DEFAULT,
-    backgroundColor: '#FFFFFF',
+    borderColor: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     shadowColor: colors.charcoal.DEFAULT,
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.06,
@@ -343,7 +348,7 @@ const styles = StyleSheet.create({
     color: colors.ink.light,
   },
   typographyLabelActive: {
-    color: colors.gold.DEFAULT,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
   },
   typographySubLabel: {
     fontSize: 10,
@@ -353,7 +358,7 @@ const styles = StyleSheet.create({
 
   // Preview Card
   previewCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: isDarkMode ? colors.paper : 'rgba(255, 255, 255, 0.3)',
     padding: 24,
     borderRadius: 32,
     borderWidth: 1,

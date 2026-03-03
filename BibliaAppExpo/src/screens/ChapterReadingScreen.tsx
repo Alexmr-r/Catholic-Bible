@@ -9,20 +9,28 @@ import {
   ActivityIndicator,
   Modal,
   Share,
+  Platform,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {ChapterReadingScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Chapter} from '../services/bible.service';
 import {favoritesService} from '../services/favorites.service';
 import {highlightService, Highlight, HighlightColor, getHighlightHex, HIGHLIGHT_COLORS} from '../services/highlights.service';
 import {shareService} from '../services/share.service';
+import {audioService} from '../services/audio.service';
 import {readingHistoryService} from '../services/reading-history.service';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import {useOfflineBible} from '../hooks/useOfflineBible';
 import TextSettingsModal from '../components/TextSettingsModal';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, route}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+
   const {
     bookId,
     bookName,
@@ -47,6 +55,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   // Modal de configuración de texto
   const [showTextSettings, setShowTextSettings] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false); // Modal de opciones (3 puntos)
+  const [pendingAction, setPendingAction] = useState<'share' | 'favorite' | 'audio' | null>(null);
   const {settings} = useTextSettings();
 
   // ✅ Hook para modo offline
@@ -173,6 +182,29 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     }
   };
 
+  // Función centralizada para ejecutar la acción pendiente
+  const executePendingAction = () => {
+    if (!pendingAction) return;
+
+    console.log(`[ChapterReading] Ejecutando acción pendiente: ${pendingAction}`);
+    const action = pendingAction;
+    setPendingAction(null); // Limpiar inmediatamente para evitar duplicados
+
+    if (action === 'share') handleShareChapter();
+    else if (action === 'favorite') handleAddChapterToFavorites();
+    else if (action === 'audio') handleListenAudio();
+  };
+
+  // Efecto para disparar la acción después de que el modal se cierre definitivamente (especialmente útil en Android)
+  useEffect(() => {
+    if (!showOptionsMenu && pendingAction && Platform.OS === 'android') {
+      const timeout = setTimeout(() => {
+        executePendingAction();
+      }, 400); 
+      return () => clearTimeout(timeout);
+    }
+  }, [showOptionsMenu, pendingAction]);
+
   // Cargar subrayados del capítulo
   const loadHighlights = async () => {
     try {
@@ -250,47 +282,79 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
   // Compartir capítulo completo
   const handleShareChapter = async () => {
-    console.log('[ChapterReading] handleShareChapter llamado');
+    if (!chapterData) return;
 
-    if (!chapterData) {
-      console.log('[ChapterReading] No hay chapterData');
+    try {
+      await shareService.shareChapter({
+        bookName: chapterData.bookName,
+        chapter: chapterData.chapter,
+        sections: chapterData.sections,
+      });
+    } catch (error: any) {
+      console.error('[ChapterReading] Error compartiendo capítulo:', error);
+      Alert.alert('Error', 'No se pudo compartir el capítulo. Intenta de nuevo.');
+    }
+  };
+
+  // Escuchar audio del capítulo completo
+  const handleListenAudio = async () => {
+    if (!chapterData) return;
+
+    if (audioService.getStatus().isSpeaking) {
+      await audioService.stop();
       return;
     }
 
     try {
-      // Generar texto del capítulo
-      let chapterText = '';
-      chapterData.sections.forEach(section => {
-        if (section.title) {
-          chapterText += `\n📜 ${section.title}\n\n`;
+      const modelExists = await audioService.checkModelExists();
+      
+      const startSpeaking = async (engine: 'native' | 'ai-local') => {
+        // Limpiar acción pendiente para evitar duplicados en el onDismiss del modal
+        if (pendingAction === 'audio') {
+          setPendingAction(null);
         }
-        section.verses.forEach(verse => {
-          chapterText += `${verse.number}. ${verse.text}\n`;
-        });
-      });
 
-      const message = `📖 ${bookName} ${currentChapter}\n${chapterText}\n— Compartido desde Biblia App`;
+        // Unir todos los versículos
+        const fullText = chapterData.sections
+          .map(section => {
+            const sectionTitle = section.title ? `${section.title}. ` : '';
+            const versesText = section.verses.map(v => `${v.number}. ${v.text}`).join(' ');
+            return `${sectionTitle}${versesText}`;
+          })
+          .join('\n\n');
 
-      console.log('[ChapterReading] Llamando a Share.share()...');
+        const title = `${chapterData.bookName} Capítulo ${chapterData.chapter}`;
+        await audioService.speak(fullText, title, engine);
+      };
 
-      const result = await Share.share({
-        message: message,
-      });
-
-      console.log('[ChapterReading] Resultado:', result);
-    } catch (error: any) {
-      console.error('[ChapterReading] Error:', error);
-      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+      Alert.alert(
+        'Narrador Bíblico',
+        '¿Con qué voz deseas escuchar la lectura?',
+        [
+          {
+            text: 'Voz Predeterminada (Sistema)',
+            onPress: () => startSpeaking('native'),
+          },
+          {
+            text: modelExists ? 'Voz Premium IA' : 'Descargar Premium IA (50MB)',
+            onPress: () => {
+              if (modelExists) {
+                startSpeaking('ai-local');
+              } else {
+                audioService.downloadModel();
+              }
+            },
+          },
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('[ChapterReading] Error al reproducir audio:', error);
+      Alert.alert('Error', 'No se pudo iniciar la lectura de audio.');
     }
-  };
-
-  // Escuchar audio (próximamente)
-  const handleListenAudio = () => {
-    Alert.alert(
-      '🎧 Audio del capítulo',
-      'Esta función estará disponible próximamente.\n\nPodrás escuchar la lectura del capítulo en audio.',
-      [{text: 'Entendido'}]
-    );
   };
 
   // =====================================================
@@ -538,9 +602,11 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
+              <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>{bookName}</Text>
           </View>
@@ -559,9 +625,11 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
+              <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>{bookName}</Text>
           </View>
@@ -582,12 +650,14 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     <View style={styles.container}>
       {/* Header Sticky */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={styles.backButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backButton}
+            activeOpacity={0.7}>
+            <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.headerCenter}>
           <View style={styles.headerTitleRow}>
@@ -666,12 +736,14 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                     <Text style={[
                       styles.verseNumber,
                       isSelected && styles.verseNumberSelected,
+                      highlightBg && { color: '#4A5568' }, // Número oscuro sobre resaltado
                     ]}>{verse.number}</Text>
                     <View style={styles.verseContent}>
                       <Text
                         style={[
                           styles.verseText,
                           isSelected && styles.verseTextSelected,
+                          (highlightBg || isSelected) && { color: '#1A1A1A' }, // Texto oscuro sobre fondo claro (resaltado o selección)
                           {
                             fontSize: 18 * (settings.fontSize / 100),
                             // lineHeight mínimo 1.7x para buena legibilidad
@@ -805,7 +877,12 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         visible={showOptionsMenu}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setShowOptionsMenu(false)}>
+        onRequestClose={() => setShowOptionsMenu(false)}
+        onDismiss={() => {
+          // onDismiss solo funciona en iOS y es el lugar perfecto para disparar el Share
+          console.log('[ChapterReading] Modal onDismiss disparado (iOS)');
+          if (Platform.OS === 'ios') executePendingAction();
+        }}>
         <View style={styles.optionsModalOverlay}>
           {/* Overlay para cerrar al tocar fuera */}
           <TouchableOpacity
@@ -821,7 +898,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               style={styles.optionsMenuItem}
               onPress={() => {
                 setShowOptionsMenu(false);
-                setTimeout(() => handleAddChapterToFavorites(), 100);
+                setPendingAction('favorite');
               }}
               activeOpacity={0.7}>
               <View style={styles.optionsMenuIcon}>
@@ -835,7 +912,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               style={styles.optionsMenuItem}
               onPress={() => {
                 setShowOptionsMenu(false);
-                setTimeout(() => handleShareChapter(), 100);
+                setPendingAction('share');
               }}
               activeOpacity={0.7}>
               <View style={styles.optionsMenuIcon}>
@@ -849,7 +926,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               style={styles.optionsMenuItem}
               onPress={() => {
                 setShowOptionsMenu(false);
-                setTimeout(() => handleListenAudio(), 100);
+                setPendingAction('audio');
               }}
               activeOpacity={0.7}>
               <View style={styles.optionsMenuIcon}>
@@ -864,10 +941,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Loading y Error states
@@ -912,11 +989,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 8,
-    paddingTop: 48,
+    paddingTop: Math.max(safeTop, 20) + 16,
     paddingBottom: 8,
-    backgroundColor: `${colors.cream}F2`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
-    borderBottomColor: `${colors.ivory.border}99`,
+    borderBottomColor: colors.ivory.border,
+  },
+  headerLeft: {
+    width: 80,
+    alignItems: 'flex-start',
   },
   backButton: {
     width: 40,
@@ -955,6 +1036,8 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: 80,
+    justifyContent: 'flex-end',
   },
   iconButton: {
     width: 40,
@@ -992,7 +1075,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: colors.burgundy.DEFAULT, // #903040 - Rojo burgundy como en la imagen
+    color: isDarkMode ? colors.primary.DEFAULT : colors.burgundy.DEFAULT, 
     fontStyle: 'italic',
     textAlign: 'center',
     marginBottom: 8,
@@ -1001,7 +1084,7 @@ const styles = StyleSheet.create({
   sectionDivider: {
     width: 64,
     height: 3,
-    backgroundColor: `${colors.gold.accent}80`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}66` : `${colors.gold.accent}80`,
     borderRadius: 999,
   },
 
@@ -1018,7 +1101,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   verseRowSelected: {
-    backgroundColor: `${colors.primary.DEFAULT}20`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}33` : `${colors.primary.DEFAULT}20`,
   },
   verseNumber: {
     fontSize: 11,
@@ -1043,7 +1126,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   verseTextSelected: {
-    backgroundColor: `${colors.primary.DEFAULT}20`,
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}33` : `${colors.primary.DEFAULT}20`,
     borderRadius: 2,
   },
   noteButton: {
@@ -1093,31 +1176,33 @@ const styles = StyleSheet.create({
   // Floating Toolbar
   floatingToolbar: {
     position: 'absolute',
-    top: 80,
-    left: 12,
-    right: 12,
+    top: 90,
+    alignSelf: 'center', // Centrado y más estrecho
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.charcoal.dark,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
+    backgroundColor: '#1C1C1E', // Color premium casi negro
+    borderRadius: 30, // Forma de cápsula/pill
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 12, // Mejor espacio entre elementos
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 100,
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)', // Borde sutil premium
+    zIndex: 1000,
   },
   toolbarInfo: {
     paddingHorizontal: 4,
   },
   toolbarText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   toolbarButton: {
     alignItems: 'center',
@@ -1157,7 +1242,7 @@ const styles = StyleSheet.create({
     top: 56,
     right: 16,
     width: 280,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 16,
     paddingVertical: 8,
     shadowColor: '#000',
@@ -1165,6 +1250,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
+    borderWidth: isDarkMode ? 1 : 0,
+    borderColor: colors.ivory.border,
   },
   optionsMenuItem: {
     flexDirection: 'row',

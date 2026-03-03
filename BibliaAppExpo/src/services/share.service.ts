@@ -157,7 +157,8 @@ const truncateText = (text: string, maxLength: number = 500): string => {
 /**
  * Limpia el texto de caracteres especiales problemáticos
  */
-const cleanText = (text: string): string => {
+const cleanText = (text: any): string => {
+  if (!text || typeof text !== 'string') return '';
   return text
     .replace(/\s+/g, ' ') // Normalizar espacios
     .trim();
@@ -205,8 +206,8 @@ const generateChapterMessage = (params: ShareChapterParams): { message: string; 
     });
   });
 
-  // Para capítulos largos, truncar inteligentemente
-  const maxChapterLength = 3000; // Límite para evitar problemas en algunas apps
+  // Para capítulos largos, truncar inteligentemente al límite seguro de 1500 caracteres
+  const maxChapterLength = 1500; // Límite para evitar problemas en algunas apps
   const truncatedText = chapterText.length > maxChapterLength
     ? truncateText(chapterText, maxChapterLength) + '\n\n[Capítulo completo disponible en la app]'
     : chapterText;
@@ -337,39 +338,50 @@ class ShareService {
     contentType: ShareContentType
   ): Promise<ShareResult> {
     try {
-      console.log('[ShareService] share() llamado');
-      console.log('[ShareService] Platform:', Platform.OS);
+      console.log(`[ShareService] share() iniciado para: ${contentType}`);
+      console.log(`[ShareService] Plataforma: ${Platform.OS}`);
+      console.log(`[ShareService] Longitud del mensaje: ${message.length}`);
 
-      const shareOptions: { message: string; title?: string; subject?: string } = {
-        message,
+      // 1. Configurar contenido
+      const content: { message: string; title?: string } = {
+        message: Platform.OS === 'ios' && title
+          ? `${title}\n\n${message}`
+          : message,
       };
 
-      // En iOS, title se usa como subject en algunos casos
-      if (Platform.OS === 'ios') {
-        shareOptions.title = title;
-      } else {
-        // En Android, subject se usa para el asunto en emails
-        shareOptions.subject = title;
-        shareOptions.title = title;
+      // El título se usa como encabezado del mensaje o asunto en algunas apps
+      // En Android es importante pasarlo aquí para el subject de emails
+      if (title) {
+        content.title = title;
       }
 
-      console.log('[ShareService] Llamando a Share.share()...');
-      const result = await Share.share(shareOptions);
-      console.log('[ShareService] Share.share() resultado:', result);
+      // 2. Configurar opciones (específicas por plataforma)
+      const options: { dialogTitle?: string } = {};
+      if (Platform.OS === 'android') {
+        options.dialogTitle = title; // Título que aparece en el selector de Android
+      }
+
+      console.log('[ShareService] Datos finales a compartir:', {
+        msgLength: content.message.length,
+        title: content.title,
+        hasOptions: !!options.dialogTitle
+      });
+
+      console.log('[ShareService] Ejecutando Share.share()...');
+
+      const result = await Share.share(content, options);
+
+      console.log('[ShareService] Share.share() completado:', result.action);
 
       if (result.action === Share.sharedAction) {
-        // Éxito al compartir
-        this.logShareEvent(contentType, 'shared', result.activityType);
-
+        this.logShareEvent(contentType, 'shared', result.activityType || undefined);
         return {
           success: true,
           action: 'shared',
-          activityType: result.activityType,
+          activityType: result.activityType || undefined,
         };
       } else if (result.action === Share.dismissedAction) {
-        // Usuario canceló
         this.logShareEvent(contentType, 'dismissed');
-
         return {
           success: false,
           action: 'dismissed',
@@ -379,11 +391,11 @@ class ShareService {
       return {
         success: false,
         action: 'error',
-        error: 'Unknown action',
+        error: 'Acción desconocida',
       };
     } catch (error: any) {
-      console.error('[ShareService] Error compartiendo:', error);
-      this.logShareEvent(contentType, 'error', undefined, error.message);
+      console.error('[ShareService] Error crítico compartiendo:', error);
+      this.logShareEvent(contentType, 'error', undefined, error.message || undefined);
 
       return {
         success: false,
@@ -392,7 +404,6 @@ class ShareService {
       };
     }
   }
-
   /**
    * Log de eventos de compartir (preparado para analytics)
    */
@@ -446,13 +457,3 @@ class ShareService {
 
 // Exportar instancia singleton
 export const shareService = new ShareService();
-
-// Exportar tipos para uso en componentes
-export type {
-  ShareVerseParams,
-  ShareVersesParams,
-  ShareChapterParams,
-  ShareDailyReadingParams,
-  ShareReflectionParams,
-  ShareWritingParams,
-};

@@ -72,7 +72,8 @@ public class BiblePersistenceAdapter implements BibleRepositoryPort {
 
     @Override
     public Chapter saveChapter(Chapter chapter) {
-        // Implementación básica - se requiere lógica más compleja para guardar secciones y versículos
+        // Implementación básica - se requiere lógica más compleja para guardar
+        // secciones y versículos
         throw new UnsupportedOperationException("Saving chapters not implemented yet");
     }
 
@@ -102,6 +103,7 @@ public class BiblePersistenceAdapter implements BibleRepositoryPort {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<SearchResult> searchVerses(String query, int limit, int offset) {
         return verseRepository.searchByText(query, limit, offset).stream()
                 .map(entity -> toSearchResult(entity, query))
@@ -238,7 +240,8 @@ public class BiblePersistenceAdapter implements BibleRepositoryPort {
     }
 
     private BookCategory mapCategory(String category) {
-        if (category == null) return BookCategory.HISTORICAL;
+        if (category == null)
+            return BookCategory.HISTORICAL;
         return switch (category.toLowerCase()) {
             case "pentateuco", "pentateuch" -> BookCategory.PENTATEUCH;
             case "históricos", "historicos", "historical" -> BookCategory.HISTORICAL;
@@ -255,7 +258,8 @@ public class BiblePersistenceAdapter implements BibleRepositoryPort {
     }
 
     private String highlightText(String text, String query) {
-        if (text == null || query == null) return text;
+        if (text == null || query == null)
+            return text;
         try {
             return text.replaceAll("(?i)(" + java.util.regex.Pattern.quote(query) + ")", "<mark>$1</mark>");
         } catch (Exception e) {

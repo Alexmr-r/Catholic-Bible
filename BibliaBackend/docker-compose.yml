@@ -21,6 +21,18 @@ services:
     networks:
       - biblia-network
 
+  # Ollama AI Server
+  ollama:
+    image: ollama/ollama:latest
+    container_name: biblia-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - biblia-network
+    restart: unless-stopped
+
   # Spring Boot API
   api:
     build:
@@ -60,6 +72,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  ollama_data:
     driver: local
 
 networks:

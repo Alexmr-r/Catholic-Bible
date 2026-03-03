@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {DailyReadingScreenProps} from '../navigation/AppNavigator';
 import {dailyReadingService, DailyReading} from '../services/daily-reading.service';
 import {writingsService} from '../services/writings.service';
@@ -22,9 +23,15 @@ import {readingProgressService} from '../services/reading-progress.service';
 import {useTextSettings} from '../contexts/TextSettingsContext';
 import {useIsOnline} from '../contexts/NetworkContext';
 import {cacheService} from '../services/cache.service';
+import {audioService} from '../services/audio.service';
 import TextSettingsModal from '../components/TextSettingsModal';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, route}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+
   const [reflection, setReflection] = useState('');
   const [reflectionTitle, setReflectionTitle] = useState('');
   const [showFab, setShowFab] = useState(true);
@@ -308,12 +315,46 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   // =====================================================
   // 🔴 MOCKEADO - Reproducir audio de la lectura
   // =====================================================
-  const handlePlayAudio = () => {
-    Alert.alert(
-      '🎧 Reproducir Audio',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás escuchar la lectura.',
-      [{text: 'Entendido'}]
-    );
+  // Reproducir audio de la lectura
+  const handlePlayAudio = async () => {
+    if (!dailyReading) return;
+
+    try {
+      const modelExists = await audioService.checkModelExists();
+      
+      const startSpeaking = async () => {
+        await audioService.speak(dailyReading.readingText, dailyReading.biblicalReference);
+      };
+
+      if (!modelExists) {
+        Alert.alert(
+          'Narrador Premium IA',
+          '¿Cómo deseas escuchar la lectura? Puedes usar la voz predeterminada o descargar la Voz Premium (50MB) para una mejor experiencia natural.',
+          [
+            {
+              text: 'Voz Predeterminada',
+              onPress: () => startSpeaking(),
+            },
+            {
+              text: 'Descargar Premium',
+              onPress: () => {
+                // Iniciar descarga y el overlay mostrará el progreso
+                audioService.downloadModel();
+              },
+            },
+            {
+              text: 'Cancelar',
+              style: 'cancel',
+            },
+          ]
+        );
+      } else {
+        await startSpeaking();
+      }
+    } catch (error) {
+      console.error('[DailyReading] Error al reproducir audio:', error);
+      Alert.alert('Error', 'No se pudo iniciar la lectura de audio.');
+    }
   };
 
   // =====================================================
@@ -542,7 +583,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
             resizeMode="cover"
           />
           <LinearGradient
-            colors={['rgba(250, 250, 245, 0)', 'rgba(250, 250, 245, 1)']}
+            colors={['transparent', isDarkMode ? colors.background.dark : colors.ivory.DEFAULT]}
             style={styles.heroGradient}
           />
           <View style={styles.heroContent}>
@@ -696,10 +737,10 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Header Sticky
@@ -709,13 +750,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: 48, // Para notch
-    backgroundColor: `${colors.cream}F2`, // 95% opacity
+    paddingTop: Math.max(safeTop, 20) + 16, // Dinámico para Dynamic Island o Notch
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
   headerLeft: {
-    width: 40,
+    width: 80,
     alignItems: 'flex-start',
   },
   headerCenter: {
@@ -740,7 +781,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 2,
-    color: colors.burgundy.accent,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.burgundy.accent,
     marginBottom: 2,
   },
   headerTitle: {
@@ -784,7 +825,7 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: `${colors.burgundy.accent}E6`, // 90% opacity - Rojo más clarito
+    backgroundColor: isDarkMode ? `${colors.burgundy.DEFAULT}E6` : `${colors.burgundy.accent}E6`, 
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -857,12 +898,12 @@ const styles = StyleSheet.create({
 
   // Reflection Card
   reflectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.ivory.border,
     borderLeftWidth: 4,
-    borderLeftColor: `${colors.gold.accent}80`,
+    borderLeftColor: isDarkMode ? colors.primary.DEFAULT : `${colors.gold.accent}80`,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
@@ -876,7 +917,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: `${colors.paper}30`,
+    backgroundColor: isDarkMode ? colors.surface.highlight : `${colors.paper}30`,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
@@ -931,7 +972,7 @@ const styles = StyleSheet.create({
   reflectionFooter: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: `${colors.paper}50`,
+    backgroundColor: isDarkMode ? colors.surface.highlight : `${colors.paper}50`,
   },
   autoSaveContainer: {
     flexDirection: 'row',
@@ -971,14 +1012,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 1,
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
   },
 
-  // FAB (Floating Action Button) - Botón circular
+  // FAB
   fab: {
     position: 'absolute',
     bottom: 26,
-    right: 20, // 20px = right-5 en Tailwind
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -996,8 +1037,10 @@ const styles = StyleSheet.create({
 
   // Loading & Error states
   centerContent: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
   loadingText: {
     marginTop: 16,
@@ -1007,7 +1050,7 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: colors.burgundy.DEFAULT,
+    color: isDarkMode ? colors.primary.DEFAULT : colors.burgundy.DEFAULT,
     textAlign: 'center',
     paddingHorizontal: 32,
   },
@@ -1019,10 +1062,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     fontWeight: '600',
   },
-
 });
 
 export default DailyReadingScreen;

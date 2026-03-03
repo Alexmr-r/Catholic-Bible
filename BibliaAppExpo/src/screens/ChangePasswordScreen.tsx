@@ -17,7 +17,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {apiClient} from '../services/api.client';
 
 type ChangePasswordScreenProps = {
@@ -25,6 +26,8 @@ type ChangePasswordScreenProps = {
 };
 
 const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -137,7 +140,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
                 placeholder="••••••••"
-                placeholderTextColor="#CBD5E1"
+                placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showCurrentPassword}
                 autoCapitalize="none"
               />
@@ -164,7 +167,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
                 value={newPassword}
                 onChangeText={setNewPassword}
                 placeholder="Mínimo 6 caracteres"
-                placeholderTextColor="#CBD5E1"
+                placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showNewPassword}
                 autoCapitalize="none"
               />
@@ -191,7 +194,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="Repite la nueva contraseña"
-                placeholderTextColor="#CBD5E1"
+                placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
               />
@@ -233,10 +236,10 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.ivory.DEFAULT,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
   },
 
   // Header
@@ -247,7 +250,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     paddingTop: 56,
-    backgroundColor: `${colors.ivory.DEFAULT}CC`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 0,
   },
   backButton: {
@@ -288,7 +291,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: `${colors.gold.DEFAULT}1A`, // 10% opacity
+    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}1A` : `${colors.gold.DEFAULT}1A`, 
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -319,9 +322,9 @@ const styles = StyleSheet.create({
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.ivory.shade : '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.ivory.border,
     borderRadius: 12,
     shadowColor: colors.charcoal.DEFAULT,
     shadowOffset: {width: 0, height: 1},
@@ -350,11 +353,11 @@ const styles = StyleSheet.create({
 
   // Save Button
   saveButton: {
-    backgroundColor: colors.burgundy.DEFAULT,
+    backgroundColor: colors.primary.DEFAULT,
     paddingVertical: 16,
     borderRadius: 9999,
     alignItems: 'center',
-    shadowColor: colors.burgundy.DEFAULT,
+    shadowColor: colors.primary.DEFAULT,
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -365,7 +368,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
   },

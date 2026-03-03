@@ -9,10 +9,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {colors} from '../theme/colors';
+import {ThemeColors} from '../theme/colors';
+import {useTheme} from '../contexts/ThemeContext';
 import {NewTestamentScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book as ApiBook} from '../services/bible.service';
 import {useOfflineBible} from '../hooks/useOfflineBible';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type BookCategory = 'Evangelios' | 'Hechos' | 'Cartas de Pablo' | 'Cartas Católicas' | 'Apocalipsis';
 
@@ -52,18 +54,22 @@ const mapCategory = (apiCategory: string): BookCategory => {
 };
 
 // Mapeo de colores por categoría
-const getCategoryColor = (category: BookCategory): string => {
+const getCategoryColor = (category: BookCategory, colors: ThemeColors): string => {
   const colorMap: Record<BookCategory, string> = {
     'Evangelios': colors.secondary,
     'Hechos': colors.gold.accent,
     'Cartas de Pablo': colors.primary.DEFAULT,
-    'Cartas Católicas': colors.primary.accent,
+    'Cartas Católicas': colors.primary.dark,
     'Apocalipsis': colors.burgundy.DEFAULT,
   };
   return colorMap[category];
 };
 
 const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => {
+  const { colors, isDarkMode } = useTheme();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<BookCategory | 'Todo'>('Todo');
   const [books, setBooks] = useState<Book[]>([]);
@@ -135,7 +141,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
         chapters: apiBook.totalChapters,
         category: mapCategory(apiBook.category),
         enabled: true,
-        color: getCategoryColor(mapCategory(apiBook.category)),
+        color: getCategoryColor(mapCategory(apiBook.category), colors),
       }));
 
       setBooks(transformedBooks);
@@ -386,10 +392,10 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
 
   // Loading y Error states
@@ -436,9 +442,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 48,
+    paddingTop: Math.max(safeTop, 20) + 16,
     paddingBottom: 12,
-    backgroundColor: `${colors.cream}F2`,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
   },
@@ -473,12 +479,12 @@ const styles = StyleSheet.create({
   searchSection: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: colors.cream,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.ivory.shade : '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.ivory.border,
@@ -516,9 +522,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.primary.light : '#FFFFFF',
     borderWidth: 1,
-    borderColor: colors.ivory.border,
+    borderColor: isDarkMode ? colors.primary.light : colors.ivory.border,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -533,7 +539,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.charcoal.muted,
+    color: isDarkMode ? colors.charcoal.DEFAULT : colors.charcoal.muted,
     flexShrink: 1,
     flexGrow: 0,
   },
@@ -578,7 +584,7 @@ const styles = StyleSheet.create({
   bookCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDarkMode ? colors.paper : '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     gap: 16,
