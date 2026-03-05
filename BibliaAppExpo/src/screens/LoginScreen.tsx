@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
+  Image,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -11,7 +12,7 @@ import {
   useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
-import {MaterialIcons} from '@expo/vector-icons';
+import {MaterialIcons, AntDesign} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
 import {LoginScreenProps} from '../navigation/AppNavigator';
 import {useAuth} from '../contexts/AuthContext';
@@ -120,21 +121,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             marginTop: dynamicStyles.logoMarginTop,
             marginBottom: dynamicStyles.logoMarginBottom
           }]}>
-            <View style={[styles.logoContainer, {
-              marginBottom: dynamicStyles.logoContainerMarginBottom
-            }]}>
-              {/* Logo circular con icono de cruz + libro */}
-              <View style={styles.logoCircle}>
-                <View style={styles.iconContainer}>
-                  {/* Cruz vertical */}
-                  <View style={styles.crossVertical} />
-                  {/* Cruz horizontal */}
-                  <View style={styles.crossHorizontal} />
-                  {/* Curva del libro */}
-                  <View style={styles.bookCurve} />
-                </View>
-              </View>
-            </View>
+            <Image
+              source={require('../../assets/logo-transparent.png')}
+              style={[styles.logoImage, {marginBottom: dynamicStyles.logoContainerMarginBottom}]}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Biblia Católica</Text>
             <Text style={styles.subtitle}>Inicio de Sesión</Text>
           </View>
@@ -228,20 +219,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
 
           {/* Social Login Buttons */}
           <View style={styles.socialButtons}>
-            <TouchableOpacity
-              style={styles.socialButton}
-              onPress={handleAppleLogin}
-              activeOpacity={0.7}>
-              <MaterialIcons name="apple" size={22} color={isDarkMode ? colors.charcoal.dark : colors.charcoal.DEFAULT} />
-              <Text style={styles.socialButtonText}>Apple</Text>
-            </TouchableOpacity>
+            {Platform.OS === 'ios' && (
+              <TouchableOpacity
+                style={[styles.socialButton, styles.appleButton]}
+                onPress={handleAppleLogin}
+                activeOpacity={0.7}>
+                <AntDesign name="apple" size={20} color={colors.charcoal.dark} />
+                <Text style={styles.appleButtonText}>Continuar con Apple</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
-              style={styles.socialButton}
+              style={[styles.socialButton, styles.googleButton]}
               onPress={handleGoogleLogin}
               activeOpacity={0.7}>
-              <MaterialIcons name="mail" size={22} color="#DC4E41" />
-              <Text style={styles.socialButtonText}>Google</Text>
+              <AntDesign name="google" size={20} color={colors.charcoal.dark} />
+              <Text style={styles.googleButtonText}>Continuar con Google</Text>
             </TouchableOpacity>
           </View>
 
@@ -300,62 +293,9 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
     marginTop: 8,
     marginBottom: 20,
   },
-  logoContainer: {
-    width: 112,
-    height: 112,
-    marginBottom: 16,
-    position: 'relative',
-  },
-  logoCircle: {
-    width: 112,
-    height: 112,
-    borderRadius: 56,
-    backgroundColor: isDarkMode ? colors.primary.light : colors.surface.light,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: {width: 0, height: 8},
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: isDarkMode ? 'rgba(230, 179, 25, 0.3)' : 'rgba(255, 255, 255, 0.5)',
-  },
-  iconContainer: {
-    width: 62, 
-    height: 75, 
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  crossVertical: {
-    position: 'absolute',
-    width: 6, 
-    height: 62, 
-    backgroundColor: isDarkMode ? colors.primary.DEFAULT : '#DBCFB0', 
-    borderRadius: 3,
-    zIndex: 10,
-  },
-  crossHorizontal: {
-    position: 'absolute',
-    width: 44, 
-    height: 6, 
-    backgroundColor: isDarkMode ? colors.primary.DEFAULT : '#DBCFB0', 
-    borderRadius: 3,
-    top: 19, 
-    zIndex: 10,
-  },
-  bookCurve: {
-    position: 'absolute',
-    bottom: 3, 
-    width: 37, 
-    height: 9, 
-    borderBottomWidth: 2,
-    borderBottomColor: isDarkMode ? colors.primary.DEFAULT : '#DBCFB0', 
-    borderRadius: 19, 
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
+  logoImage: {
+    width: 96,
+    height: 96,
   },
   title: {
     fontSize: 30,
@@ -475,21 +415,27 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
     alignItems: 'center',
     justifyContent: 'center',
     height: 48,
-    backgroundColor: isDarkMode ? colors.background.dark : colors.surface.light,
-    borderRadius: 12,
+    borderRadius: 24, // Official buttons are usually more rounded
     borderWidth: 1,
-    borderColor: isDarkMode ? colors.primary.light : colors.ivory.border,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
-  socialButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: isDarkMode ? colors.charcoal.dark : colors.charcoal.DEFAULT,
+  appleButton: {
+    backgroundColor: isDarkMode ? colors.background.dark : colors.surface.light,
+    borderColor: isDarkMode ? colors.primary.light : colors.ivory.border,
+  },
+  appleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.charcoal.dark,
+  },
+  googleButton: {
+    backgroundColor: isDarkMode ? colors.background.dark : colors.surface.light,
+    borderColor: isDarkMode ? colors.primary.light : colors.ivory.border,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.charcoal.dark,
   },
   registerSection: {
     flexDirection: 'row',

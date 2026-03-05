@@ -1,11 +1,12 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator, NativeStackScreenProps} from '@react-navigation/native-stack';
 import {createBottomTabNavigator, BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useTheme} from '../contexts/ThemeContext';
-import SplashScreen from '../screens/SplashScreen';
+import {useAuth} from '../contexts/AuthContext';
+import * as ExpoSplashScreen from 'expo-splash-screen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DailyReadingScreen from '../screens/DailyReadingScreen';
@@ -271,11 +272,22 @@ const MainTabsNavigator = () => {
 
 // ✅ Root Navigator (Main App)
 const AppNavigator: React.FC = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  const [appReady, setAppReady] = useState(false);
+  const { isLoading, isAuthenticated } = useAuth();
+  const initialRoute = useRef<'Auth' | 'MainTabs'>('Auth');
 
-  // Si estamos en splash, mostrar SplashScreen
-  if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  useEffect(() => {
+    if (!isLoading && !appReady) {
+      initialRoute.current = isAuthenticated ? 'MainTabs' : 'Auth';
+      setAppReady(true);
+      // Oculta la splash nativa de iOS — navega después
+      ExpoSplashScreen.hideAsync();
+    }
+  }, [isLoading, isAuthenticated]);
+
+  // Mientras auth carga, la splash nativa de iOS sigue visible
+  if (!appReady) {
+    return null;
   }
 
   // Después del splash, mostrar navegación normal
@@ -283,9 +295,11 @@ const AppNavigator: React.FC = () => {
     <React.Fragment>
       <NavigationContainer>
         <RootStack.Navigator
-          initialRouteName="Auth"
+          initialRouteName={initialRoute.current}
           screenOptions={{
             headerShown: false,
+            animation: 'fade',          // Transición suave desde splash
+            animationDuration: 350,
           }}>
           <RootStack.Screen name="Auth" component={AuthNavigator} />
           {/* ... resto de pantallas ... */}

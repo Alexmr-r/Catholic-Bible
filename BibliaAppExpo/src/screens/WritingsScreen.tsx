@@ -10,6 +10,7 @@ import {
   RefreshControl,
   TextInput,
   Keyboard,
+  Alert,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useFocusEffect} from '@react-navigation/native';
@@ -51,6 +52,10 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
   const [error, setError] = useState<string | null>(null);
   const [writings, setWritings] = useState<Writing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Selection state
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // =====================================================
   // ✅ CONECTADO A API - Cargar escritos
@@ -187,62 +192,154 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
     } as any);
   };
 
-  const renderWritingCard = ({item}: {item: Writing}) => (
-    <TouchableOpacity
-      style={styles.writingCard}
-      onPress={() => handleViewWriting(item)}
-      activeOpacity={0.7}>
-      {/* Contenido principal */}
-      <View style={styles.cardContent}>
-        {/* Header con título y fecha */}
-        <View style={styles.cardHeader}>
-          <Text style={styles.verseTitle}>
-            {item.bookName && item.chapter && item.verse
-              ? `${item.bookName} ${item.chapter}:${item.verse}`
-              : item.title}
-          </Text>
-          <View style={styles.dateChip}>
-            <Text style={styles.dateText}>
-              {new Date(item.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-            </Text>
-          </View>
-        </View>
+  // =====================================================
+  // ✅ SELECCIÓN MÚLTIPLE
+  // =====================================================
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+    if (newSelected.size === 0) setIsSelectionMode(false);
+  };
 
-        {/* Reflexión con barra a la izquierda (título + contenido) */}
-        <View style={styles.textContainer}>
-          <View style={styles.quoteLine} />
-          <View style={styles.reflexionContent}>
-            {/* Título del escrito - solo si existe y es diferente al versículo */}
-            {item.title && !(item.bookName && item.chapter && item.verse && item.title === `${item.bookName} ${item.chapter}:${item.verse}`) && (
-              <Text style={styles.writingTitle} numberOfLines={1}>
-                {item.title}
+  const startSelectionMode = (id: string) => {
+    setIsSelectionMode(true);
+    setSelectedIds(new Set([id]));
+  };
+
+  const handleWritingPress = (writing: Writing) => {
+    if (isSelectionMode) {
+      toggleSelection(writing.id);
+    } else {
+      handleViewWriting(writing);
+    }
+  };
+
+  const handleLongPress = (id: string) => {
+    if (!isSelectionMode) {
+      startSelectionMode(id);
+    } else {
+      toggleSelection(id);
+    }
+  };
+
+  const cancelSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    Alert.alert(
+      'Eliminar escritos',
+      `¿Eliminar ${selectedIds.size} ${selectedIds.size === 1 ? 'escrito' : 'escritos'}?`,
+      [
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              for (const id of selectedIds) {
+                await writingsService.deleteWriting(id);
+              }
+              cancelSelectionMode();
+              loadWritings(false);
+            } catch (err) {
+              Alert.alert('Error', 'No se pudieron eliminar los escritos');
+            }
+          },
+        },
+        {text: 'Cancelar', style: 'cancel'},
+      ]
+    );
+  };
+
+  const renderWritingCard = ({item}: {item: Writing}) => {
+    const isSelected = selectedIds.has(item.id);
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.writingCard,
+          isSelected && {
+            borderColor: colors.primary.DEFAULT,
+            backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}1A` : `${colors.primary.DEFAULT}0D`,
+          }
+        ]}
+        onPress={() => handleWritingPress(item)}
+        onLongPress={() => handleLongPress(item.id)}
+        activeOpacity={0.7}>
+        {/* Contenido principal */}
+        <View style={styles.cardContent}>
+          {/* Header con título y fecha */}
+          <View style={styles.cardHeader}>
+            <Text style={styles.verseTitle} numberOfLines={1}>
+              {item.bookName && item.chapter && item.verse
+                ? `${item.bookName} ${item.chapter}:${item.verse}`
+                : item.title}
+            </Text>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+              <View style={styles.dateChip}>
+                <Text style={styles.dateText}>
+                  {new Date(item.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                </Text>
+              </View>
+              {isSelectionMode && (
+                <MaterialIcons
+                  name={isSelected ? "check-circle" : "radio-button-unchecked"}
+                  size={24}
+                  color={isSelected ? colors.primary.DEFAULT : colors.charcoal.muted}
+                />
+              )}
+            </View>
+          </View>
+
+          {/* Reflexión con barra a la izquierda (título + contenido) */}
+          <View style={styles.textContainer}>
+            <View style={styles.quoteLine} />
+            <View style={styles.reflexionContent}>
+              {/* Título del escrito - solo si existe y es diferente al versículo */}
+              {item.title && !(item.bookName && item.chapter && item.verse && item.title === `${item.bookName} ${item.chapter}:${item.verse}`) && (
+                <Text style={styles.writingTitle} numberOfLines={1}>
+                  {item.title}
+                </Text>
+              )}
+              {/* Contenido de la reflexión */}
+              <Text style={styles.contentText} numberOfLines={2}>
+                {item.content}
               </Text>
-            )}
-            {/* Contenido de la reflexión */}
-            <Text style={styles.contentText} numberOfLines={2}>
-              {item.content}
-            </Text>
+            </View>
           </View>
         </View>
-
-        {/* Footer con botón Ver */}
-        <View style={styles.cardFooter}>
-          <View style={styles.viewButton}>
-            <MaterialIcons name="visibility" size={18} color={colors.primary.DEFAULT} />
-            <Text style={styles.viewButtonText}>Ver Escrito y Versículo</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container} onStartShouldSetResponder={() => { Keyboard.dismiss(); return false; }}>
       {/* Header Sticky */}
       <View style={styles.header}>
-        <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>Escritos Personales</Text>
-        <View style={styles.headerSpacer} />
+        {isSelectionMode ? (
+          <>
+            <TouchableOpacity onPress={cancelSelectionMode} style={styles.headerAction}>
+              <Text style={styles.headerActionText}>Cancelar</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{selectedIds.size} seleccionados</Text>
+            <TouchableOpacity onPress={handleDeleteSelected} style={styles.headerActionRight}>
+              <MaterialIcons name="delete" size={24} color={colors.burgundy.DEFAULT} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <View style={styles.headerSpacer} />
+            <Text style={styles.headerTitle}>Escritos Personales</Text>
+            <View style={styles.headerSpacer} />
+          </>
+        )}
       </View>
 
       {/* Search Bar - Estilo igual a Favoritos */}
@@ -265,12 +362,12 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
       </View>
 
       {/* Filters - Estilo igual a Favoritos */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-        contentContainerStyle={styles.filtersContent}>
-        <TouchableOpacity
+      <View style={styles.filtersContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersContent}>
+          <TouchableOpacity
           style={[
             styles.filterChip,
             activeFilter === 'todos' && styles.filterChipActive,
@@ -318,6 +415,7 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+      </View>
 
       {/* Estado de carga */}
       {isLoading && (
@@ -441,8 +539,22 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     textAlign: 'center',
   },
   headerSpacer: {
-    width: 40,
+    width: 60,
     height: 36,
+  },
+  headerAction: {
+    width: 80,
+    justifyContent: 'center',
+  },
+  headerActionRight: {
+    width: 80,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  headerActionText: {
+    fontSize: 16,
+    color: colors.primary.DEFAULT,
+    fontWeight: '500',
   },
 
   // Search Bar (IGUAL A FAVORITOS)
@@ -459,7 +571,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     borderWidth: 1,
     borderColor: colors.ivory.border,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    height: 44,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -471,8 +583,12 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   searchInput: {
     flex: 1,
+    height: '100%',
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
+    paddingVertical: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
 
   // Filters (IGUAL A FAVORITOS)

@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Share,
+  Platform,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -235,7 +236,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
               fontSize: 28 * (settings.fontSize / 100),
               // lineHeight mínimo 1.4x para títulos
               lineHeight: Math.max(36, 28 * (settings.fontSize / 100) * 1.4),
-              fontFamily: settings.fontFamily,
+              fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
             },
           ]}>
           {title}
@@ -250,7 +251,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
                 fontSize: 18 * (settings.fontSize / 100),
                 // lineHeight mínimo 1.6x para texto
                 lineHeight: Math.max(30, 18 * (settings.fontSize / 100) * 1.6),
-                fontFamily: settings.fontFamily,
+                fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
               },
             ]}>
             {content}

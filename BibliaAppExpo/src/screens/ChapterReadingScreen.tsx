@@ -374,11 +374,6 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         setHighlights(prev => new Map(prev).set(verseNumber, highlight));
       }
 
-      const verseRef = selectedVerses.length === 1
-        ? `Versículo ${selectedVerses[0]}`
-        : `Versículos ${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`;
-
-      Alert.alert('✅ Subrayado', `${verseRef} subrayado correctamente.`);
     } catch (err) {
       console.error('Error subrayando:', err);
       Alert.alert('Error', 'No se pudo subrayar el versículo.');
@@ -417,13 +412,6 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
           });
           removedCount++;
         }
-      }
-
-      if (removedCount > 0) {
-        const verseRef = removedCount === 1
-          ? `Versículo ${selectedVerses[0]}`
-          : `${removedCount} versículos`;
-        Alert.alert('✅ Subrayado eliminado', `${verseRef} sin subrayado.`);
       }
     } catch (err) {
       console.error('Error eliminando subrayados:', err);
@@ -473,7 +461,6 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         tags: tag ? [tag] : [],
       });
 
-      Alert.alert('✓', `${reference} añadido a favoritos`);
       cancelSelection();
     } catch (err: any) {
       console.error('Error añadiendo favorito:', err);
@@ -590,7 +577,6 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         tags: ['Capítulo completo'],
       });
 
-      Alert.alert('✓', `${bookName} ${currentChapter} añadido a favoritos`);
     } catch (err: any) {
       console.error('Error añadiendo capítulo:', err);
       Alert.alert('Error', 'No se pudo añadir el capítulo a favoritos');
@@ -706,7 +692,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                       fontSize: 24 * (settings.fontSize / 100),
                       // lineHeight mínimo 1.4x para títulos
                       lineHeight: Math.max(32, 24 * (settings.fontSize / 100) * 1.4),
-                      fontFamily: settings.fontFamily,
+                      fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                     },
                   ]}>
                   {displayTitle}
@@ -748,7 +734,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                             fontSize: 18 * (settings.fontSize / 100),
                             // lineHeight mínimo 1.7x para buena legibilidad
                             lineHeight: Math.max(32, 18 * (settings.fontSize / 100) * 1.7),
-                            fontFamily: settings.fontFamily,
+                            fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                           },
                         ]}>
                         {verse.text}

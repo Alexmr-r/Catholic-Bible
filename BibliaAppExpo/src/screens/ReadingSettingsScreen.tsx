@@ -13,6 +13,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {MaterialIcons} from '@expo/vector-icons';
@@ -95,7 +96,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                   styles.quoteText,
                   {
                     fontSize: 15 * (settings.fontSize / 100),
-                    fontFamily: settings.fontFamily,
+                    fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                   },
                 ]}>
                 "Tu palabra es una lámpara a mis pies"
@@ -160,7 +161,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                   styles.previewText,
                   {
                     fontSize: 19 * (settings.fontSize / 100),
-                    fontFamily: settings.fontFamily,
+                    fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                   },
                 ]}>
                 En el principio creó Dios los cielos y la tierra. La tierra era caos y confusión y
@@ -173,7 +174,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                   styles.previewText,
                   {
                     fontSize: 19 * (settings.fontSize / 100),
-                    fontFamily: settings.fontFamily,
+                    fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                     marginTop: 16,
                   },
                 ]}>
@@ -184,7 +185,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
               {/* Gradient Overlay */}
               <LinearGradient
                 colors={isDarkMode 
-                  ? ['rgba(26, 22, 13, 0)', 'rgba(26, 22, 13, 1)'] 
+                  ? ['rgba(42, 36, 21, 0)', 'rgba(42, 36, 21, 1)'] 
                   : ['rgba(250, 249, 246, 0)', 'rgba(250, 249, 246, 1)']}
                 style={styles.previewGradient}
                 pointerEvents="none"

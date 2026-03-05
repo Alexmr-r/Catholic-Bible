@@ -2,6 +2,7 @@ import React, {useState, useRef} from 'react';
 import {
   View,
   Text,
+  Image,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -123,12 +124,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
         <View style={styles.content}>
           {/* Icon and Title */}
           <View style={styles.topSection}>
-            <View style={[styles.iconContainer, {
-              marginTop: dynamicStyles.iconMarginTop,
-              marginBottom: dynamicStyles.iconMarginBottom
-            }]}>
-              <MaterialIcons name="menu-book" size={32} color={colors.gold.DEFAULT} />
-            </View>
+            <Image
+              source={require('../../assets/logo-transparent.png')}
+              style={[styles.logoImage, {
+                marginTop: dynamicStyles.iconMarginTop,
+                marginBottom: dynamicStyles.iconMarginBottom
+              }]}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Crear Cuenta</Text>
             <Text style={[styles.subtitle, {marginBottom: dynamicStyles.titleMarginBottom}]}>
               Únete a nuestra comunidad de fe y comienza tu lectura diaria.
@@ -348,13 +351,9 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   topSection: {
     alignItems: 'flex-start',
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}20` : `${colors.gold.DEFAULT}20`,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImage: {
+    width: 80,
+    height: 80,
   },
   title: {
     fontSize: 32,

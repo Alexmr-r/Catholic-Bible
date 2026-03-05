@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   Keyboard,
+  Platform,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -637,7 +638,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
                 {
                   fontSize: 18 * (settings.fontSize / 100),
                   // lineHeight fijo - solo crece el texto, no el espaciado
-                  fontFamily: settings.fontFamily,
+                  fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                 },
               ]}>
               <Text style={[
@@ -645,7 +646,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
                 {
                     lineHeight: 34 * (settings.fontSize / 100),
                   fontSize: 35 * (settings.fontSize / 100),
-                  fontFamily: settings.fontFamily,
+                  fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                 },
               ]}>
                 {dailyReading.readingText.charAt(0)}

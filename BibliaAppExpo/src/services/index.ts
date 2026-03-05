@@ -12,6 +12,6 @@ export { API_CONFIG } from './config';
 export type { User, AuthResponse, RegisterRequest, LoginRequest } from './auth.service';
 export type { Book, BooksResponse, Chapter, Verse, Section, SearchResult, SearchResponse } from './bible.service';
 export type { Favorite, AddFavoriteRequest, UpdateFavoriteRequest } from './favorites.service';
-export type { DailyReading, DailyReadingVerse, WeekReadings, ReadingHistory } from './daily-reading.service';
+export type { DailyReading, WeekReadings, ReadingHistory } from './daily-reading.service';
 export type { Highlight, HighlightColor, ChapterHighlights, HighlightRequest } from './highlights.service';
 export type { Writing, WritingListResponse, CreateWritingRequest, UpdateWritingRequest, WritingFilter } from './writings.service';

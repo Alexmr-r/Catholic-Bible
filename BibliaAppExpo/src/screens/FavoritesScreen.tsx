@@ -68,6 +68,10 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Selection state
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   // =====================================================
   // ✅ CONECTADO A API - Cargar favoritos
   // =====================================================
@@ -210,23 +214,63 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
   });
 
   // =====================================================
-  // ✅ CONECTADO A API - Eliminar favorito
+  // ✅ SELECCIÓN MÚLTIPLE
   // =====================================================
-  const handleFavoriteOptions = (id: string) => {
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+    if (newSelected.size === 0) setIsSelectionMode(false);
+  };
+
+  const startSelectionMode = (id: string) => {
+    setIsSelectionMode(true);
+    setSelectedIds(new Set([id]));
+  };
+
+  const handleFavoritePress = (favorite: Favorite) => {
+    if (isSelectionMode) {
+      toggleSelection(favorite.id);
+    } else {
+      handleViewFavorite(favorite);
+    }
+  };
+
+  const handleLongPress = (id: string) => {
+    if (!isSelectionMode) {
+      startSelectionMode(id);
+    } else {
+      toggleSelection(id);
+    }
+  };
+
+  const cancelSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
     Alert.alert(
-      '⚙️ Opciones',
-      '¿Qué quieres hacer con este versículo?',
+      'Eliminar favoritos',
+      `¿Eliminar ${selectedIds.size} ${selectedIds.size === 1 ? 'favorito' : 'favoritos'}?`,
       [
         {
           text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
             try {
-              await favoritesService.removeFavorite(id);
-              Alert.alert('✓', 'Favorito eliminado');
+              for (const id of selectedIds) {
+                await favoritesService.removeFavorite(id);
+              }
+              cancelSelectionMode();
               loadFavorites(false);
             } catch (err) {
-              Alert.alert('Error', 'No se pudo eliminar el favorito');
+              Alert.alert('Error', 'No se pudieron eliminar los favoritos');
             }
           },
         },
@@ -255,49 +299,75 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
     });
   };
 
-  const renderFavoriteCard = ({item}: {item: Favorite}) => (
-    <TouchableOpacity
-      style={styles.favoriteCard}
-      onPress={() => handleViewFavorite(item)}
-      activeOpacity={0.7}>
-      <View style={styles.cardHeader}>
-        <View style={styles.verseInfo}>
-          <Text style={styles.verseTitle}>{item.verse}</Text>
-          <View style={styles.dot} />
-          <Text style={styles.dateText}>{item.date}</Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => handleFavoriteOptions(item.id)}
-          style={styles.optionsButton}
-          activeOpacity={0.7}>
-          <MaterialIcons name="more-vert" size={20} color={colors.charcoal.muted} />
-        </TouchableOpacity>
-      </View>
+  const renderFavoriteCard = ({item}: {item: Favorite}) => {
+    const isSelected = selectedIds.has(item.id);
 
-      <View style={styles.textContainer}>
-        <View style={styles.quoteLine} />
-        <Text style={styles.verseText}>{item.text}</Text>
-      </View>
-
-      {item.tags.length > 0 && (
-        <View style={styles.tagsContainer}>
-          {item.tags.map((tag, index) => (
-            <View key={index} style={styles.tag}>
-              <Text style={styles.tagText}>{tag.toUpperCase()}</Text>
-            </View>
-          ))}
+    return (
+      <TouchableOpacity
+        style={[
+          styles.favoriteCard,
+          isSelected && {
+            borderColor: colors.primary.DEFAULT,
+            backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}1A` : `${colors.primary.DEFAULT}0D`,
+          }
+        ]}
+        onPress={() => handleFavoritePress(item)}
+        onLongPress={() => handleLongPress(item.id)}
+        activeOpacity={0.7}>
+        <View style={styles.cardHeader}>
+          <View style={styles.verseInfo}>
+            <Text style={styles.verseTitle}>{item.verse}</Text>
+            <View style={styles.dot} />
+            <Text style={styles.dateText}>{item.date}</Text>
+          </View>
+          {isSelectionMode && (
+            <MaterialIcons
+              name={isSelected ? "check-circle" : "radio-button-unchecked"}
+              size={24}
+              color={isSelected ? colors.primary.DEFAULT : colors.charcoal.muted}
+            />
+          )}
         </View>
-      )}
-    </TouchableOpacity>
-  );
+
+        <View style={styles.textContainer}>
+          <View style={styles.quoteLine} />
+          <Text style={styles.verseText}>{item.text}</Text>
+        </View>
+
+        {item.tags.length > 0 && (
+          <View style={styles.tagsContainer}>
+            {item.tags.map((tag, index) => (
+              <View key={index} style={styles.tag}>
+                <Text style={styles.tagText}>{tag.toUpperCase()}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container} onStartShouldSetResponder={() => { Keyboard.dismiss(); return false; }}>
       {/* Header Sticky */}
       <View style={styles.header}>
-        <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>Favoritos</Text>
-        <View style={styles.headerSpacer} />
+        {isSelectionMode ? (
+          <>
+            <TouchableOpacity onPress={cancelSelectionMode} style={styles.headerAction}>
+              <Text style={styles.headerActionText}>Cancelar</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{selectedIds.size} seleccionados</Text>
+            <TouchableOpacity onPress={handleDeleteSelected} style={styles.headerActionRight}>
+              <MaterialIcons name="delete" size={24} color={colors.burgundy.DEFAULT} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <View style={styles.headerSpacer} />
+            <Text style={styles.headerTitle}>Favoritos</Text>
+            <View style={styles.headerSpacer} />
+          </>
+        )}
       </View>
 
       {/* Search Bar */}
@@ -488,8 +558,22 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     textAlign: 'center',
   },
   headerSpacer: {
-    width: 40,
+    width: 60,
     height: 36,
+  },
+  headerAction: {
+    width: 80,
+    justifyContent: 'center',
+  },
+  headerActionRight: {
+    width: 80,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  headerActionText: {
+    fontSize: 16,
+    color: colors.primary.DEFAULT,
+    fontWeight: '500',
   },
 
   // Search
@@ -506,7 +590,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     borderWidth: 1,
     borderColor: colors.ivory.border,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    height: 44,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -518,8 +602,12 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   searchInput: {
     flex: 1,
+    height: '100%',
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
+    paddingVertical: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
 
   // Filters
