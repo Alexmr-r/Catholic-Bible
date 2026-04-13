@@ -30,7 +30,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CALENDAR_PADDING = 24;
 const GAP = 8;
-const CELL_SIZE = (SCREEN_WIDTH - (CALENDAR_PADDING * 2) - (GAP * 6)) / 7;
+const CELL_SIZE = Math.floor((SCREEN_WIDTH - (CALENDAR_PADDING * 2) - (GAP * 6)) / 7);
 
 type ReadingCalendarScreenProps = {
   navigation: any;
@@ -319,7 +319,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
           <MaterialIcons name="arrow-back" size={24} color={colors.ink.light} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Actividad Espiritual</Text>
+          <Text style={styles.headerTitle}>Calendario de Escritos</Text>
         </View>
         <View style={styles.backButton} />
       </View>
@@ -339,13 +339,13 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
               onPress={goToPreviousMonth}
               style={styles.navButton}
               activeOpacity={0.7}>
-              <MaterialIcons name="chevron-left" size={24} color={colors.ink.light} />
+              <MaterialIcons name="arrow-back" size={24} color={colors.ink.light} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={goToNextMonth}
               style={styles.navButton}
               activeOpacity={0.7}>
-              <MaterialIcons name="chevron-right" size={24} color={colors.ink.light} />
+              <MaterialIcons name="arrow-forward" size={24} color={colors.ink.light} />
             </TouchableOpacity>
           </View>
         </View>

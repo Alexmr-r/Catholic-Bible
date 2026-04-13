@@ -9,12 +9,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
+import {useFocusEffect} from '@react-navigation/native';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {NewTestamentScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book as ApiBook} from '../services/bible.service';
-import {useOfflineBible} from '../hooks/useOfflineBible';
+import {EnglishBibleDownloadService, BibleOfflineService} from '../services/english-bible-download.service';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useIsOnline, useNetwork} from '../contexts/NetworkContext';
 
 type BookCategory = 'Evangelios' | 'Hechos' | 'Cartas de Pablo' | 'Cartas Católicas' | 'Apocalipsis';
 
@@ -65,6 +67,39 @@ const getCategoryColor = (category: BookCategory, colors: ThemeColors): string =
   return colorMap[category];
 };
 
+const loadNewTestamentOffline = async (): Promise<ApiBook[]> => {
+  try {
+    const offlineData = await BibleOfflineService.loadData();
+
+    if (!offlineData || !offlineData.books) {
+      console.error('[NewTestament] Offline data is empty or invalid');
+      return [];
+    }
+
+    const newTestamentIds = [
+      'matthew', 'mark', 'luke', 'john', 'acts', 'romans', '1corinthians', '2corinthians',
+      'galatians', 'ephesians', 'philippians', 'colossians', '1thessalonians', '2thessalonians',
+      '1timothy', '2timothy', 'titus', 'philemon', 'hebrews', 'james', '1peter', '2peter',
+      '1john', '2john', '3john', 'jude', 'revelation'
+    ];
+
+    return offlineData.books
+      .filter(book => newTestamentIds.includes(book.id.toLowerCase()))
+      .map(book => ({
+        id: book.id,
+        name: book.name || book.id,
+        abbreviation: (book.name || book.id).substring(0, 3).toUpperCase(),
+        testament: 'new' as const,
+        category: 'Evangelios',
+        totalChapters: book.chapters?.length || 0,
+        description: '',
+      }));
+  } catch (error) {
+    console.error('[NewTestament] Error loading offline books:', error);
+    throw error;
+  }
+};
+
 const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
@@ -77,15 +112,22 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  // Hook para modo offline
-  const {isOnline, isBibleDownloaded} = useOfflineBible();
+  // Hook para modo offline global
+  const {isBibleDownloaded, refreshDownloadStatus} = useNetwork();
+  const isOnline = useIsOnline();
 
   // =====================================================
-  // ✅ CONECTADO A API / OFFLINE - Cargar libros del Nuevo Testamento
+  // ✅ CONECTADO A API / OFFLINE - Cargar libros cada vez que la pantalla gana foco
   // =====================================================
-  useEffect(() => {
-    loadBooks();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const init = async () => {
+        await refreshDownloadStatus();
+        loadBooks();
+      };
+      init();
+    }, [isOnline, isBibleDownloaded])
+  );
 
   const loadBooks = async () => {
     try {
@@ -99,38 +141,27 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
       // - Sin internet + Biblia descargada → usar datos offline
       // - Sin internet + sin descarga → error
 
+      const actuallyDownloaded = await EnglishBibleDownloadService.isDownloaded();
+
       if (isOnline) {
         // ✅ CON INTERNET: Siempre usar API
-        apiBooks = await bibleService.getNewTestamentBooks();
-      } else if (isBibleDownloaded) {
-        // ✅ SIN INTERNET + DESCARGADA: usar datos offline
-        const {BibleOfflineService} = await import('../services/english-bible-download.service');
-        const offlineData = await BibleOfflineService.loadData();
-
-        // Libros del NT (desde el libro 47 en adelante en la Biblia Católica)
-        const newTestamentIds = [
-          'matthew', 'mark', 'luke', 'john', 'acts',
-          'romans', '1corinthians', '2corinthians', 'galatians', 'ephesians',
-          'philippians', 'colossians', '1thessalonians', '2thessalonians',
-          '1timothy', '2timothy', 'titus', 'philemon', 'hebrews',
-          'james', '1peter', '2peter', '1john', '2john', '3john', 'jude', 'revelation'
-        ];
-
-        apiBooks = offlineData.books
-          .filter(book => newTestamentIds.includes(book.id.toLowerCase()) ||
-                         offlineData.books.indexOf(book) >= 46)
-          .map(book => ({
-            id: book.id,
-            name: book.name,
-            abbreviation: book.name.substring(0, 3),
-            testament: 'new' as const,
-            category: 'Cartas',
-            totalChapters: book.chapters.length,
-            description: '',
-          }));
+        try {
+          apiBooks = await bibleService.getNewTestamentBooks();
+        } catch (apiError) {
+          console.warn('[NewTestament] Error API, reintentando offline si es posible:', apiError);
+          try {
+            apiBooks = await loadNewTestamentOffline();
+          } catch (offlineError) {
+            throw apiError;
+          }
+        }
       } else {
-        // ❌ SIN INTERNET + SIN DESCARGA: mostrar error
-        throw new Error('NO_CONNECTION_NO_DOWNLOAD');
+        // ✅ SIN INTERNET: usar datos offline si existen
+        try {
+          apiBooks = await loadNewTestamentOffline();
+        } catch (offlineError) {
+          throw new Error('NO_DOWNLOAD');
+        }
       }
 
       // Transformar los libros al formato local
@@ -148,9 +179,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
       setRetryCount(0);
     } catch (err: any) {
       console.error('Error cargando libros:', err);
-      setRetryCount(prev => prev + 1);
-
-      if (err.message === 'NO_CONNECTION_NO_DOWNLOAD' || (!isOnline && !isBibleDownloaded)) {
+      if (err.message === 'NO_DOWNLOAD' || (!isOnline && !isBibleDownloaded)) {
         setError('NO_DOWNLOAD');
       } else {
         setError('No se pudieron cargar los libros. Verifica tu conexión.');
@@ -221,7 +250,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
       {/* Estado de carga */}
       {isLoading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.burgundy.DEFAULT} />
+          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
           <Text style={styles.loadingText}>Cargando libros...</Text>
         </View>
       )}
@@ -236,14 +265,14 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
           />
           <Text style={styles.errorText}>
             {error === 'NO_DOWNLOAD'
-              ? 'Sin conexión a internet'
-              : 'No se pudieron cargar los libros'
+              ? 'No tienes conexión'
+              : 'Error de conexión'
             }
           </Text>
           <Text style={styles.errorSubtext}>
             {error === 'NO_DOWNLOAD'
-              ? 'Descarga la Biblia para leer sin conexión'
-              : 'Verifica tu conexión a internet'
+              ? 'Tienes que descargar la Biblia para leerla sin conexión'
+              : 'Verifica tu conexión a internet para continuar'
             }
           </Text>
 
@@ -374,7 +403,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
                     </View>
 
                     <MaterialIcons
-                      name="chevron-right"
+                      name="arrow-forward"
                       size={24}
                       color={book.enabled ? colors.charcoal.muted : `${colors.charcoal.muted}40`}
                     />

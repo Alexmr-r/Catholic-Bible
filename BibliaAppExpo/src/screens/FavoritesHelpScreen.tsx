@@ -4,13 +4,15 @@
 
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 
 const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
-  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const steps = [
     {icon: 'touch-app', title: 'Guardar versículos', description: 'Realiza una pulsación prolongada sobre cualquier versículo y toca el icono del corazón para añadirlo a tu lista.'},
     {icon: 'more-horiz', title: 'Capítulo completo', description: '¿Quieres guardar todo el capítulo? Pulsa en los tres puntos (...) situados en la esquina superior derecha de la lectura.'},
@@ -21,7 +23,7 @@ const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back-ios" size={24} color={colors.charcoal.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tus Favoritos</Text>
         <View style={styles.headerSpacer} />
@@ -66,11 +68,27 @@ const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
   );
 };
 
-const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {flex: 1, backgroundColor: isDarkMode ? colors.background.dark : colors.cream},
-  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingBottom: 14, paddingHorizontal: 20, backgroundColor: isDarkMode ? colors.background.dark : colors.cream, borderBottomWidth: 1, borderBottomColor: colors.ivory.border},
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ivory.border
+  },
   backButton: {width: 40, height: 40, alignItems: 'flex-start', justifyContent: 'center'},
-  headerTitle: {fontSize: 18, fontWeight: '700', color: colors.charcoal.DEFAULT, fontFamily: 'serif'},
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.charcoal.dark,
+    fontFamily: 'serif',
+    flex: 1,
+    textAlign: 'center'
+  },
   headerSpacer: {width: 40},
   scrollView: {flex: 1},
   content: {paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32},

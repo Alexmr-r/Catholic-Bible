@@ -197,7 +197,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
       {/* Header - igual que HTML */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-          <MaterialIcons name="arrow-back-ios" size={24} color={colors.primary.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Detalle del Escrito</Text>

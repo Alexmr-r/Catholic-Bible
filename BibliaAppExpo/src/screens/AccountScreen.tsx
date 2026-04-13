@@ -18,6 +18,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
@@ -30,8 +32,9 @@ type AccountScreenProps = {
 
 const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
-  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
-  const {user, refreshAuth} = useAuth();
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
+  const {user, refreshAuth, profilePhoto, updateProfilePhoto} = useAuth();
 
   // Estados del formulario
   const [fullName, setFullName] = useState('');
@@ -69,10 +72,45 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
   const handleChangePhoto = () => {
     Alert.alert(
       'Cambiar Foto',
-      'Funcionalidad de cambio de foto de perfil',
+      'Elige una opción',
       [
-        {text: 'Tomar Foto', onPress: () => console.log('Tomar foto')},
-        {text: 'Elegir de Galería', onPress: () => console.log('Galería')},
+        {
+          text: 'Tomar Foto', 
+          onPress: async () => {
+            const { status } = await ImagePicker.requestCameraPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('Permiso denegado', 'Se necesita acceso a la cámara');
+              return;
+            }
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.5,
+            });
+            if (!result.canceled && result.assets[0].uri) {
+              await updateProfilePhoto(result.assets[0].uri);
+            }
+          }
+        },
+        {
+          text: 'Elegir de Galería', 
+          onPress: async () => {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('Permiso denegado', 'Se necesita acceso a la galería');
+              return;
+            }
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.5,
+            });
+            if (!result.canceled && result.assets[0].uri) {
+              await updateProfilePhoto(result.assets[0].uri);
+            }
+          }
+        },
         {text: 'Cancelar', style: 'cancel'},
       ]
     );
@@ -148,7 +186,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
           onPress={handleBack}
           activeOpacity={0.7}
           style={styles.backButton}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color={colors.charcoal.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mi Cuenta</Text>
         <View style={styles.headerSpacer} />
@@ -164,14 +202,15 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
         <View style={styles.photoSection}>
           <View style={styles.avatarWrapper}>
             <View style={styles.avatarContainer}>
-              <Image
-                source={{
-                  uri: user?.email
-                    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=D4AF37&color=fff&size=200`
-                    : 'https://lh3.googleusercontent.com/aida-public/AB6AXuA_lz0TfULdOGmbgvMICdhazJ9MCLeJdcRmmmNT_h433OT15oOFPTgAewtfnEy5iVWAYF7aI1TEBxC-HanVNS2JLeXNrISF9-OAqGRk50TO9Ih4-jduOLs_9R-fVfs26kJgjGuq3_i9zjzPnnw8xV--giTNFXrWqpqGSFhc6Z0nmX7C7NsUHLkQmPXAuyTv8JIJCDacbv5OoqPGTMphBDy1gA8z-e4UVkIgMA5jFwJdNQi4wrvI-UOSXxD-IWU5-OETgWropsOPCEN0',
-                }}
-                style={styles.avatar}
-              />
+              <View style={styles.avatar}>
+                {profilePhoto ? (
+                  <Image source={{ uri: profilePhoto }} style={{ width: '100%', height: '100%', borderRadius: 48 }} />
+                ) : (
+                  <Text style={styles.avatarInitials}>
+                    {(user?.fullName || 'U').split(' ').map(n => n.charAt(0).toUpperCase()).slice(0, 2).join('')}
+                  </Text>
+                )}
+              </View>
             </View>
 
             {/* Camera Button */}
@@ -179,7 +218,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
               style={styles.cameraButton}
               onPress={handleChangePhoto}
               activeOpacity={0.7}>
-              <MaterialIcons name="photo-camera" size={18} color="#FFFFFF" />
+              <MaterialIcons name="edit" size={18} color={isDarkMode ? colors.background.dark : '#FFFFFF'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -220,7 +259,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
               <MaterialIcons name="lock" size={24} color={colors.gold.DEFAULT} />
               <Text style={styles.passwordButtonText}>Cambiar Contraseña</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color="#CBD5E1" />
+            <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
 
           {/* Save Button */}
@@ -248,7 +287,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
   );
 };
 
-const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
@@ -264,24 +303,27 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    paddingTop: 56,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
-    borderBottomWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ivory.border,
   },
   backButton: {
     width: 40,
     height: 40,
     alignItems: 'flex-start',
     justifyContent: 'center',
+    borderRadius: 20,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     fontFamily: 'serif',
-    color: colors.charcoal.DEFAULT,
+    color: colors.charcoal.dark,
+    flex: 1,
+    textAlign: 'center',
   },
   headerSpacer: {
     width: 40,
@@ -324,6 +366,16 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   avatar: {
     width: '100%',
     height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : colors.primary.DEFAULT,
+    borderRadius: 48,
+  },
+  avatarInitials: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
+    letterSpacing: 1,
   },
   cameraButton: {
     position: 'absolute',

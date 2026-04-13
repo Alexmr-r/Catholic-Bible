@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Image,
   Alert,
   ActivityIndicator,
   Keyboard,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { Image } from 'expo-image';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {ThemeColors} from '../theme/colors';
@@ -26,6 +27,7 @@ import {useIsOnline} from '../contexts/NetworkContext';
 import {cacheService} from '../services/cache.service';
 import {audioService} from '../services/audio.service';
 import TextSettingsModal from '../components/TextSettingsModal';
+import OfflineBanner from '../components/OfflineBanner';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, route}) => {
@@ -161,56 +163,55 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     try {
-      setIsLoading(true);
       setError(null);
-      setIsUsingCache(false);
-
-      let reading: DailyReading | null = null;
-
-      if (isOnline) {
-        // ✅ CON CONEXIÓN: Cargar del API y guardar en caché
-        try {
-          reading = await dailyReadingService.getTodayReading();
-          // Guardar en caché para uso offline
-          await cacheService.setDailyReading(today, reading);
-          console.log('[DailyReading] ✅ Cargado del API y cacheado');
-        } catch (apiError) {
-          console.warn('[DailyReading] ⚠️ Error del API, intentando caché:', apiError);
-          // Fallback a caché si falla el API
-          reading = await cacheService.getDailyReading(today);
-          if (reading) {
-            setIsUsingCache(true);
-            console.log('[DailyReading] ✅ Usando caché (fallback)');
-          }
-        }
-      } else {
-        // ✅ SIN CONEXIÓN: Intentar cargar del caché
-        reading = await cacheService.getDailyReading(today);
-        if (reading) {
-          setIsUsingCache(true);
-          console.log('[DailyReading] ✅ Cargado del caché (offline)');
-        }
-      }
-
-      if (reading) {
-        setDailyReading(reading);
-
-        // Verificar si ya está marcada como completada
+      
+      // 1. INTENTO CARGAR CACHÉ PRIMERO (Súper rápido)
+      const cachedReading = await cacheService.getDailyReading(today);
+      if (cachedReading) {
+        setDailyReading(cachedReading);
+        setIsUsingCache(true);
+        setIsLoading(false); // Ya mostramos algo, no necesitamos spinner bloqueante
+        console.log('[DailyReading] ⚡ Mostrando caché instantáneo');
+        
+        // Cargar progreso y reflexiones para el caché
         const completed = await readingProgressService.isDateCompleted(today);
         setIsReadingCompleted(completed);
-
-        // Cargar reflexión existente si hay
-        await loadExistingReflection(reading);
+        await loadExistingReflection(cachedReading);
       } else {
-        // No hay datos ni online ni en caché
-        setError(isOnline
-          ? 'No se pudo cargar la lectura del día. Por favor, intenta de nuevo más tarde.'
-          : 'No hay conexión a internet y no hay lectura guardada para hoy. Conéctate a internet para cargar la lectura del día.'
-        );
+        setIsLoading(true);
+      }
+
+      // 2. INTENTO ACTUALIZAR EN SEGUNDO PLANO SI ESTAMOS ONLINE
+      if (isOnline) {
+        try {
+          // Timeout rápido para no quedar colgados
+          const freshReading = await dailyReadingService.getTodayReading();
+          
+          // Actualizamos si no había nada o si es diferente (opcional: comparar IDs)
+          setDailyReading(freshReading);
+          setIsUsingCache(false);
+          await cacheService.setDailyReading(today, freshReading);
+          
+          // Actualizar estado relacionado
+          const completed = await readingProgressService.isDateCompleted(today);
+          setIsReadingCompleted(completed);
+          await loadExistingReflection(freshReading);
+          
+          console.log('[DailyReading] ✅ Datos actualizados desde servidor');
+        } catch (apiError) {
+          console.warn('[DailyReading] No se pudo actualizar desde el servidor:', apiError);
+          if (!cachedReading) {
+            setError('Recupera la conexión para leer la lectura del día.');
+          }
+        }
+      } else if (!cachedReading) {
+        setError('Recupera la conexión para leer la lectura del día.');
       }
     } catch (err: any) {
       console.error('Error cargando lectura del día:', err);
-      setError('No se pudo cargar la lectura del día. Por favor, intenta de nuevo más tarde.');
+      if (!dailyReading) {
+        setError('No se pudo cargar la lectura del día.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -218,53 +219,38 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
 
   const loadReadingByDate = async (date: string) => {
     try {
-      setIsLoading(true);
       setError(null);
-      setIsUsingCache(false);
+      
+      // 1. INTENTO CARGAR CACHÉ
+      const cachedReading = await cacheService.getDailyReading(date);
+      if (cachedReading) {
+        setDailyReading(cachedReading);
+        setIsUsingCache(true);
+        setIsLoading(false);
+        await loadExistingReflection(cachedReading);
+      } else {
+        setIsLoading(true);
+      }
 
-      let reading: DailyReading | null = null;
-
+      // 2. ACTUALIZAR ONLINE
       if (isOnline) {
-        // ✅ CON CONEXIÓN: Cargar del API y guardar en caché
         try {
-          reading = await dailyReadingService.getReadingByDate(date);
-          // Guardar en caché para uso offline
-          await cacheService.setDailyReading(date, reading);
-          console.log('[DailyReading] ✅ Cargado del API y cacheado:', date);
+          const freshReading = await dailyReadingService.getReadingByDate(date);
+          setDailyReading(freshReading);
+          setIsUsingCache(false);
+          await cacheService.setDailyReading(date, freshReading);
+          await loadExistingReflection(freshReading);
         } catch (apiError) {
-          console.warn('[DailyReading] ⚠️ Error del API, intentando caché:', apiError);
-          reading = await cacheService.getDailyReading(date);
-          if (reading) {
-            setIsUsingCache(true);
+          console.warn('[DailyReading] Error actualización fecha:', date, apiError);
+          if (!cachedReading) {
+            setError('Recupera la conexión para leer la lectura de este día.');
           }
         }
-      } else {
-        // ✅ SIN CONEXIÓN: Intentar cargar del caché
-        reading = await cacheService.getDailyReading(date);
-        if (reading) {
-          setIsUsingCache(true);
-          console.log('[DailyReading] ✅ Cargado del caché (offline):', date);
-        }
+      } else if (!cachedReading) {
+        setError('Recupera la conexión para ver esta fecha.');
       }
-
-      if (reading) {
-        setDailyReading(reading);
-
-        // Verificar si ya está marcada como completada
-        const completed = await readingProgressService.isDateCompleted(date);
-        setIsReadingCompleted(completed);
-
-        // Cargar reflexión existente si hay
-        await loadExistingReflection(reading);
-      } else {
-        setError(isOnline
-          ? 'No se pudo cargar la lectura para esta fecha.'
-          : 'No hay conexión a internet y no hay lectura guardada para esta fecha.'
-        );
-      }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error cargando lectura por fecha:', err);
-      setError('No se pudo cargar la lectura. Por favor, intenta de nuevo más tarde.');
     } finally {
       setIsLoading(false);
     }
@@ -330,14 +316,10 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
       if (!modelExists) {
         Alert.alert(
           'Narrador Premium IA',
-          '¿Cómo deseas escuchar la lectura? Puedes usar la voz predeterminada o descargar la Voz Premium (50MB) para una mejor experiencia natural.',
+          'Para escuchar la lectura con voz natural, necesitas descargar el motor de IA (50MB).',
           [
             {
-              text: 'Voz Predeterminada',
-              onPress: () => startSpeaking(),
-            },
-            {
-              text: 'Descargar Premium',
+              text: 'Descargar Ahora',
               onPress: () => {
                 // Iniciar descarga y el overlay mostrará el progreso
                 audioService.downloadModel();
@@ -403,7 +385,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
           dailyReading.id !== 'fallback' ? dailyReading.id : undefined
         );
         setIsReadingCompleted(true);
-        Alert.alert('✅ Lectura completada', 'Se ha registrado en tu calendario de constancia.');
+        Alert.alert('✅ Lectura completada', 'Se ha registrado en tu calendario de escritos.');
       }
     } catch (err) {
       console.error('Error marcando lectura:', err);
@@ -503,13 +485,28 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
 
   // Estado de error
   if (error || !dailyReading) {
+    const isOfflineError = !isOnline || error?.includes('Recupera la conexión');
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
-        <Text style={styles.errorText}>{error || 'Error desconocido'}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadTodayReading}>
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </TouchableOpacity>
+        <OfflineBanner />
+        <MaterialIcons 
+          name={isOfflineError ? "cloud-off" : "error-outline"} 
+          size={48} 
+          color={isOfflineError ? colors.charcoal.muted : colors.burgundy.DEFAULT} 
+        />
+        <Text style={[
+          styles.errorText, 
+          isOfflineError && {color: colors.charcoal.muted}
+        ]}>
+          {isOfflineError 
+            ? 'Recupera la conexión para leer la lectura del día.' 
+            : (error || 'Error desconocido')}
+        </Text>
+        {isOnline && (
+          <TouchableOpacity style={styles.retryButton} onPress={loadTodayReading}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -526,6 +523,9 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
 
   return (
     <View style={styles.container}>
+      {/* Banner de Red - Prominente si está offline */}
+      <OfflineBanner />
+
       {/* Header Sticky */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -549,7 +549,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
             style={styles.headerButton}>
             <MaterialIcons name="text-fields" size={22} color={colors.charcoal.muted} />
           </TouchableOpacity>
-          {!targetDate && (
+          {isOnline && !targetDate && (
             <TouchableOpacity
               onPress={handleCalendar}
               activeOpacity={0.7}
@@ -561,18 +561,24 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
       </View>
 
       {/* ScrollView */}
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
-        keyboardShouldPersistTaps="handled"
-        onScroll={(event) => {
-          const {layoutMeasurement, contentOffset, contentSize} = event.nativeEvent;
-          const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 400;
-          setShowFab(!isNearBottom);
-        }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onScroll={(event) => {
+            const {layoutMeasurement, contentOffset, contentSize} = event.nativeEvent;
+            // Solo ocultar cuando ya estamos al final o viendo casi toda la card
+            const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 80;
+            setShowFab(!isAtBottom);
+          }}>
 
         {/* Hero Image */}
         <View style={styles.heroContainer}>
@@ -581,7 +587,8 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
               uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBLcwLMBOBEu02HwpQ_FxcSgNX8lkdl2CMw0GNmehfCUWKQgEz-FLZLvWKvFrFhd5LtE9XtmyIgwNV-U1GI8YLA1QUFSG6vGibTBaaWWIRGMXQYBqV5c-1W6C1H3HxqdSo29JCCloTzHLPSbsLR2S0l-ZR6roDjT77Et5Pog9uK-IdmTewGGxEtzvQTE6mvoUZCVspGNTbrshaItwXzKyfSGXMXe0tEZs4ylDADOmTtAx1DoWHuIZv6utdWfnNf35jowc_Mvf6Uj9NO',
             }}
             style={styles.heroImage}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
           <LinearGradient
             colors={['transparent', isDarkMode ? colors.background.dark : colors.ivory.DEFAULT]}
@@ -698,6 +705,8 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
               />
             </View>
 
+
+
             <View style={styles.reflectionFooter}>
               <View style={styles.autoSaveContainer}>
                 <MaterialIcons
@@ -715,7 +724,8 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
             </View>
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* FAB - Botón circular para hacer scroll a Reflexión */}
       {showFab && (
@@ -983,7 +993,9 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   autoSaveText: {
     fontSize: 10,
     color: colors.charcoal.muted,
+    fontWeight: '500',
   },
+
 
   // Save Reflection Button (Dentro del scroll)
   saveReflectionButton: {

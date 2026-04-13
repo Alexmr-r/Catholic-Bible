@@ -8,10 +8,13 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
 import { API_CONFIG } from './config';
 
 const STORAGE_KEY = '@english_bible_offline_downloaded';
-const BIBLE_DATA_KEY = '@english_bible_offline_data';
+const BIBLE_FILE_NAME = 'bible_english_offline.json';
+// Acceso seguro a constantes de FileSystem
+const BIBLE_FILE_URI = (FileSystem.documentDirectory || '') + BIBLE_FILE_NAME;
 const DOWNLOAD_URL = `${API_CONFIG.BASE_URL}/bible/english/download`;
 
 export interface DownloadState {
@@ -49,75 +52,67 @@ export const BibleOfflineDownloadService = {
     try {
       const downloaded = await AsyncStorage.getItem(STORAGE_KEY);
       if (downloaded !== 'true') return false;
-      const bibleData = await AsyncStorage.getItem(BIBLE_DATA_KEY);
-      return bibleData !== null;
-    } catch {
+
+      const fileInfo = await FileSystem.getInfoAsync(BIBLE_FILE_URI);
+      return fileInfo.exists;
+    } catch (error) {
+      console.error('Error checking download status:', error);
       return false;
     }
   },
 
   async download(onProgress: (progress: number) => void): Promise<void> {
+    console.log('🚀 Iniciando descarga desde:', DOWNLOAD_URL);
+
     try {
-      // Descargar usando fetch
-      const response = await fetch(DOWNLOAD_URL);
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
+      // Obtener el token de autenticación para evitar el Error 403
+      const token = await AsyncStorage.getItem('accessToken');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No se pudo iniciar la descarga');
-      }
-
-      const chunks: Uint8Array[] = [];
-      let received = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        chunks.push(value);
-        received += value.length;
-
-        if (total > 0) {
-          const progress = (received / total) * 100;
-          onProgress(Math.min(progress, 99));
+      // Usar FileSystem para una descarga más robusta y directa a archivo
+      const downloadResumable = FileSystem.createDownloadResumable(
+        DOWNLOAD_URL,
+        BIBLE_FILE_URI,
+        { headers }, // Pasamos los headers correctamente
+        (downloadProgress) => {
+          if (downloadProgress.totalBytesExpectedToWrite > 0) {
+            const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+            onProgress(progress);
+          } else {
+            // Indicar progreso indeterminado si el servidor no envía el tamaño
+            onProgress(0);
+          }
         }
+      );
+
+      const result = await downloadResumable.downloadAsync();
+
+      if (result && result.status === 200) {
+        await AsyncStorage.setItem(STORAGE_KEY, 'true');
+        console.log('✅ Biblia descargada y guardada en:', result.uri);
+        onProgress(100);
+      } else {
+        throw new Error(`Error en la descarga: Status ${result?.status}`);
       }
-
-      // Combinar chunks y convertir a string
-      const allChunks = new Uint8Array(received);
-      let position = 0;
-      for (const chunk of chunks) {
-        allChunks.set(chunk, position);
-        position += chunk.length;
-      }
-
-      const text = new TextDecoder().decode(allChunks);
-
-      // Guardar en AsyncStorage
-      await AsyncStorage.setItem(BIBLE_DATA_KEY, text);
-      await AsyncStorage.setItem(STORAGE_KEY, 'true');
-      onProgress(100);
     } catch (error) {
-      // Limpiar datos parciales
-      try {
-        await AsyncStorage.removeItem(BIBLE_DATA_KEY);
-      } catch {}
+      console.error('❌ Error fatal en descarga:', error);
       throw error;
     }
   },
 
   async delete(): Promise<void> {
-    await AsyncStorage.removeItem(BIBLE_DATA_KEY);
-    await AsyncStorage.removeItem(STORAGE_KEY);
+    try {
+      await FileSystem.deleteAsync(BIBLE_FILE_URI, { idempotent: true });
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error('Error deleting bible file:', error);
+    }
   },
 
-  getFilePath: () => '', // Sin uso en esta implementación
+  getFilePath: () => BIBLE_FILE_URI,
 };
 
 export const BibleOfflineService = {
@@ -128,7 +123,7 @@ export const BibleOfflineService = {
     if (!(await BibleOfflineDownloadService.isDownloaded())) {
       throw new Error('Biblia offline no descargada');
     }
-    const content = await AsyncStorage.getItem(BIBLE_DATA_KEY);
+    const content = await FileSystem.readAsStringAsync(BIBLE_FILE_URI);
     if (!content) throw new Error('Datos de Biblia no encontrados');
     this._cache = JSON.parse(content);
     return this._cache!;
@@ -138,24 +133,25 @@ export const BibleOfflineService = {
 
   async getBook(bookId: string): Promise<OfflineBibleBook | null> {
     const data = await this.loadData();
-    return data.books.find(b => b.id === bookId) || null;
+    const bid = bookId.toLowerCase();
+    return data.books.find((b: any) => b.id.toLowerCase() === bid) || null;
   },
 
   async getChapter(bookId: string, chapterNumber: number): Promise<OfflineBibleChapter | null> {
     const book = await this.getBook(bookId);
     if (!book) return null;
-    return book.chapters.find(c => c.chapter === chapterNumber) || null;
+    return book.chapters.find((c: any) => c.chapter === chapterNumber) || null;
   },
 
   async getVerse(bookId: string, chapterNumber: number, verseNumber: number): Promise<OfflineBibleVerse | null> {
     const chapter = await this.getChapter(bookId, chapterNumber);
     if (!chapter) return null;
-    return chapter.verses.find(v => v.verse === verseNumber) || null;
+    return chapter.verses.find((v: any) => v.verse === verseNumber) || null;
   },
 
   async searchVerses(query: string, limit = 50) {
     const data = await this.loadData();
-    const results: {bookId: string; bookName: string; chapter: number; verse: number; text: string}[] = [];
+    const results: { bookId: string; bookName: string; chapter: number; verse: number; text: string }[] = [];
     const q = query.toLowerCase();
 
     for (const book of data.books) {

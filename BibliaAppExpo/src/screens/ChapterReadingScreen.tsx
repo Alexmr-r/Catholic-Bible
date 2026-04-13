@@ -22,9 +22,9 @@ import {shareService} from '../services/share.service';
 import {audioService} from '../services/audio.service';
 import {readingHistoryService} from '../services/reading-history.service';
 import {useTextSettings} from '../contexts/TextSettingsContext';
-import {useOfflineBible} from '../hooks/useOfflineBible';
 import TextSettingsModal from '../components/TextSettingsModal';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useIsOnline, useNetwork} from '../contexts/NetworkContext';
 
 const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, route}) => {
   const { colors, isDarkMode } = useTheme();
@@ -58,8 +58,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   const [pendingAction, setPendingAction] = useState<'share' | 'favorite' | 'audio' | null>(null);
   const {settings} = useTextSettings();
 
-  // ✅ Hook para modo offline
-  const {isOnline, isBibleDownloaded, needsDownload} = useOfflineBible();
+  // ✅ Hook para modo offline global
+  const {isBibleDownloaded, refreshDownloadStatus} = useNetwork();
+  const isOnline = useIsOnline();
+  const needsDownload = !isOnline && !isBibleDownloaded;
 
   // Determinar si debemos filtrar versículos (solo si hay rango específico)
   const shouldFilterVerses = favoriteVerseNumber !== undefined;
@@ -80,6 +82,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       );
       return;
     }
+    const initStatus = async () => {
+      await refreshDownloadStatus();
+    };
+    initStatus();
     loadChapter();
   }, [currentChapter, needsDownload]);
 
@@ -91,40 +97,25 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       let data: Chapter | null = null;
 
       if (isOnline) {
-        // ✅ CON CONEXIÓN: Cargar del API
-        data = await bibleService.getChapter(bookId, currentChapter);
-      } else if (isBibleDownloaded) {
-        // ✅ SIN CONEXIÓN + BIBLIA DESCARGADA: Cargar offline
-        const {BibleOfflineService} = await import('../services/english-bible-download.service');
-        const offlineChapter = await BibleOfflineService.getChapter(bookId, currentChapter);
-
-        if (offlineChapter) {
-          // Convertir formato offline al formato Chapter
-          data = {
-            book: bookId,
-            bookName: bookName,
-            chapter: currentChapter,
-            version: 'Offline',
-            sections: [{
-              title: '',
-              verses: offlineChapter.verses.map(v => ({
-                number: v.verse,
-                text: v.text,
-                hasNote: false,
-              })),
-            }],
-            previousChapter: currentChapter > 1 ? {
-              bookId,
-              bookName,
-              chapter: currentChapter - 1,
-            } : undefined,
-            nextChapter: {
-              bookId,
-              bookName,
-              chapter: currentChapter + 1,
-            },
-          };
+        // ✅ PRIORIDAD: Si hay internet, intentar siempre la API primero
+        try {
+          data = await bibleService.getChapter(bookId, currentChapter);
+          console.log('[ChapterReading] 🌐 Capítulo cargado desde API');
+        } catch (apiError: any) {
+          console.warn('[ChapterReading] ⚠️ Error API, intentando fallback local...', apiError.message);
+          
+          // Fallback a descarga si existe
+          if (isBibleDownloaded) {
+            data = await loadChapterOffline(bookId, currentChapter, bookName);
+            console.log('[ChapterReading] ⚡ Fallback: Cargado desde descarga local');
+          } else {
+            throw apiError;
+          }
         }
+      } else if (isBibleDownloaded) {
+        // ✅ MODO OFFLINE: Cargar desde descarga local
+        data = await loadChapterOffline(bookId, currentChapter, bookName);
+        console.log('[ChapterReading] 📱 Cargado desde descarga (Modo Offline)');
       }
 
       if (!data) {
@@ -157,22 +148,17 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       }
 
       // ✅ Guardar en historial de lectura (solo si no viene desde favoritos y se tiene testament)
-      console.log('[ChapterReading] Verificando historial:', { fromFavorite, testament, bookId, currentChapter });
       if (!fromFavorite && testament) {
         try {
-          console.log('[ChapterReading] Guardando en historial...');
           await readingHistoryService.addReading({
             bookId,
             bookName,
             chapter: currentChapter,
             testament,
           });
-          console.log('[ChapterReading] ✅ Guardado en historial');
         } catch (err) {
           console.error('[ChapterReading] Error guardando en historial:', err);
         }
-      } else {
-        console.log('[ChapterReading] No se guarda: fromFavorite=', fromFavorite, 'testament=', testament);
       }
     } catch (err: any) {
       console.error('Error cargando capítulo:', err);
@@ -327,30 +313,24 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         await audioService.speak(fullText, title, engine);
       };
 
-      Alert.alert(
-        'Narrador Bíblico',
-        '¿Con qué voz deseas escuchar la lectura?',
-        [
-          {
-            text: 'Voz Predeterminada (Sistema)',
-            onPress: () => startSpeaking('native'),
-          },
-          {
-            text: modelExists ? 'Voz Premium IA' : 'Descargar Premium IA (50MB)',
-            onPress: () => {
-              if (modelExists) {
-                startSpeaking('ai-local');
-              } else {
-                audioService.downloadModel();
-              }
+      if (!modelExists) {
+        Alert.alert(
+          'Narrador Premium IA',
+          'Para escuchar la Biblia con voz natural, necesitas descargar el motor de IA (50MB).',
+          [
+            {
+              text: 'Descargar Ahora',
+              onPress: () => audioService.downloadModel(),
             },
-          },
-          {
-            text: 'Cancelar',
-            style: 'cancel',
-          },
-        ]
-      );
+            {
+              text: 'Cancelar',
+              style: 'cancel',
+            },
+          ]
+        );
+      } else {
+        await startSpeaking('ai-local');
+      }
     } catch (error) {
       console.error('[ChapterReading] Error al reproducir audio:', error);
       Alert.alert('Error', 'No se pudo iniciar la lectura de audio.');
@@ -364,11 +344,16 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     try {
       // Subrayar cada versículo seleccionado
       for (const verseNumber of selectedVerses) {
+        // Encontrar el texto del versiculo para guardarlo offline
+        const verseTextInfo = chapterData?.sections.flatMap(s => s.verses).find(v => v.number === verseNumber)?.text || '';
+
         const highlight = await highlightService.highlightVerse({
           bookId,
           chapterNumber: currentChapter,
           verseNumber,
           color,
+          bookName,
+          verseText: verseTextInfo,
         });
         // Actualizar el estado local
         setHighlights(prev => new Map(prev).set(verseNumber, highlight));
@@ -599,7 +584,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
           <View style={styles.headerActions} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.burgundy.DEFAULT} />
+          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
           <Text style={styles.loadingText}>Cargando capítulo...</Text>
         </View>
       </View>
@@ -925,6 +910,39 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       </Modal>
     </View>
   );
+};
+
+const loadChapterOffline = async (bookId: string, chapter: number, bookName: string): Promise<Chapter | null> => {
+  const {BibleOfflineService} = await import('../services/english-bible-download.service');
+  // Usar toLowerCase para asegurar coincidencia con el JSON
+  const offlineChapter = await BibleOfflineService.getChapter(bookId.toLowerCase(), chapter);
+
+  if (!offlineChapter) return null;
+
+  return {
+    book: bookId,
+    bookName: bookName,
+    chapter: chapter,
+    version: 'Offline',
+    sections: [{
+      title: '',
+      verses: offlineChapter.verses.map(v => ({
+        number: v.verse,
+        text: v.text,
+        hasNote: false,
+      })),
+    }],
+    previousChapter: chapter > 1 ? {
+      bookId,
+      bookName,
+      chapter: chapter - 1,
+    } : undefined,
+    nextChapter: {
+      bookId,
+      bookName,
+      chapter: chapter + 1,
+    },
+  };
 };
 
 const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({

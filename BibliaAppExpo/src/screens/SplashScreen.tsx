@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Image, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Animated, Dimensions, Image, Appearance } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface SplashScreenProps {
@@ -7,71 +7,68 @@ interface SplashScreenProps {
   readyToLeave: boolean;
 }
 
-const MIN_DISPLAY_MS = 1500;
+const { width } = Dimensions.get('window');
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, readyToLeave }) => {
   const { colors, isDarkMode } = useTheme();
+  
+  // 1. Empezamos con el color del sistema (donde está el nativo)
+  const systemIsDark = Appearance.getColorScheme() === 'dark';
+  const initialBg = systemIsDark ? '#121212' : '#FAF9F6';
+  const targetBg = isDarkMode ? '#121212' : '#FAF9F6';
 
-  // Empieza en opacity 1 — sin fade-in.
-  // La splash nativa de iOS muestra exactamente el mismo logo y fondo ivory,
-  // así que la transición nativa→React es completamente invisible.
-  // Solo se anima el fade-OUT cuando navega a Login.
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const leavingRef = useRef(false);
-  const minTimeElapsed = useRef(false);
-  const authReadyRef = useRef(false);
-
+  const bgAnim = useRef(new Animated.Value(isDarkMode === systemIsDark ? 0 : 1)).current;
+  
   useEffect(() => {
-    const minTimer = setTimeout(() => {
-      minTimeElapsed.current = true;
-      if (authReadyRef.current) {
-        startFadeOut();
-      }
-    }, MIN_DISPLAY_MS);
-    return () => clearTimeout(minTimer);
+    // Si hay discrepancia entre sistema y guardado, animamos suave el fondo
+    if (isDarkMode !== systemIsDark) {
+      Animated.timing(bgAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: false, // Background no soporta native driver
+      }).start();
+    }
   }, []);
 
   useEffect(() => {
-    if (readyToLeave && !authReadyRef.current) {
-      authReadyRef.current = true;
-      if (minTimeElapsed.current) {
-        startFadeOut();
-      }
+    if (readyToLeave) {
+      // Salida rápida (300ms)
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 350,
+        useNativeDriver: true,
+      }).start(() => onFinish());
     }
   }, [readyToLeave]);
 
-  const startFadeOut = () => {
-    if (leavingRef.current) return;
-    leavingRef.current = true;
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => onFinish());
-  };
-
-  const bgColor = isDarkMode ? colors.background.dark : colors.ivory.DEFAULT;
+  // Interpolar colores para evitar el parpadeo brusco
+  const backgroundColor = bgAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [initialBg, targetBg]
+  });
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: bgColor, opacity: fadeAnim }]}>
-      <Image
-        source={require('../../assets/logo-transparent.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+    <Animated.View style={[styles.container, { backgroundColor, opacity: fadeAnim }]}>
+        <Image
+          source={require('../../assets/logo-transparent.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 9999,
   },
   logo: {
-    width: 150,
-    height: 150,
+    width: width * 0.4,
+    height: width * 0.4,
   },
 });
 

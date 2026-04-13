@@ -146,7 +146,7 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
             onPress={handleBack}
             style={styles.backButton}
             activeOpacity={0.7}>
-            <MaterialIcons name="arrow-back-ios-new" size={20} color={colors.charcoal.dark} />
+            <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.dark} />
           </TouchableOpacity>
         </View>
 

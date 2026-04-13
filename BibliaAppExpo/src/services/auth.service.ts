@@ -40,6 +40,24 @@ export const authService = {
   },
 
   /**
+   * Inicia sesión con Google
+   */
+  async loginWithGoogle(idToken: string): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/auth/google', { idToken });
+    await this.saveTokens(response);
+    return response;
+  },
+
+  /**
+   * Inicia sesión con Apple
+   */
+  async loginWithApple(identityToken: string, fullName?: string): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/auth/apple', { identityToken, fullName });
+    await this.saveTokens(response);
+    return response;
+  },
+
+  /**
    * Inicia sesión
    */
   async login(data: LoginRequest): Promise<AuthResponse> {

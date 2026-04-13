@@ -19,6 +19,8 @@ import {useTheme} from '../contexts/ThemeContext';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import type {RootStackParamList} from '../navigation/AppNavigator';
 import {EnglishBibleDownloadService} from '../services/english-bible-download.service';
+import {useNetwork, useIsOnline} from '../contexts/NetworkContext';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 interface DownloadState {
   isDownloaded: boolean;
@@ -29,9 +31,13 @@ interface DownloadState {
 
 type ManageDownloadsScreenProps = NativeStackScreenProps<RootStackParamList, 'ManageDownloads'>;
 
-const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation}) => {
+const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation, route}) => {
   const { colors, isDarkMode } = useTheme();
-  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
+  const { refreshDownloadStatus, setForcedOffline, isServerAvailable, refreshServerStatus } = useNetwork();
+  const isOnline = useIsOnline();
+  const returnTo = route.params?.returnTo;
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const [downloadState, setDownloadState] = useState<DownloadState>({
     isDownloaded: false,
     isDownloading: false,
@@ -42,6 +48,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
 
   useEffect(() => {
     checkDownloadStatus();
+    refreshServerStatus();
   }, []);
 
   const checkDownloadStatus = async () => {
@@ -56,6 +63,10 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
   };
 
   const handleDownload = async () => {
+    if (!isOnline) {
+      Alert.alert('Sin conexión', 'Necesitas conexión a internet para descargar la Biblia.');
+      return;
+    }
     setDownloadState(prev => ({...prev, isDownloading: true, progress: 0, error: null}));
 
     try {
@@ -70,10 +81,21 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
         error: null,
       });
 
+      // ✅ Notificar al contexto de red
+      await refreshDownloadStatus();
+
       Alert.alert(
         '¡Descarga completada!',
         'La Biblia en Inglés ya está disponible para uso sin conexión.',
-        [{text: 'OK'}]
+        [{ 
+          text: 'OK', 
+          onPress: () => {
+            if (returnTo) {
+              setForcedOffline(true);
+            }
+            navigation.goBack();
+          } 
+        }]
       );
     } catch (error: any) {
       setDownloadState(prev => ({
@@ -102,6 +124,10 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
           onPress: async () => {
             try {
               await EnglishBibleDownloadService.delete();
+              
+              // ✅ Notificar al contexto de red
+              await refreshDownloadStatus();
+
               setDownloadState({
                 isDownloaded: false,
                 isDownloading: false,
@@ -134,7 +160,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-          <MaterialIcons name="arrow-back-ios" size={24} color={colors.charcoal.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Gestionar Descargas</Text>
         <View style={styles.headerSpacer} />
@@ -215,17 +241,31 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                 // Estado: No descargado
                 <>
                   <View style={styles.statusRow}>
-                    <MaterialIcons name="cloud-off" size={18} color="#94A3B8" />
-                    <Text style={styles.statusTextMuted}>
-                      Requiere conexión para descargar
+                    <MaterialIcons 
+                      name={(isOnline && isServerAvailable) ? "cloud-done" : "cloud-off"} 
+                      size={18} 
+                      color={(isOnline && isServerAvailable) ? "#059669" : colors.burgundy.DEFAULT} 
+                    />
+                    <Text style={[styles.statusTextMuted, !(isOnline && isServerAvailable) && { color: colors.burgundy.DEFAULT }]}>
+                      {(isOnline && isServerAvailable) ? "Disponible para descargar" : "Sin conexión o servidor no disponible"}
                     </Text>
                   </View>
                   <TouchableOpacity
-                    style={styles.downloadButton}
+                    style={[
+                      styles.downloadButton,
+                      !(isOnline && isServerAvailable) && { backgroundColor: '#CBD5E1', opacity: 0.8 }
+                    ]}
                     onPress={handleDownload}
+                    disabled={!(isOnline && isServerAvailable)}
                     activeOpacity={0.8}>
-                    <MaterialIcons name="cloud-download" size={22} color="#FFFFFF" />
-                    <Text style={styles.downloadButtonText}>Descargar ahora</Text>
+                    <MaterialIcons 
+                      name={(isOnline && isServerAvailable) ? "cloud-download" : "cloud-off"} 
+                      size={22} 
+                      color="#FFFFFF" 
+                    />
+                    <Text style={styles.downloadButtonText}>
+                      {(isOnline && isServerAvailable) ? "Descargar ahora" : "Requiere conexión segura"}
+                    </Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -245,7 +285,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
   );
 };
 
-const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
@@ -259,10 +299,12 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 56,
-    paddingBottom: 16,
     paddingHorizontal: 20,
+    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingBottom: 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ivory.border,
   },
   backButton: {
     width: 40,
@@ -287,6 +329,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   content: {
     paddingHorizontal: 20,
     paddingBottom: 100,
+    paddingTop: 8,
   },
 
   // Section

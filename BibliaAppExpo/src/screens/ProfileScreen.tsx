@@ -5,22 +5,27 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
   Alert,
+  Platform,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {useAuth} from '../contexts/AuthContext';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useNetwork} from '../contexts/NetworkContext';
+import {Switch} from 'react-native';
 
 type ProfileScreenProps = {
   navigation: any;
 };
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
-  const {user, logout} = useAuth();
+  const {user, logout, profilePhoto, updateProfilePhoto} = useAuth();
   const { colors, isDarkMode } = useTheme();
+  const { isForcedOffline, setForcedOffline, isServerAvailable, isConnected, isBibleDownloaded, isInternetReachable } = useNetwork();
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
 
@@ -39,7 +44,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
           onPress: async () => {
             try {
               await logout();
-              navigation.navigate('Auth');
             } catch (error) {
               Alert.alert('Error', 'No se pudo cerrar sesión. Intenta de nuevo.');
             }
@@ -65,6 +69,53 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
     navigation.navigate('HelpSupport');
   };
 
+  const handleChangePhoto = () => {
+    Alert.alert(
+      'Cambiar Foto',
+      'Elige una opción',
+      [
+        {
+          text: 'Tomar Foto', 
+          onPress: async () => {
+            const { status } = await ImagePicker.requestCameraPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('Permiso denegado', 'Se necesita acceso a la cámara');
+              return;
+            }
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.5,
+            });
+            if (!result.canceled && result.assets[0].uri) {
+              await updateProfilePhoto(result.assets[0].uri);
+            }
+          }
+        },
+        {
+          text: 'Elegir de Galería', 
+          onPress: async () => {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('Permiso denegado', 'Se necesita acceso a la galería');
+              return;
+            }
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.5,
+            });
+            if (!result.canceled && result.assets[0].uri) {
+              await updateProfilePhoto(result.assets[0].uri);
+            }
+          }
+        },
+        {text: 'Cancelar', style: 'cancel'},
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -73,8 +124,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
           onPress={handleBack}
           activeOpacity={0.7}
           style={styles.backButton}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color={isDarkMode ? colors.charcoal.muted : colors.charcoal.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Mi Perfil</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Contenido */}
@@ -84,18 +137,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
         showsVerticalScrollIndicator={false}>
 
         {/* Profile Section */}
-        <View style={styles.profileSection}>
+        <TouchableOpacity 
+          style={styles.profileSection} 
+          onPress={handleChangePhoto}
+          activeOpacity={0.8}>
           <View style={styles.avatarContainer}>
-            <Image
-              source={{
-                uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA_lz0TfULdOGmbgvMICdhazJ9MCLeJdcRmmmNT_h433OT15oOFPTgAewtfnEy5iVWAYF7aI1TEBxC-HanVNS2JLeXNrISF9-OAqGRk50TO9Ih4-jduOLs_9R-fVfs26kJgjGuq3_i9zjzPnnw8xV--giTNFXrWqpqGSFhc6Z0nmX7C7NsUHLkQmPXAuyTv8JIJCDacbv5OoqPGTMphBDy1gA8z-e4UVkIgMA5jFwJdNQi4wrvI-UOSXxD-IWU5-OETgWropsOPCEN0',
-              }}
-              style={styles.avatar}
-            />
+            <View style={styles.avatar}>
+              {profilePhoto ? (
+                <Image source={{ uri: profilePhoto }} style={{ width: '100%', height: '100%', borderRadius: 48 }} />
+              ) : (
+                <Text style={styles.avatarInitials}>
+                  {(user?.fullName || 'U').split(' ').map(n => n.charAt(0).toUpperCase()).slice(0, 2).join('')}
+                </Text>
+              )}
+            </View>
+            <View style={styles.avatarBadge}>
+              <MaterialIcons name="edit" size={14} color={isDarkMode ? colors.background.dark : '#FFFFFF'} />
+            </View>
           </View>
           <Text style={styles.userName}>{user?.fullName || 'Usuario'}</Text>
           <Text style={styles.userEmail}>{user?.email || 'email@example.com'}</Text>
-        </View>
+        </TouchableOpacity>
 
         {/* Menu Items */}
         <View style={styles.menuContainer}>
@@ -111,7 +173,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               <Text style={styles.menuTitle}>Ajustes de Lectura</Text>
               <Text style={styles.menuSubtitle}>Tamaño de letra y temas</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+            <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
 
           {/* Mi Cuenta */}
@@ -126,7 +188,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               <Text style={styles.menuTitle}>Mi Cuenta</Text>
               <Text style={styles.menuSubtitle}>Datos personales y perfil</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+            <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
 
           {/* Guía y Soporte */}
@@ -141,8 +203,66 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               <Text style={styles.menuTitle}>Guía y Soporte</Text>
               <Text style={styles.menuSubtitle}>Centro de asistencia</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+            <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
+
+          {/* MODO OFFLINE (Nuevo) */}
+          <View style={[styles.menuItem, { justifyContent: 'space-between' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <View style={[styles.iconContainer, { backgroundColor: isForcedOffline ? `${colors.burgundy.DEFAULT}20` : `${colors.gold.DEFAULT}20` }]}>
+                <MaterialIcons 
+                  name={isForcedOffline ? "cloud-off" : "cloud-done"} 
+                  size={28} 
+                  color={isForcedOffline ? colors.burgundy.DEFAULT : colors.gold.DEFAULT} 
+                />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.menuTitle}>Modo Sin Conexión</Text>
+                <Text style={[styles.menuSubtitle, { color: colors.charcoal.DEFAULT }]}>
+                  {isForcedOffline 
+                    ? 'Modo sin conexión activo' 
+                    : isConnected 
+                      ? (isServerAvailable ? 'En línea • Sincronizado' : 'En línea • Conectando...') 
+                      : (isConnected === false && !isForcedOffline)
+                        ? 'Sin conexión a internet'
+                        : 'Desconectado'}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={isForcedOffline}
+              onValueChange={(value) => {
+                if (value && !isBibleDownloaded) {
+                  Alert.alert(
+                    'Biblia no descargada',
+                    'Para activar el modo offline necesitas descargar la Biblia primero.',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { 
+                        text: 'Ir a Descargas', 
+                        onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'Profile' } as never) 
+                      },
+                    ]
+                  );
+                  return;
+                }
+
+                // Si intentan apagarlo pero FÍSICAMENTE no hay internet o el servidor no responde
+                if (!value && (!isConnected || !isServerAvailable)) {
+                  Alert.alert(
+                    'Requiere conexión',
+                    'Vuelve a tener conexión a internet para poder desactivar el modo sin conexión.',
+                    [{ text: 'Entendido', style: 'default' }]
+                  );
+                  return;
+                }
+
+                setForcedOffline(value);
+              }}
+              trackColor={{ false: '#D1D5DB', true: colors.burgundy.DEFAULT }}
+              thumbColor={Platform.OS === 'ios' ? undefined : '#FFFFFF'}
+            />
+          </View>
         </View>
 
         {/* Logout Button */}
@@ -175,9 +295,20 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   backButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     borderRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: 'serif',
+    color: colors.charcoal.dark,
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40,
   },
   scrollView: {
     flex: 1,
@@ -195,14 +326,41 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   avatarContainer: {
     marginBottom: 16,
+    position: 'relative',
   },
   avatar: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: colors.ivory.shade,
+    backgroundColor: isDarkMode ? colors.primary.DEFAULT : colors.primary.DEFAULT,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2,
-    borderColor: `${colors.gold.DEFAULT}20`,
+    borderColor: isDarkMode ? `${colors.primary.DEFAULT}40` : `${colors.gold.DEFAULT}40`,
+  },
+  avatarInitials: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
+    letterSpacing: 1,
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.primary.DEFAULT,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   userName: {
     fontSize: 22,

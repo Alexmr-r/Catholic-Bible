@@ -6,7 +6,7 @@
  * Conectado con el backend para actualizar escritos
  */
 
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -49,6 +51,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
   const [title, setTitle] = useState(initialTitle || '');
   const [content, setContent] = useState(initialContent || '');
   const [isSaving, setIsSaving] = useState(false);
+  const contentInputRef = useRef<TextInput>(null);
 
   const handleBack = () => {
     if (title !== initialTitle || content !== initialContent) {
@@ -138,122 +141,128 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-          <MaterialIcons name="arrow-back-ios" size={24} color={colors.primary.DEFAULT} />
-        </TouchableOpacity>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
+            <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
+          </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Editando Escrito</Text>
+          <Text style={styles.headerTitle}>Editando Escrito</Text>
 
-        <TouchableOpacity style={styles.headerButton} disabled>
-          <MaterialIcons name="share" size={24} color={colors.ink.light} style={{opacity: 0.5}} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        {/* Fecha y Badge de Modo Edición */}
-        <View style={styles.metaRow}>
-          <View style={styles.dateChip}>
-            <MaterialIcons name="calendar-today" size={18} color={colors.primary.DEFAULT} />
-            <Text style={styles.dateText}>{formatDate(createdAt)}</Text>
-          </View>
-
-          <View style={styles.editBadge}>
-            <Text style={styles.editBadgeText}>Modo Edición</Text>
-          </View>
+          <TouchableOpacity style={styles.headerButton} disabled>
+            <MaterialIcons name="share" size={24} color={colors.ink.light} style={{opacity: 0.5}} />
+          </TouchableOpacity>
         </View>
 
-        {/* Campo de Título */}
-        <View style={styles.titleContainer}>
-          <TextInput
-            style={styles.titleInput}
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Título del escrito"
-            placeholderTextColor={`${colors.ink.light}50`}
-            multiline={false}
-            maxLength={100}
-          />
-          <View style={styles.titleUnderline} />
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          {/* Fecha y Badge de Modo Edición */}
+          <View style={styles.metaRow}>
+            <View style={styles.dateChip}>
+              <MaterialIcons name="calendar-today" size={18} color={colors.primary.DEFAULT} />
+              <Text style={styles.dateText}>{formatDate(createdAt)}</Text>
+            </View>
 
-        {/* Campo de Contenido */}
-        <View style={styles.contentContainer}>
-          <TextInput
-            style={styles.contentInput}
-            value={content}
-            onChangeText={setContent}
-            placeholder="Escribe aquí tu reflexión..."
-            placeholderTextColor={`${colors.ink.light}70`}
-            multiline
-            textAlignVertical="top"
-          />
-        </View>
-
-        {/* Tarjeta de Referencia Bíblica */}
-        {bookName && chapter && verse && (
-          <View style={styles.referenceCard}>
-            <View style={styles.referenceStripe} />
-            <View style={styles.referenceContent}>
-              <View style={styles.referenceHeader}>
-                <MaterialIcons name="auto-stories" size={18} color={`${colors.burgundy.DEFAULT}80`} />
-                <Text style={styles.referenceLabel}>REFERENCIA</Text>
-                <Text style={styles.referenceDisabled}>(no editable)</Text>
-              </View>
-
-              <Text style={styles.referenceTitle}>
-                {bookName} {chapter}:{verse}
-              </Text>
-
-              {verseText && (
-                <Text style={styles.referenceText} numberOfLines={2}>
-                  "{verseText}"
-                </Text>
-              )}
+            <View style={styles.editBadge}>
+              <Text style={styles.editBadgeText}>Modo Edición</Text>
             </View>
           </View>
-        )}
 
-        {/* Botones de Acción */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={handleCancel}
-            disabled={isSaving}
-            activeOpacity={0.7}>
-            <MaterialIcons name="close" size={20} color={colors.burgundy.DEFAULT} />
-            <Text style={styles.cancelButtonText}>Cancelar</Text>
-          </TouchableOpacity>
+          {/* Campo de Título */}
+          <View style={styles.titleContainer}>
+            <TextInput
+              style={styles.titleInput}
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Título del escrito"
+              placeholderTextColor={`${colors.ink.light}50`}
+              multiline={false}
+              maxLength={100}
+              returnKeyType="next"
+              onSubmitEditing={() => contentInputRef.current?.focus()}
+            />
+            <View style={styles.titleUnderline} />
+          </View>
 
-          <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={isSaving}
-            activeOpacity={0.7}>
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <MaterialIcons name="save" size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>Guardar Cambios</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+          {/* Campo de Contenido */}
+          <View style={styles.contentContainer}>
+            <TextInput
+              style={styles.contentInput}
+              value={content}
+              onChangeText={setContent}
+              placeholder="Escribe aquí tu reflexión..."
+              placeholderTextColor={`${colors.ink.light}70`}
+              multiline
+              textAlignVertical="top"
+              ref={contentInputRef}
+              blurOnSubmit={false}
+            />
+          </View>
 
-        {/* Espaciado inferior */}
-        <View style={{height: 40}} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {/* Tarjeta de Referencia Bíblica */}
+          {bookName && chapter && verse && (
+            <View style={styles.referenceCard}>
+              <View style={styles.referenceStripe} />
+              <View style={styles.referenceContent}>
+                <View style={styles.referenceHeader}>
+                  <MaterialIcons name="auto-stories" size={18} color={`${colors.burgundy.DEFAULT}80`} />
+                  <Text style={styles.referenceLabel}>REFERENCIA</Text>
+                  <Text style={styles.referenceDisabled}>(no editable)</Text>
+                </View>
+
+                <Text style={styles.referenceTitle}>
+                  {bookName} {chapter}:{verse}
+                </Text>
+
+                {verseText && (
+                  <Text style={styles.referenceText} numberOfLines={2}>
+                    "{verseText}"
+                  </Text>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* Botones de Acción */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+              disabled={isSaving}
+              activeOpacity={0.7}>
+              <MaterialIcons name="close" size={20} color={colors.burgundy.DEFAULT} />
+              <Text style={styles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={isSaving}
+              activeOpacity={0.7}>
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <>
+                  <MaterialIcons name="save" size={20} color="#FFFFFF" />
+                  <Text style={styles.saveButtonText}>Guardar</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Espaciado inferior */}
+          <View style={{height: 40}} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 };
 

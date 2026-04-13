@@ -120,40 +120,49 @@ class WritingsService {
 
     const queryString = params.toString();
 
-    try {
-      // ✅ Intentar fetch desde API (CON INTERNET)
-      const response = await apiClient.get<ApiWritingListResponse>(
-        `/writings${queryString ? `?${queryString}` : ''}`
-      );
+    // 1. ⚡ LEER CACHÉ LOCAL PRIMERO
+    let localData = await cacheService.getWritings() || [];
 
-      const writings = response.writings.map(mapApiToWriting);
+    // 2. 🌍 SINCRONIZACIÓN SILENCIOSA EN FONDO
+    apiClient.get<ApiWritingListResponse>(
+      `/writings${queryString ? `?${queryString}` : ''}`
+    )
+      .then(async (response) => {
+        const writings = response.writings.map(mapApiToWriting);
+        if (writings.length > 0) {
+          await cacheService.setWritings(writings);
+          console.log('[Writings] 🔄 Caché actualizado en segundo plano');
+        }
+      })
+      .catch(() => {
+        console.warn('[Writings] ⚠️ Error silencioso de red al sincronizar en fondo');
+      });
 
-      // 💾 Guardar en caché para uso offline
-      await cacheService.setWritings(writings);
-      console.log('[Writings] ✅ Datos cargados desde API y cacheados');
-
-      return {
-        writings,
-        total: response.total,
-      };
-    } catch (error) {
-      // ⚠️ Error de red - intentar leer desde caché
-      console.warn('[Writings] ⚠️ Error de red, intentando caché...', error);
-
-      const cachedWritings = await cacheService.getWritings();
-
-      if (cachedWritings) {
-        console.log('[Writings] 📱 Datos cargados desde caché offline');
-        return {
-          writings: cachedWritings,
-          total: cachedWritings.length,
-        };
-      }
-
-      // ❌ No hay datos en caché ni en API
-      console.error('[Writings] ❌ Sin datos en caché ni API');
-      throw new Error('No se pudieron cargar los escritos. Verifica tu conexión.');
+    // Aplicar filtros locales simulando al servidor
+    if (filter?.bookId) {
+      localData = localData.filter(w => w.bookId === filter.bookId);
     }
+    if (filter?.favoritesOnly) {
+      localData = localData.filter(w => w.isFavorite);
+    }
+    if (filter?.search) {
+      const q = filter.search.toLowerCase();
+      localData = localData.filter(w =>
+        w.title?.toLowerCase().includes(q) ||
+        w.content?.toLowerCase().includes(q) ||
+        w.tags?.some((t: string) => t.toLowerCase().includes(q))
+      );
+    }
+    if (filter?.sortBy) {
+      if (filter.sortBy === 'recent') localData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      if (filter.sortBy === 'oldest') localData.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      if (filter.sortBy === 'title') localData.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    return {
+      writings: localData,
+      total: localData.length,
+    };
   }
 
   /**
@@ -332,6 +341,12 @@ class WritingsService {
       `/writings/verse?bookId=${bookId}&chapter=${chapter}&verse=${verse}`
     );
     return response.writings.map(mapApiToWriting);
+  }
+  /**
+   * Carga escritos directamente desde la caché local (sin tocar API)
+   */
+  async loadFromCache(): Promise<Writing[]> {
+    return await cacheService.getWritings() || [];
   }
 }
 

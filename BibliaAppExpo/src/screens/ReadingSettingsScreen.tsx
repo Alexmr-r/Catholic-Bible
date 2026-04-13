@@ -15,6 +15,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {LinearGradient} from 'expo-linear-gradient';
 import {MaterialIcons} from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
@@ -28,7 +29,8 @@ type ReadingSettingsScreenProps = {
 
 const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
-  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
+  const insets = useSafeAreaInsets();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const {settings, updateFontSize, updateFontFamily} = useTextSettings();
 
   // Determinar el label del tamaño
@@ -50,7 +52,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
           onPress={handleBack}
           activeOpacity={0.7}
           style={styles.backButton}>
-          <MaterialIcons name="chevron-left" size={28} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ajustes de Lectura</Text>
         <View style={styles.headerSpacer} />
@@ -107,7 +109,9 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
 
         {/* Typography Style Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ESTILO DE TIPOGRAFÍA</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>ESTILO DE TIPOGRAFÍA</Text>
+          </View>
 
           <View style={styles.typographyGrid}>
             {/* Clásica - Serif */}
@@ -152,7 +156,9 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
 
         {/* Preview Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>VISTA PREVIA</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>VISTA PREVIA</Text>
+          </View>
 
           <View style={styles.previewCard}>
             <View style={styles.previewContent}>
@@ -202,7 +208,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
   );
 };
 
-const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
@@ -212,12 +218,12 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    paddingTop: 56,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
-    borderBottomWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ivory.border,
     position: 'relative',
     zIndex: 40,
   },
@@ -226,12 +232,15 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
     height: 40,
     alignItems: 'flex-start',
     justifyContent: 'center',
+    borderRadius: 20,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     fontFamily: 'serif',
-    color: colors.charcoal.DEFAULT,
+    color: colors.charcoal.dark,
+    flex: 1,
+    textAlign: 'center',
     letterSpacing: -0.3,
   },
   headerSpacer: {
@@ -259,6 +268,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 12,
@@ -266,7 +276,6 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
     letterSpacing: 2.4,
     color: colors.charcoal.muted,
     textTransform: 'uppercase',
-    marginBottom: 16,
   },
   sizeBadge: {
     backgroundColor: `${colors.gold.DEFAULT}0D`, // 5% opacity

@@ -63,35 +63,40 @@ export const favoritesService = {
 
     const queryString = params.toString();
 
-    try {
-      // ✅ Intentar fetch desde API (CON INTERNET)
-      const response = await apiClient.get<{ favorites: Favorite[]; total: number }>(
-        `/favorites${queryString ? `?${queryString}` : ''}`
-      );
+    // 1. ⚡ LEER CACHÉ LOCAL PRIMERO (Velocidad de carga de 0ms)
+    let localData = await cacheService.getFavorites() || [];
 
-      // 💾 Guardar en caché para uso offline
-      await cacheService.setFavorites(response.favorites);
-      console.log('[Favorites] ✅ Datos cargados desde API y cacheados');
+    // 2. 🌍 SINCRONIZACIÓN SILENCIOSA DE FONDO
+    apiClient.get<{ favorites: Favorite[]; total: number }>(
+      `/favorites${queryString ? `?${queryString}` : ''}`
+    )
+      .then(async (response) => {
+        if (response.favorites.length > 0) {
+          await cacheService.setFavorites(response.favorites);
+          console.log('[Favorites] 🔄 Caché actualizado en segundo plano');
+        }
+      })
+      .catch((error) => {
+        console.warn('[Favorites] ⚠️ Error silencioso de red al sincronizar en fondo');
+      });
 
-      return response;
-    } catch (error) {
-      // ⚠️ Error de red - intentar leer desde caché
-      console.warn('[Favorites] ⚠️ Error de red, intentando caché...', error);
-
-      const cachedFavorites = await cacheService.getFavorites();
-
-      if (cachedFavorites) {
-        console.log('[Favorites] 📱 Datos cargados desde caché offline');
-        return {
-          favorites: cachedFavorites,
-          total: cachedFavorites.length,
-        };
-      }
-
-      // ❌ No hay datos en caché ni en API
-      console.error('[Favorites] ❌ Sin datos en caché ni API');
-      throw new Error('No se pudieron cargar los favoritos. Verifica tu conexión.');
+    // Aplicar filtros a la caché local simulando al servidor para la UI optimista
+    if (options?.bookId) {
+      localData = localData.filter(f => f.bookId === options.bookId);
     }
+    if (options?.search) {
+      const q = options.search.toLowerCase();
+      localData = localData.filter(f =>
+        f.verseText?.toLowerCase().includes(q) ||
+        f.note?.toLowerCase().includes(q) ||
+        f.tags?.some((t: string) => t.toLowerCase().includes(q))
+      );
+    }
+
+    return {
+      favorites: localData,
+      total: localData.length,
+    };
   },
 
   /**
@@ -199,9 +204,18 @@ export const favoritesService = {
    * Verifica si un versículo está en favoritos
    */
   async isFavorite(bookId: string, chapter: number, verse: number): Promise<boolean> {
-    return apiClient.get<boolean>(
-      `/favorites/check?bookId=${bookId}&chapter=${chapter}&verse=${verse}`
+    const localFavorites = await cacheService.getFavorites() || [];
+    return !!localFavorites.find(f =>
+      f.bookId === bookId &&
+      f.chapterNumber === chapter &&
+      f.verseNumber === verse
     );
+  },
+  /**
+   * Carga favoritos directamente desde la caché local (sin tocar API)
+   */
+  async loadFromCache(): Promise<Favorite[]> {
+    return await cacheService.getFavorites() || [];
   },
 };
 

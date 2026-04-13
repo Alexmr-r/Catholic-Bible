@@ -5,6 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Linking,
+  Alert,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -12,12 +14,15 @@ import {useTheme} from '../contexts/ThemeContext';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import type {RootStackParamList} from '../navigation/AppNavigator';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useIsOnline} from '../contexts/NetworkContext';
+import OfflineBanner from '../components/OfflineBanner';
 
 type HelpSupportScreenProps = NativeStackScreenProps<RootStackParamList, 'HelpSupport'>;
 
 const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
+  const isOnline = useIsOnline();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const handleBack = () => {
     navigation.goBack();
@@ -36,22 +41,42 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
     navigation.navigate('OfflineHelp');
   };
 
-  const handleContactSupport = () => {
-    navigation.navigate('SendMessage');
+  const handleContactSupport = async () => {
+    const email = 'soporte@bibliacatolica.app'; // TODO: Cambiar por tu email real
+    const subject = encodeURIComponent('Soporte - Biblia Católica App');
+    const body = encodeURIComponent('Hola,\n\nDescripción del problema o consulta:\n\n');
+    const url = `mailto:${email}?subject=${subject}&body=${body}`;
+
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(
+          'Sin app de correo',
+          `No se encontró una app de correo configurada. Puedes escribirnos directamente a:\n\n${email}`,
+          [{text: 'Entendido'}]
+        );
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo abrir la app de correo.');
+    }
   };
 
   return (
     <View style={styles.container}>
+      <OfflineBanner />
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBack}
           activeOpacity={0.7}
           style={styles.backButton}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color={colors.charcoal.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Guía y Soporte</Text>
-        <View style={styles.placeholder} />
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Contenido */}
@@ -73,7 +98,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
               <MaterialIcons name="history-edu" size={24} color={colors.gold.DEFAULT} />
             </View>
             <Text style={styles.topicText}>Cómo usar los escritos</Text>
-            <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+            <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
 
           {/* Gestión de favoritos */}
@@ -85,7 +110,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
               <MaterialIcons name="favorite" size={24} color={colors.gold.DEFAULT} />
             </View>
             <Text style={styles.topicText}>Gestión de favoritos</Text>
-            <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+            <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
 
           {/* Uso sin conexión */}
@@ -97,7 +122,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
               <MaterialIcons name="cloud-download" size={24} color={colors.gold.DEFAULT} />
             </View>
             <Text style={styles.topicText}>Uso sin conexión</Text>
-            <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+            <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
         </View>
 
@@ -107,19 +132,23 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
 
           {/* Tarjeta de contacto */}
           <TouchableOpacity
-            style={styles.contactCard}
-            onPress={handleContactSupport}
+            style={[styles.contactCard, !isOnline && {opacity: 0.5}]}
+            onPress={isOnline ? handleContactSupport : () => Alert.alert('Sin conexión', 'Necesitas conexión para enviar un correo.')}
             activeOpacity={0.8}>
             <View style={styles.contactIconContainer}>
-              <MaterialIcons name="mail" size={32} color={colors.gold.DEFAULT} />
+              <MaterialIcons name={isOnline ? "mail" : "cloud-off"} size={32} color={isOnline ? colors.gold.DEFAULT : colors.charcoal.muted} />
             </View>
-            <Text style={styles.contactTitle}>Enviar un mensaje al soporte</Text>
+            <Text style={styles.contactTitle}>{isOnline ? 'Escríbenos por correo' : 'Sin conexión'}</Text>
             <Text style={styles.contactDescription}>
-              Nuestro equipo te responderá en menos de 24 horas para asistirte en lo que necesites.
+              {isOnline
+                ? 'Se abrirá tu app de correo con nuestro email ya listo. Cuéntanos tu duda y te responderemos lo antes posible.'
+                : 'Recupera la conexión para poder contactarnos por correo.'}
             </Text>
-            <View style={styles.contactButton}>
-              <Text style={styles.contactButtonText}>CONTACTAR AHORA</Text>
-            </View>
+            {isOnline && (
+              <View style={styles.contactButton}>
+                <Text style={styles.contactButtonText}>CONTACTAR AHORA</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -135,7 +164,6 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingTop: Math.max(safeTop, 20) + 16,
@@ -146,18 +174,19 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   backButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     borderRadius: 20,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
+    fontFamily: 'serif',
     color: colors.charcoal.dark,
     textAlign: 'center',
     flex: 1,
   },
-  placeholder: {
+  headerSpacer: {
     width: 40,
   },
   scrollView: {

@@ -13,6 +13,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNetwork, useIsOnline } from '../contexts/NetworkContext';
 import { aiService, Message } from '../services/ai.service';
 import MessageParser from '../components/MessageParser';
 import { AIAssistantScreenProps } from '../navigation/AppNavigator';
@@ -20,6 +21,7 @@ import { AIAssistantScreenProps } from '../navigation/AppNavigator';
 export default function AIAssistantScreen({ navigation, route }: AIAssistantScreenProps) {
   const { colors, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
+  const isOnline = useIsOnline();
   
   // Context properties if opened from another screen:
   const contextBook = route?.params?.bookName;
@@ -137,27 +139,38 @@ export default function AIAssistantScreen({ navigation, route }: AIAssistantScre
           </View>
         )}
 
+        {!isOnline && (
+          <View style={[styles.offlineNotice, { backgroundColor: isDarkMode ? `${colors.burgundy.DEFAULT}30` : `${colors.burgundy.DEFAULT}10` }]}>
+            <MaterialIcons name="cloud-off" size={16} color={colors.burgundy.DEFAULT} />
+            <Text style={[styles.offlineNoticeText, { color: colors.burgundy.DEFAULT }]}>
+              El asistente virtual solo está disponible con conexión a internet.
+            </Text>
+          </View>
+        )}
+
         <View style={[
           styles.inputContainer, 
           { 
             backgroundColor: isDarkMode ? colors.surface.dark : colors.surface.light, 
             borderTopColor: colors.ivory.border,
             paddingBottom: Math.max(insets.bottom + 10, 25)
-          }
+          },
+          !isOnline && { opacity: 0.6 }
         ]}>
           <TextInput
             style={[styles.input, { color: colors.charcoal.DEFAULT, backgroundColor: isDarkMode ? colors.background.dark : colors.cream }]}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Type your biblical question..."
+            placeholder={isOnline ? "Escribe tu pregunta bíblica..." : "Sin conexión..."}
             placeholderTextColor={colors.charcoal.muted}
             multiline
             maxLength={500}
+            editable={isOnline && !isTyping}
           />
           <TouchableOpacity 
-            style={[styles.sendButton, { backgroundColor: inputText.trim() ? colors.primary.DEFAULT : colors.charcoal.muted }]}
+            style={[styles.sendButton, { backgroundColor: (inputText.trim() && isOnline) ? colors.primary.DEFAULT : colors.charcoal.muted }]}
             onPress={sendMessage}
-            disabled={!inputText.trim() || isTyping}
+            disabled={!inputText.trim() || isTyping || !isOnline}
           >
             <MaterialIcons name="send" size={20} color={colors.surface.light} />
           </TouchableOpacity>
@@ -258,5 +271,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 10,
     marginBottom: 2, // Alinear con la parte inferior del input
+  },
+  offlineNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  offlineNoticeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+    fontStyle: 'italic',
   }
 });

@@ -52,6 +52,7 @@ public class SecurityConfig {
                         // Endpoints de biblia son públicos para lectura
                         .requestMatchers(HttpMethod.GET, "/bible/books/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/bible/search/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/bible/english/download").permitAll()
                         .requestMatchers(HttpMethod.GET, "/daily-reading/**").permitAll()
 
                         // Todo lo demás requiere autenticación

@@ -190,15 +190,16 @@ class AudioService {
                 if (modelExists && SherpaTTS) {
                     await this.speakLocal(text, title);
                 } else {
-                    console.log('[AudioService] Se pidió IA pero no existe el modelo. Usando nativo.');
-                    await this.speakNative(text, title);
+                    console.error('[AudioService] IA no disponible: modelo no encontrado o módulo no cargado');
+                    throw new Error('MODEL_NOT_READY');
                 }
             } else {
                 // Default fallback logic si no se especifica fuerza
                 if (modelExists && SherpaTTS) {
                     await this.speakLocal(text, title);
                 } else {
-                    await this.speakNative(text, title);
+                    console.error('[AudioService] IA no disponible: modelo no encontrado o módulo no cargado');
+                    throw new Error('MODEL_NOT_READY');
                 }
             }
         } catch (error) {
@@ -210,7 +211,7 @@ class AudioService {
     }
 
     private async speakLocal(text: string, title?: string) {
-        if (!SherpaTTS) return this.speakNative(text, title);
+        if (!SherpaTTS) throw new Error('SHERPA_NOT_AVAILABLE');
 
         try {
             const cleanText = this.prepareText(text, title);
@@ -257,8 +258,8 @@ class AudioService {
                 return;
             }
 
-            console.log('[AudioService] Reintentando con voz nativa debido a error real en IA...');
-            return this.speakNative(text, title);
+            console.log('[AudioService] Error real en IA:', e?.message || e);
+            throw e;
         }
     }
 

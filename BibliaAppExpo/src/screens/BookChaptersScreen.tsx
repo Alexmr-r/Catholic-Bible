@@ -13,6 +13,7 @@ import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {BookChaptersScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book} from '../services/bible.service';
+import {useOfflineBible} from '../hooks/useOfflineBible';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -26,6 +27,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
 
   const { colors, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
+  const { isOnline, isBibleDownloaded } = useOfflineBible();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
 
   const [bookInfo, setBookInfo] = useState<Book | null>(null);
@@ -38,8 +40,35 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
   const loadBookInfo = async () => {
     try {
       setIsLoading(true);
-      const book = await bibleService.getBook(bookId);
-      setBookInfo(book);
+      if (isOnline) {
+        try {
+          const book = await bibleService.getBook(bookId);
+          setBookInfo(book);
+        } catch (apiError) {
+          console.warn('[BookChapters] Error API, usando info básica:', apiError);
+          // Fallback a info básica si ya tenemos capítulos por props
+          setBookInfo({
+            id: bookId,
+            name: bookName,
+            abbreviation: bookName.substring(0, 3),
+            testament: testament as any,
+            category: 'PENTATEUCH',
+            totalChapters: totalChapters,
+            description: '',
+          });
+        }
+      } else {
+        // Modo offline
+        setBookInfo({
+          id: bookId,
+          name: bookName,
+          abbreviation: bookName.substring(0, 3),
+          testament: testament as any,
+          category: 'PENTATEUCH',
+          totalChapters: totalChapters,
+          description: '',
+        });
+      }
     } catch (err) {
       console.error('Error cargando info del libro:', err);
     } finally {
@@ -123,7 +152,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.burgundy.DEFAULT} />
+          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
         </View>
       ) : (
         <ScrollView

@@ -1,4 +1,5 @@
 import apiClient from './api.client';
+import { API_CONFIG } from './config';
 
 export interface Message {
     id: string;
@@ -13,7 +14,7 @@ class AIService {
         console.log('[AIService] Sending query to AI:', query);
 
         try {
-            const data = await apiClient.post<{ response: string }>('/chat', { query });
+            const data = await apiClient.post<{ response: string }>('/chat', { query }, API_CONFIG.TIMEOUT_AI);
             return data.response || "No response found.";
         } catch (error) {
             console.error('[AIService] Failed to fetch from backend:', error);

@@ -16,10 +16,13 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {apiClient} from '../services/api.client';
+import {useIsOnline} from '../contexts/NetworkContext';
+import OfflineBanner from '../components/OfflineBanner';
 
 type ChangePasswordScreenProps = {
   navigation: any;
@@ -27,7 +30,9 @@ type ChangePasswordScreenProps = {
 
 const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
-  const styles = React.useMemo(() => getStyles(colors, isDarkMode), [colors, isDarkMode]);
+  const insets = useSafeAreaInsets();
+  const isOnline = useIsOnline();
+  const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -46,6 +51,15 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
   };
 
   const handleSavePassword = async () => {
+    // ⛔ Verificar conexión primero
+    if (!isOnline) {
+      Alert.alert(
+        'Sin conexión',
+        'Necesitas conexión a internet para cambiar tu contraseña. Por seguridad, este cambio se verifica en tiempo real.'
+      );
+      return;
+    }
+
     // Validaciones
     if (!currentPassword.trim()) {
       Alert.alert('Error', 'Ingresa tu contraseña actual');
@@ -100,13 +114,16 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
 
   return (
     <View style={styles.container}>
+      {/* Banner offline */}
+      <OfflineBanner />
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBack}
           activeOpacity={0.7}
           style={styles.backButton}>
-          <MaterialIcons name="arrow-back-ios-new" size={24} color={colors.charcoal.DEFAULT} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Cambiar Contraseña</Text>
         <View style={styles.headerSpacer} />
@@ -213,12 +230,14 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
 
           {/* Save Button */}
           <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+            style={[styles.saveButton, (isSaving || !isOnline) && styles.saveButtonDisabled]}
             onPress={handleSavePassword}
             disabled={isSaving}
             activeOpacity={0.7}>
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
+            ) : !isOnline ? (
+              <Text style={styles.saveButtonText}>Requiere conexión</Text>
             ) : (
               <Text style={styles.saveButtonText}>Actualizar Contraseña</Text>
             )}
@@ -236,7 +255,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
   );
 };
 
-const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.create({
+const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
@@ -246,24 +265,27 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    paddingTop: 56,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
-    borderBottomWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ivory.border,
   },
   backButton: {
     width: 40,
     height: 40,
     alignItems: 'flex-start',
     justifyContent: 'center',
+    borderRadius: 20,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     fontFamily: 'serif',
-    color: colors.charcoal.DEFAULT,
+    color: colors.charcoal.dark,
+    flex: 1,
+    textAlign: 'center',
   },
   headerSpacer: {
     width: 40,

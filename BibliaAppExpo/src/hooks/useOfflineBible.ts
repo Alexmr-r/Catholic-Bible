@@ -7,8 +7,8 @@
  * - Sin conexión + NO descargada: Indica que necesita descargar
  */
 
-import {useState, useEffect, useCallback} from 'react';
-import {useIsOnline} from '../contexts/NetworkContext';
+import { useState, useEffect, useCallback } from 'react';
+import { useIsOnline } from '../contexts/NetworkContext';
 import {
   BibleOfflineDownloadService,
   BibleOfflineService,

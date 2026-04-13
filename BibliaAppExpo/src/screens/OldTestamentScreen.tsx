@@ -9,12 +9,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
+import {useFocusEffect} from '@react-navigation/native';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {OldTestamentScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book as ApiBook} from '../services/bible.service';
-import {useOfflineBible} from '../hooks/useOfflineBible';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useIsOnline, useNetwork} from '../contexts/NetworkContext';
+import {BibleOfflineService, BibleOfflineDownloadService} from '../services/english-bible-download.service';
 
 type BookCategory = 'Pentateuco' | 'Históricos' | 'Sapienciales' | 'Profetas Mayores' | 'Profetas Menores';
 
@@ -57,6 +59,44 @@ const getCategoryColor = (category: BookCategory, colors: ThemeColors): string =
   return colorMap[category];
 };
 
+const loadOldTestamentOffline = async (): Promise<ApiBook[]> => {
+  try {
+    const offlineData = await BibleOfflineService.loadData();
+    // ...
+
+    if (!offlineData || !offlineData.books) {
+      console.error('[OldTestament] Offline data is empty or invalid');
+      return [];
+    }
+
+    const oldTestamentIds = [
+      'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
+      'joshua', 'judges', 'ruth', '1samuel', '2samuel', '1kings', '2kings',
+      '1chronicles', '2chronicles', 'ezra', 'nehemiah', 'tobit', 'judith',
+      'esther', '1maccabees', '2maccabees', 'job', 'psalms', 'proverbs',
+      'ecclesiastes', 'songofsolomon', 'wisdom', 'sirach',
+      'isaiah', 'jeremiah', 'lamentations', 'baruch', 'ezekiel', 'daniel',
+      'hosea', 'joel', 'amos', 'obadiah', 'jonah', 'micah', 'nahum',
+      'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi'
+    ];
+
+    return offlineData.books
+      .filter(book => oldTestamentIds.includes(book.id.toLowerCase()))
+      .map(book => ({
+        id: book.id,
+        name: book.name || book.id,
+        abbreviation: (book.name || book.id).substring(0, 3).toUpperCase(),
+        testament: 'old' as const,
+        category: 'Pentateuco',
+        totalChapters: book.chapters?.length || 0,
+        description: '',
+      }));
+  } catch (error) {
+    console.error('[OldTestament] Error loading offline books:', error);
+    throw error;
+  }
+};
+
 const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
@@ -69,15 +109,22 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  // Hook para modo offline
-  const {isOnline, isBibleDownloaded} = useOfflineBible();
+  // Hook para modo offline global
+  const {isBibleDownloaded, refreshDownloadStatus} = useNetwork();
+  const isOnline = useIsOnline();
 
   // =====================================================
-  // ✅ CONECTADO A API - Cargar libros del Antiguo Testamento
+  // ✅ CONECTADO A API / OFFLINE - Cargar libros cada vez que la pantalla gana foco
   // =====================================================
-  useEffect(() => {
-    loadBooks();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const init = async () => {
+        await refreshDownloadStatus();
+        loadBooks();
+      };
+      init();
+    }, [isOnline, isBibleDownloaded])
+  );
 
   const loadBooks = async () => {
     try {
@@ -91,42 +138,27 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
       // - Sin internet + Biblia descargada → usar datos offline
       // - Sin internet + sin descarga → error
 
+      const actuallyDownloaded = await BibleOfflineDownloadService.isDownloaded();
+
       if (isOnline) {
         // ✅ CON INTERNET: Siempre usar API
-        apiBooks = await bibleService.getOldTestamentBooks();
-      } else if (isBibleDownloaded) {
-        // ✅ SIN INTERNET + DESCARGADA: usar datos offline
-        const {BibleOfflineService} = await import('../services/english-bible-download.service');
-        const offlineData = await BibleOfflineService.loadData();
-
-        // Convertir datos offline al formato ApiBook
-        // Filtrar solo libros del AT (los primeros 46 son AT en la Biblia Católica)
-        const oldTestamentIds = [
-          'genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy',
-          'joshua', 'judges', 'ruth', '1samuel', '2samuel', '1kings', '2kings',
-          '1chronicles', '2chronicles', 'ezra', 'nehemiah', 'tobit', 'judith',
-          'esther', '1maccabees', '2maccabees', 'job', 'psalms', 'proverbs',
-          'ecclesiastes', 'songofsolomon', 'wisdom', 'sirach',
-          'isaiah', 'jeremiah', 'lamentations', 'baruch', 'ezekiel', 'daniel',
-          'hosea', 'joel', 'amos', 'obadiah', 'jonah', 'micah', 'nahum',
-          'habakkuk', 'zephaniah', 'haggai', 'zechariah', 'malachi'
-        ];
-
-        apiBooks = offlineData.books
-          .filter(book => oldTestamentIds.includes(book.id.toLowerCase()) ||
-                         offlineData.books.indexOf(book) < 46)
-          .map(book => ({
-            id: book.id,
-            name: book.name,
-            abbreviation: book.name.substring(0, 3),
-            testament: 'old' as const,
-            category: 'Pentateuco',
-            totalChapters: book.chapters.length,
-            description: '',
-          }));
+        try {
+          apiBooks = await bibleService.getOldTestamentBooks();
+        } catch (apiError) {
+          console.warn('[OldTestament] Error API, reintentando offline si es posible:', apiError);
+          try {
+            apiBooks = await loadOldTestamentOffline();
+          } catch (offlineError) {
+            throw apiError;
+          }
+        }
       } else {
-        // Sin internet y sin descarga
-        throw new Error('NO_CONNECTION_NO_DOWNLOAD');
+        // ✅ SIN INTERNET: usar datos offline si existen
+        try {
+          apiBooks = await loadOldTestamentOffline();
+        } catch (offlineError) {
+          throw new Error('NO_DOWNLOAD');
+        }
       }
 
       // Transformar los libros al formato local
@@ -141,12 +173,11 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
       }));
 
       setBooks(transformedBooks);
-      setRetryCount(0); // Reset contador de reintentos
+      setRetryCount(0);
     } catch (err: any) {
       console.error('Error cargando libros:', err);
-      setRetryCount(prev => prev + 1);
-
-      if (err.message === 'NO_CONNECTION_NO_DOWNLOAD' || (!isOnline && !isBibleDownloaded)) {
+      // Priorizar el aviso de "Descarga Necesaria" si realmente no está descargada
+      if (err.message === 'NO_DOWNLOAD' || !isBibleDownloaded) {
         setError('NO_DOWNLOAD');
       } else {
         setError('No se pudieron cargar los libros. Verifica tu conexión.');
@@ -217,7 +248,7 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
       {/* Estado de carga */}
       {isLoading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.burgundy.DEFAULT} />
+          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
           <Text style={styles.loadingText}>Cargando libros...</Text>
         </View>
       )}
@@ -232,14 +263,14 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
           />
           <Text style={styles.errorText}>
             {error === 'NO_DOWNLOAD'
-              ? 'Sin conexión a internet'
-              : 'No se pudieron cargar los libros'
+              ? 'No tienes conexión'
+              : 'Error de conexión'
             }
           </Text>
           <Text style={styles.errorSubtext}>
             {error === 'NO_DOWNLOAD'
-              ? 'Descarga la Biblia para leer sin conexión'
-              : 'Verifica tu conexión a internet'
+              ? 'Tienes que descargar la Biblia para leerla sin conexión'
+              : 'Verifica tu conexión a internet para continuar'
             }
           </Text>
 
@@ -371,7 +402,7 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
                     </View>
 
                     <MaterialIcons
-                      name="chevron-right"
+                      name="arrow-forward"
                       size={24}
                       color={book.enabled ? colors.charcoal.muted : `${colors.charcoal.muted}40`}
                     />

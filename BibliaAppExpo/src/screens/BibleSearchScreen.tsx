@@ -7,9 +7,11 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  ImageBackground,
   ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
+import {ImageBackground} from 'expo-image';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {ThemeColors} from '../theme/colors';
@@ -17,11 +19,13 @@ import {BibleSearchScreenProps} from '../navigation/AppNavigator';
 import {useTheme} from '../contexts/ThemeContext';
 import {bibleService, SearchResult} from '../services/bible.service';
 import {useOfflineBible} from '../hooks/useOfflineBible';
-import {useIsOnline} from '../contexts/NetworkContext';
+import {useIsOnline, useNetwork} from '../contexts/NetworkContext';
 import {readingHistoryService, ReadingHistoryItem} from '../services/reading-history.service';
 import {smartSearchService, SmartSearchResult} from '../services/smart-search.service';
+import {BibleOfflineService} from '../services/english-bible-download.service';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import OfflineBanner from '../components/OfflineBanner';
 
 type RecentSearch = {
   id: string;
@@ -43,9 +47,10 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   const [lastReading, setLastReading] = useState<ReadingHistoryItem | null>(null);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
-  // ✅ Hook para modo offline
-  const {isBibleDownloaded, needsDownload} = useOfflineBible();
+  // ✅ Hook para modo offline unificado
+  const {isBibleDownloaded, refreshDownloadStatus} = useNetwork();
   const isOnline = useIsOnline();
+  const needsDownload = !isOnline && !isBibleDownloaded;
 
   // Cargar última lectura y búsquedas recientes cuando la pantalla recibe foco
   useFocusEffect(
@@ -72,22 +77,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     setRecentSearches(formatted);
   };
 
-  // Mostrar alerta si está offline y no tiene Biblia descargada
-  useEffect(() => {
-    if (needsDownload) {
-      Alert.alert(
-        'Sin conexión',
-        'No tienes conexión a internet. ¿Deseas descargar la Biblia para usarla sin conexión?',
-        [
-          {text: 'Más tarde', style: 'cancel'},
-          {
-            text: 'Descargar',
-            onPress: () => navigation.navigate('ManageDownloads'),
-          },
-        ]
-      );
-    }
-  }, [needsDownload]);
+  // Alerta de descarga movida a los manejadores de los testamentos
 
   // =====================================================
   // ✅ NAVEGACIÓN IMPLEMENTADA - Perfil de usuario
@@ -129,14 +119,14 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       const hasDirectResults = smartResultsData.some(r => r.type === 'book' || r.type === 'chapter' || r.type === 'category');
 
       if (!hasDirectResults) {
-        // Buscar también en versículos
-        if (isOnline) {
-          const response = await bibleService.searchVerses(searchQuery.trim(), { pageSize: 20 });
-          setSearchResults(response.results);
-        } else if (isBibleDownloaded) {
+      // ✅ BÚSQUEDA HÍBRIDA (Offline instantánea + Online de refuerzo)
+      let offlineDone = false;
+      
+      const doOfflineSearch = async () => {
+        if (isBibleDownloaded) {
           const {BibleOfflineService} = await import('../services/english-bible-download.service');
           const offlineResults = await BibleOfflineService.searchVerses(searchQuery.trim(), 20);
-          const formattedResults: SearchResult[] = offlineResults.map(r => ({
+          const formattedResults: SearchResult[] = offlineResults.map((r: any) => ({
             bookId: r.bookId,
             bookName: r.bookName,
             chapter: r.chapter,
@@ -144,24 +134,46 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
             text: r.text,
             highlightedText: r.text,
           }));
+          
           setSearchResults(formattedResults);
+          offlineDone = true;
+          console.log('[BibleSearch] ⚡ Resultados offline mostrados');
         }
-      } else {
-        setSearchResults([]);
-      }
+      };
 
-      // Guardar búsqueda en historial
-      await readingHistoryService.addSearch(searchQuery.trim(), smartResultsData.length);
-      await loadRecentSearches();
-    } catch (err: any) {
-      console.error('Error en búsqueda:', err);
-      Alert.alert('Error', 'No se pudo realizar la búsqueda. Verifica tu conexión.');
-    } finally {
-      setIsSearching(false);
-      const { Keyboard } = await import('react-native');
-      Keyboard.dismiss();
+      const doOnlineSearch = async () => {
+        if (isOnline) {
+          try {
+            const response = await bibleService.searchVerses(searchQuery.trim(), { pageSize: 20 });
+            // Solo actualizamos si los resultados son más o si no había offline
+            setSearchResults(response.results);
+            console.log('[BibleSearch] ✅ Resultados online recibidos');
+          } catch (apiError: any) {
+            console.warn('[BibleSearch] Falló búsqueda online:', apiError.message);
+          }
+        }
+      };
+
+      // Ejecutar ambas en paralelo
+      await Promise.all([
+        doOfflineSearch(),
+        doOnlineSearch(),
+      ]);
+    } else {
+      setSearchResults([]);
     }
-  };
+
+    // Guardar búsqueda en historial
+    await readingHistoryService.addSearch(searchQuery.trim(), smartResultsData.length);
+    await loadRecentSearches();
+  } catch (err: any) {
+    console.error('Error en búsqueda:', err);
+    Alert.alert('Error', 'No se pudo realizar la búsqueda. Verifica tu conexión.');
+  } finally {
+    setIsSearching(false);
+    Keyboard.dismiss();
+  }
+};
 
   // Mostrar sugerencias mientras escribe
   const handleSearchQueryChange = (text: string) => {
@@ -281,15 +293,45 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   // ✅ NAVEGACIÓN IMPLEMENTADA - Antiguo Testamento
   // Navega a la pantalla de libros del Antiguo Testamento
   // =====================================================
-  const handleOldTestament = () => {
+  const handleOldTestament = async () => {
+    // Re-checkear estado actual para evitar alertas falsas si acaba de descargar
+    const confirmedDownloaded = await refreshDownloadStatus();
+
+    if (!isOnline && !confirmedDownloaded) {
+      Alert.alert(
+        'Sin conexión',
+        'No tienes conexión. Tienes que descargar la Biblia para leerla sin conexión.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Descargar', 
+            onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'OldTestament' }) 
+          },
+        ]
+      );
+      return;
+    }
     navigation.navigate('OldTestament');
   };
 
-  // =====================================================
-  // ✅ NAVEGACIÓN IMPLEMENTADA - Nuevo Testamento
-  // Navega a la pantalla de libros del Nuevo Testamento
-  // =====================================================
-  const handleNewTestament = () => {
+  const handleNewTestament = async () => {
+    // Re-checkear estado actual para evitar alertas falsas si acaba de descargar
+    const confirmedDownloaded = await refreshDownloadStatus();
+
+    if (!isOnline && !confirmedDownloaded) {
+      Alert.alert(
+        'Sin conexión',
+        'No tienes conexión. Tienes que descargar la Biblia para leerla sin conexión.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { 
+            text: 'Descargar', 
+            onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'NewTestament' }) 
+          },
+        ]
+      );
+      return;
+    }
     navigation.navigate('NewTestament');
   };
 
@@ -328,6 +370,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
 
   return (
     <View style={styles.container}>
+      <OfflineBanner />
       {/* Header - Fixed */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Buscador</Text>
@@ -418,7 +461,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       {!isSearching && smartResults.length > 0 && (
         <View style={styles.smartResultsContainer}>
           <Text style={styles.smartResultsTitle}>Resultados</Text>
-          <ScrollView style={styles.smartResultsList} showsVerticalScrollIndicator={false}>
+          <ScrollView style={styles.smartResultsList} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {smartResults.map((result, index) => (
               <TouchableOpacity
                 key={`smart-${index}`}
@@ -458,7 +501,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                     </Text>
                   )}
                 </View>
-                <MaterialIcons name="chevron-right" size={24} color={colors.charcoal.muted} />
+                <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -468,7 +511,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       {/* Resultados de búsqueda */}
       {isSearching && (
         <View style={styles.searchingContainer}>
-          <ActivityIndicator size="large" color={colors.burgundy.DEFAULT} />
+          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
           <Text style={styles.searchingText}>Buscando...</Text>
         </View>
       )}
@@ -486,7 +529,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
           <Text style={styles.resultsTitle}>
             {searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''}
           </Text>
-          <ScrollView style={styles.resultsList}>
+          <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled">
             {searchResults.map((result, index) => (
               <TouchableOpacity
                 key={index}
@@ -509,48 +552,27 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
 
       {/* Contenido normal cuando no hay búsqueda activa */}
       {!isSearching && !hasSearched && (
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Testament Cards */}
         <View style={styles.cardsContainer}>
-          {/* Antiguo Testamento */}
           <TouchableOpacity
             style={styles.testamentCard}
             onPress={handleOldTestament}
             activeOpacity={0.9}>
-            {isOnline ? (
-              <ImageBackground
-                source={{uri: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=800'}}
-                style={styles.cardBackground}
-                imageStyle={styles.cardBackgroundImage}>
-                <LinearGradient
-                  colors={['rgba(54, 69, 79, 0.85)', 'rgba(54, 69, 79, 0.55)', 'rgba(54, 69, 79, 0.15)']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
-                  style={styles.cardOverlay}>
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardBadge}>
-                      <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'old' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
-                      <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
-                        46 LIBROS
-                      </Text>
-                    </View>
-                    <Text style={styles.cardTitle}>Antiguo{'\n'}Testamento</Text>
-                  </View>
-                  <View style={styles.cardArrowContainer}>
-                    <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
-                  </View>
-                </LinearGradient>
-              </ImageBackground>
-            ) : (
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=800' }}
+              style={styles.cardBackground}
+              imageStyle={styles.cardBackgroundImage}
+              cachePolicy="memory-disk">
               <LinearGradient
-                colors={['#36454F', '#4A5568', '#718096']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-                style={[styles.cardBackground, styles.cardOverlay]}>
+                colors={['rgba(54, 69, 79, 0.85)', 'rgba(54, 69, 79, 0.55)', 'rgba(54, 69, 79, 0.15)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.cardOverlay}>
                 <View style={styles.cardContent}>
                   <View style={styles.cardBadge}>
-                    <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'old' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
-                    <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
+                    <View style={[styles.badgeDot, { backgroundColor: lastReading?.testament === 'old' ? colors.primary.DEFAULT : '#FFFFFF' }]} />
+                    <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>
                       46 LIBROS
                     </Text>
                   </View>
@@ -560,48 +582,27 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
                 </View>
               </LinearGradient>
-            )}
+            </ImageBackground>
           </TouchableOpacity>
 
-          {/* Nuevo Testamento */}
           <TouchableOpacity
             style={styles.testamentCard}
             onPress={handleNewTestament}
             activeOpacity={0.9}>
-            {isOnline ? (
-              <ImageBackground
-                source={{uri: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=800'}}
-                style={styles.cardBackground}
-                imageStyle={styles.cardBackgroundImage}>
-                <LinearGradient
-                  colors={['rgba(166, 94, 110, 0.80)', 'rgba(166, 94, 110, 0.50)', 'rgba(166, 94, 110, 0.12)']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
-                  style={styles.cardOverlay}>
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardBadge}>
-                      <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'new' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
-                      <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
-                        27 LIBROS
-                      </Text>
-                    </View>
-                    <Text style={styles.cardTitle}>Nuevo{'\n'}Testamento</Text>
-                  </View>
-                  <View style={styles.cardArrowContainer}>
-                    <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
-                  </View>
-                </LinearGradient>
-              </ImageBackground>
-            ) : (
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=800' }}
+              style={styles.cardBackground}
+              imageStyle={styles.cardBackgroundImage}
+              cachePolicy="memory-disk">
               <LinearGradient
-                colors={['#A65E6E', '#B87584', '#CA8C9A']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-                style={[styles.cardBackground, styles.cardOverlay]}>
+                colors={['rgba(166, 94, 110, 0.80)', 'rgba(166, 94, 110, 0.50)', 'rgba(166, 94, 110, 0.12)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.cardOverlay}>
                 <View style={styles.cardContent}>
                   <View style={styles.cardBadge}>
-                    <View style={[styles.badgeDot, {backgroundColor: lastReading?.testament === 'new' ? colors.primary.DEFAULT : '#FFFFFF'}]} />
-                    <Text style={[styles.badgeText, {color: '#FFFFFF'}]}>
+                    <View style={[styles.badgeDot, { backgroundColor: lastReading?.testament === 'new' ? colors.primary.DEFAULT : '#FFFFFF' }]} />
+                    <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>
                       27 LIBROS
                     </Text>
                   </View>
@@ -611,55 +612,30 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
                 </View>
               </LinearGradient>
-            )}
+            </ImageBackground>
           </TouchableOpacity>
 
-          {/* Continuar Lectura */}
           <TouchableOpacity
             style={styles.testamentCard}
             onPress={handleContinueReading}
             activeOpacity={0.9}>
-            {isOnline ? (
-              <ImageBackground
-                source={{uri: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=800'}}
-                style={styles.cardBackground}
-                imageStyle={styles.cardBackgroundImage}>
-                <LinearGradient
-                  colors={['rgba(107, 154, 196, 0.85)', 'rgba(107, 154, 196, 0.55)', 'rgba(107, 154, 196, 0.15)']}
-                  start={{x: 0, y: 0}}
-                  end={{x: 1, y: 0}}
-                  style={styles.cardOverlay}>
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardBadge}>
-                      <MaterialIcons name="bookmark" size={16} color="rgba(255, 255, 255, 0.9)" />
-                      <Text style={[styles.badgeText, {color: 'rgba(255, 255, 255, 0.9)'}]}>
-                        {lastReading
-                          ? `${lastReading.bookName.toUpperCase()} ${lastReading.chapter}`
-                          : 'LECTURA DEL DÍA'
-                        }
-                      </Text>
-                    </View>
-                    <Text style={styles.cardTitle}>Continuar{'\n'}lectura</Text>
-                  </View>
-                  <View style={styles.cardArrowContainer}>
-                    <MaterialIcons name="play-arrow" size={28} color="#FFFFFF" />
-                  </View>
-                </LinearGradient>
-              </ImageBackground>
-            ) : (
+            <ImageBackground
+              source={{ uri: 'https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=800' }}
+              style={styles.cardBackground}
+              imageStyle={styles.cardBackgroundImage}
+              cachePolicy="memory-disk">
               <LinearGradient
-                colors={['#6B9AC4', '#7FAFD4', '#93C4E4']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-                style={[styles.cardBackground, styles.cardOverlay]}>
+                colors={['rgba(107, 154, 196, 0.85)', 'rgba(107, 154, 196, 0.55)', 'rgba(107, 154, 196, 0.15)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.cardOverlay}>
                 <View style={styles.cardContent}>
                   <View style={styles.cardBadge}>
                     <MaterialIcons name="bookmark" size={16} color="rgba(255, 255, 255, 0.9)" />
-                    <Text style={[styles.badgeText, {color: 'rgba(255, 255, 255, 0.9)'}]}>
+                    <Text style={[styles.badgeText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
                       {lastReading
                         ? `${lastReading.bookName.toUpperCase()} ${lastReading.chapter}`
-                        : 'LECTURA DEL DÍA'
-                      }
+                        : 'LECTURA DEL DÍA'}
                     </Text>
                   </View>
                   <Text style={styles.cardTitle}>Continuar{'\n'}lectura</Text>
@@ -668,7 +644,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   <MaterialIcons name="play-arrow" size={28} color="#FFFFFF" />
                 </View>
               </LinearGradient>
-            )}
+            </ImageBackground>
           </TouchableOpacity>
         </View>
 
@@ -712,8 +688,8 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       </ScrollView>
       )}
 
-      {/* Floating Action Button for AI (when not searching) */}
-      {!isSearching && !hasSearched && (
+      {/* Floating Action Button for AI (solo si hay conexión) */}
+      {!isSearching && !hasSearched && isOnline && (
         <TouchableOpacity
           style={styles.fabAI}
           onPress={() => navigation.navigate('AIAssistant')}

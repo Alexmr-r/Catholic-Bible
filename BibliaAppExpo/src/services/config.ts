@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
  */
 
 // ⚠️ CAMBIA ESTA IP SI CAMBIAS DE RED WIFI
-const LOCAL_IP = '192.168.1.41';
+const LOCAL_IP = '192.168.1.40';
 
 
 // Detectar el entorno y seleccionar la URL correcta
@@ -40,7 +40,8 @@ if (__DEV__) {
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
-  TIMEOUT: 15000, // 15 segundos
+  TIMEOUT: 4000,           // 4 segundos para el resto de la app
+  TIMEOUT_AI: 0,           // 0 = Infinito para la IA
 };
 
 export default API_CONFIG;
