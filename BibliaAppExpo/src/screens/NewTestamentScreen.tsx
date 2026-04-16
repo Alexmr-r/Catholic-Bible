@@ -224,11 +224,11 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
 
   const getCategoryTitle = (category: BookCategory): string => {
     const titles: Record<BookCategory, string> = {
-      Evangelios: 'Los Evangelios',
-      Hechos: 'Hechos de los Apóstoles',
-      'Cartas de Pablo': 'Cartas de San Pablo',
-      'Cartas Católicas': 'Cartas Católicas',
-      Apocalipsis: 'Apocalipsis',
+      Evangelios: 'Gospels',
+      Hechos: 'Acts of the Apostles',
+      'Cartas de Pablo': 'Pauline Epistles',
+      'Cartas Católicas': 'Catholic Epistles',
+      Apocalipsis: 'Revelation',
     };
     return titles[category] || category;
   };
@@ -243,7 +243,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
           activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nuevo Testamento</Text>
+        <Text style={styles.headerTitle}>New Testament</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -251,7 +251,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
       {isLoading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-          <Text style={styles.loadingText}>Cargando libros...</Text>
+          <Text style={styles.loadingText}>Loading books...</Text>
         </View>
       )}
 
@@ -265,14 +265,14 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
           />
           <Text style={styles.errorText}>
             {error === 'NO_DOWNLOAD'
-              ? 'No tienes conexión'
-              : 'Error de conexión'
+              ? 'No connection'
+              : 'Connection error'
             }
           </Text>
           <Text style={styles.errorSubtext}>
             {error === 'NO_DOWNLOAD'
-              ? 'Tienes que descargar la Biblia para leerla sin conexión'
-              : 'Verifica tu conexión a internet para continuar'
+              ? 'You must download the Bible to read it offline'
+              : 'Check your internet connection to continue'
             }
           </Text>
 
@@ -283,17 +283,17 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
                 onPress={() => navigation.navigate('ManageDownloads')}
               >
                 <MaterialIcons name="cloud-download" size={18} color="#FFFFFF" />
-                <Text style={styles.downloadButtonText}>Descargar Biblia</Text>
+                <Text style={styles.downloadButtonText}>Download Bible</Text>
               </TouchableOpacity>
               {retryCount >= 2 && (
                 <TouchableOpacity style={styles.retryButtonSecondary} onPress={loadBooks}>
-                  <Text style={styles.retryButtonSecondaryText}>Reintentar conexión</Text>
+                  <Text style={styles.retryButtonSecondaryText}>Retry connection</Text>
                 </TouchableOpacity>
               )}
             </View>
           ) : (
             <TouchableOpacity style={styles.retryButton} onPress={loadBooks}>
-              <Text style={styles.retryButtonText}>Reintentar</Text>
+              <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -317,7 +317,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
             />
             <TextInput
               style={styles.searchInput}
-              placeholder="Buscar libro..."
+              placeholder="Search book..."
               placeholderTextColor={`${colors.charcoal.muted}80`}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -346,7 +346,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
                   styles.chipText,
                   selectedCategory === category && styles.chipTextActive,
                 ]}>
-                {category}
+                {category === 'Todo' ? 'All' : getCategoryTitle(category as BookCategory)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -398,7 +398,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
                         {book.name}
                       </Text>
                       <Text style={styles.bookChapters}>
-                        {book.chapters} Capítulos
+                        {book.chapters} Chapters
                       </Text>
                     </View>
 

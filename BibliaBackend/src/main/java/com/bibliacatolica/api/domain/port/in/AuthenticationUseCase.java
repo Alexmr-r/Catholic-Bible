@@ -9,51 +9,81 @@ import java.util.UUID;
  */
 public interface AuthenticationUseCase {
 
-    /**
-     * Registra un nuevo usuario
-     */
-    AuthResult register(RegisterCommand command);
+        /**
+         * Registra un nuevo usuario
+         */
+        AuthResult register(RegisterCommand command);
 
-    /**
-     * Inicia sesión
-     */
-    AuthResult login(LoginCommand command);
+        /**
+         * Inicia sesión
+         */
+        AuthResult login(LoginCommand command);
 
-    /**
-     * Refresca el token de acceso
-     */
-    AuthResult refreshToken(String refreshToken);
+        /**
+         * Refresca el token de acceso
+         */
+        AuthResult refreshToken(String refreshToken);
 
-    /**
-     * Cierra sesión (invalida el token)
-     */
-    void logout(UUID userId, String token);
+        /**
+         * Cierra sesión (invalida el token)
+         */
+        void logout(UUID userId, String token);
 
-    /**
-     * Obtiene el usuario actual por token
-     */
-    User getCurrentUser(String token);
+        /**
+         * Obtiene el usuario actual por token
+         */
+        User getCurrentUser(String token);
 
-    // ========== Commands ==========
+        /**
+         * Inicia proceso de recuperación de contraseña generando un código
+         */
+        void forgotPassword(String email);
 
-    record RegisterCommand(
-        String email,
-        String password,
-        String fullName
-    ) {}
+        /**
+         * Verifica que el código de recuperación sea válido
+         */
+        boolean verifyResetCode(String email, String code);
 
-    record LoginCommand(
-        String email,
-        String password
-    ) {}
+        /**
+         * Restablece la contraseña utilizando el código de seguridad
+         */
+        void resetPassword(String email, String code, String newPassword);
 
-    // ========== Result ==========
+        /**
+         * Inicia sesión con Google usando el token OpenID
+         */
+        AuthResult loginWithGoogle(GoogleLoginCommand command);
 
-    record AuthResult(
-        User user,
-        String accessToken,
-        String refreshToken,
-        long expiresIn
-    ) {}
+        /**
+         * Inicia sesión con Apple usando el JWT Signature
+         */
+        AuthResult loginWithApple(AppleLoginCommand command);
+
+        // ========== Commands ==========
+
+        record RegisterCommand(
+                        String email,
+                        String password,
+                        String fullName) {
+        }
+
+        record GoogleLoginCommand(String idToken) {
+        }
+
+        record AppleLoginCommand(String identityToken, String fullName) {
+        }
+
+        record LoginCommand(
+                        String email,
+                        String password) {
+        }
+
+        // ========== Result ==========
+
+        record AuthResult(
+                        User user,
+                        String accessToken,
+                        String refreshToken,
+                        long expiresIn) {
+        }
 }
-

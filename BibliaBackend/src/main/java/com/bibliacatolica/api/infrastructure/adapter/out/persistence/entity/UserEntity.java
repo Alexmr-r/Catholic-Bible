@@ -41,6 +41,19 @@ public class UserEntity {
     @Builder.Default
     private boolean active = true;
 
+    @Column(name = "is_premium", nullable = false)
+    @Builder.Default
+    private boolean premium = false;
+
+    @Column(name = "trial_start_date")
+    private LocalDateTime trialStartDate;
+
+    @Column(name = "subscription_end_date")
+    private LocalDateTime subscriptionEndDate;
+
+    @Column(name = "revenuecat_user_id", unique = true, length = 255)
+    private String revenuecatUserId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -49,4 +62,3 @@ public class UserEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }
-

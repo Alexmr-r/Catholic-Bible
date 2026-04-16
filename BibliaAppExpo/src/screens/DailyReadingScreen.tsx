@@ -201,16 +201,16 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
         } catch (apiError) {
           console.warn('[DailyReading] No se pudo actualizar desde el servidor:', apiError);
           if (!cachedReading) {
-            setError('Recupera la conexión para leer la lectura del día.');
+            setError('Restore connection to read today\'s reading.');
           }
         }
       } else if (!cachedReading) {
-        setError('Recupera la conexión para leer la lectura del día.');
+        setError('Restore connection to read today\'s reading.');
       }
     } catch (err: any) {
       console.error('Error cargando lectura del día:', err);
       if (!dailyReading) {
-        setError('No se pudo cargar la lectura del día.');
+        setError('Could not load today\'s reading.');
       }
     } finally {
       setIsLoading(false);
@@ -243,11 +243,11 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
         } catch (apiError) {
           console.warn('[DailyReading] Error actualización fecha:', date, apiError);
           if (!cachedReading) {
-            setError('Recupera la conexión para leer la lectura de este día.');
+            setError('Restore connection to view this date.');
           }
         }
       } else if (!cachedReading) {
-        setError('Recupera la conexión para ver esta fecha.');
+        setError('Restore connection to view this date.');
       }
     } catch (err) {
       console.error('Error cargando lectura por fecha:', err);
@@ -315,18 +315,18 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
 
       if (!modelExists) {
         Alert.alert(
-          'Narrador Premium IA',
-          'Para escuchar la lectura con voz natural, necesitas descargar el motor de IA (50MB).',
+          'Premium AI Narrator',
+          'To listen to the reading with a natural voice, you need to download the AI engine (50MB).',
           [
             {
-              text: 'Descargar Ahora',
+              text: 'Download Now',
               onPress: () => {
                 // Iniciar descarga y el overlay mostrará el progreso
                 audioService.downloadModel();
               },
             },
             {
-              text: 'Cancelar',
+              text: 'Cancel',
               style: 'cancel',
             },
           ]
@@ -336,7 +336,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
       }
     } catch (error) {
       console.error('[DailyReading] Error al reproducir audio:', error);
-      Alert.alert('Error', 'No se pudo iniciar la lectura de audio.');
+      Alert.alert('Error', 'Could not start audio reading.');
     }
   };
 
@@ -355,10 +355,10 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
       });
 
       if (result.action === 'error') {
-        Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+        Alert.alert('Error', 'Could not share. Please try again.');
       }
     } catch (error: any) {
-      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+      Alert.alert('Error', 'Could not share. Please try again.');
       console.error('Error compartiendo:', error);
     }
   };
@@ -377,7 +377,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
         // Desmarcar
         await readingProgressService.unmarkAsComplete(dateToMark);
         setIsReadingCompleted(false);
-        Alert.alert('✅ Lectura desmarcada', 'Se ha quitado del registro.');
+        Alert.alert('✅ Reading unmarked', 'It has been removed from the record.');
       } else {
         // Marcar como completada
         await readingProgressService.markAsComplete(
@@ -385,7 +385,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
           dailyReading.id !== 'fallback' ? dailyReading.id : undefined
         );
         setIsReadingCompleted(true);
-        Alert.alert('✅ Lectura completada', 'Se ha registrado en tu calendario de escritos.');
+        Alert.alert('✅ Reading completed', 'It has been registered in your writing calendar.');
       }
     } catch (err) {
       console.error('Error marcando lectura:', err);
@@ -399,7 +399,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   // =====================================================
   const handleSaveReflection = async () => {
     if (!reflection.trim()) {
-      Alert.alert('⚠️ Campo vacío', 'Escribe tu reflexión antes de guardar.');
+      Alert.alert('⚠️ Empty field', 'Write your reflection before saving.');
       return;
     }
     if (!dailyReading) return;
@@ -420,13 +420,13 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
         w.tags.includes('lectura-diaria')
       );
 
-      if (existingReflection) {
+        if (existingReflection) {
         // Ya existe una reflexión para este día - Actualizar
         await writingsService.updateWriting(existingReflection.id, {
           title: reflectionTitle.trim() || '',
           content: reflection,
         });
-        Alert.alert('✅ Reflexión Actualizada', 'Tu reflexión se ha actualizado correctamente.');
+        Alert.alert('✅ Reflection Updated', 'Your reflection has been updated successfully.');
       } else {
         // No existe reflexión previa, crear nueva
         const title = reflectionTitle.trim() || '';
@@ -440,7 +440,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
           tags: ['reflexión', 'lectura-diaria'],
         });
 
-        Alert.alert('✅ Reflexión Guardada', 'Tu reflexión se ha guardado en tus escritos.');
+        Alert.alert('✅ Reflection Saved', 'Your reflection has been saved to your writings.');
       }
 
       // ✅ NUEVO: Marcar automáticamente como completado
@@ -478,14 +478,14 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-        <Text style={styles.loadingText}>Cargando lectura del día...</Text>
+        <Text style={styles.loadingText}>Loading today's reading...</Text>
       </View>
     );
   }
 
   // Estado de error
   if (error || !dailyReading) {
-    const isOfflineError = !isOnline || error?.includes('Recupera la conexión');
+    const isOfflineError = !isOnline || error?.includes('Restore connection');
     return (
       <View style={[styles.container, styles.centerContent]}>
         <OfflineBanner />
@@ -499,12 +499,12 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
           isOfflineError && {color: colors.charcoal.muted}
         ]}>
           {isOfflineError 
-            ? 'Recupera la conexión para leer la lectura del día.' 
-            : (error || 'Error desconocido')}
+            ? 'Restore connection to read today\'s reading.' 
+            : (error || 'Unknown error')}
         </Text>
         {isOnline && (
           <TouchableOpacity style={styles.retryButton} onPress={loadTodayReading}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -514,7 +514,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   // Formatear fecha
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       day: 'numeric',
       month: 'long'
@@ -539,7 +539,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
           )}
         </View>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerSubtitle}>LITURGIA DE HOY</Text>
+          <Text style={styles.headerSubtitle}>TODAY'S READING</Text>
           <Text style={styles.headerTitle}>{formatDate(dailyReading.date)}</Text>
         </View>
         <View style={styles.headerRight}>
@@ -614,7 +614,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
               onPress={handlePlayAudio}
               activeOpacity={0.7}>
               <MaterialIcons name="play-circle-outline" size={20} color={colors.sky} />
-              <Text style={styles.actionButtonText}>Escuchar</Text>
+              <Text style={styles.actionButtonText}>Listen</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -622,7 +622,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
               onPress={handleShare}
               activeOpacity={0.7}>
               <MaterialIcons name="share" size={20} color={colors.ink.light} />
-              <Text style={styles.actionButtonText}>Compartir</Text>
+              <Text style={styles.actionButtonText}>Share</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -667,9 +667,9 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
             <View style={styles.reflectionHeader}>
               <View style={styles.reflectionTitleContainer}>
                 <MaterialIcons name="edit-note" size={20} color={colors.primary.DEFAULT} />
-                <Text style={styles.reflectionTitle}>REFLEXIÓN PERSONAL</Text>
+                <Text style={styles.reflectionTitle}>PERSONAL REFLECTION</Text>
               </View>
-              <Text style={styles.reflectionPrivate}>PRIVADO</Text>
+              <Text style={styles.reflectionPrivate}>PRIVATE</Text>
             </View>
 
             {/* Título de la reflexión */}
@@ -677,7 +677,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
               <TextInput
                 ref={reflectionTitleRef}
                 style={styles.reflectionTitleInput}
-                placeholder="Título de tu reflexión..."
+                placeholder="Reflection title..."
                 placeholderTextColor={`${colors.charcoal.muted}60`}
                 value={reflectionTitle}
                 onChangeText={setReflectionTitle}
@@ -694,7 +694,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
               <TextInput
                 ref={reflectionContentRef}
                 style={styles.reflectionInput}
-                placeholder="Escribe aquí lo que el Señor te inspira hoy..."
+                placeholder="Write what the Lord inspires you today..."
                 placeholderTextColor={`${colors.charcoal.muted}60`}
                 value={reflection}
                 onChangeText={setReflection}
@@ -718,7 +718,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
                   styles.autoSaveText,
                   isAutoSaving && {color: colors.primary.DEFAULT}
                 ]}>
-                  {isAutoSaving ? 'Guardando...' : 'Guardado automático'}
+                  {isAutoSaving ? 'Saving...' : 'Auto-saved'}
                 </Text>
               </View>
             </View>

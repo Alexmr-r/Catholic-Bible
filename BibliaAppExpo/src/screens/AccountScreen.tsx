@@ -25,6 +25,7 @@ import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {useAuth} from '../contexts/AuthContext';
 import {apiClient} from '../services/api.client';
+import {t} from '../locales/i18n';
 
 type AccountScreenProps = {
   navigation: any;
@@ -34,7 +35,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
-  const {user, refreshAuth, profilePhoto, updateProfilePhoto} = useAuth();
+  const {user, refreshAuth, logout, profilePhoto, updateProfilePhoto} = useAuth();
 
   // Estados del formulario
   const [fullName, setFullName] = useState('');
@@ -59,7 +60,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
       }
     } catch (error) {
       console.error('Error cargando datos:', error);
-      Alert.alert('Error', 'No se pudieron cargar los datos del usuario');
+      Alert.alert(t('general.error') || 'Error', 'Could not load user data');
     } finally {
       setIsLoading(false);
     }
@@ -71,15 +72,15 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
 
   const handleChangePhoto = () => {
     Alert.alert(
-      'Cambiar Foto',
-      'Elige una opción',
+      'Change Photo',
+      'Choose an option',
       [
         {
-          text: 'Tomar Foto', 
+          text: 'Take Photo', 
           onPress: async () => {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert('Permiso denegado', 'Se necesita acceso a la cámara');
+              Alert.alert('Permission Denied', 'Camera access is required');
               return;
             }
             const result = await ImagePicker.launchCameraAsync({
@@ -93,11 +94,11 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
           }
         },
         {
-          text: 'Elegir de Galería', 
+          text: 'Choose from Gallery', 
           onPress: async () => {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert('Permiso denegado', 'Se necesita acceso a la galería');
+              Alert.alert('Permission Denied', 'Gallery access is required');
               return;
             }
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -111,7 +112,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
             }
           }
         },
-        {text: 'Cancelar', style: 'cancel'},
+        {text: t('general.cancel') || 'Cancel', style: 'cancel'},
       ]
     );
   };
@@ -122,7 +123,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
 
   const handleSaveChanges = async () => {
     if (!fullName.trim()) {
-      Alert.alert('Error', 'El nombre completo es requerido');
+      Alert.alert(t('general.error') || 'Error', 'Full name is required');
       return;
     }
 
@@ -132,8 +133,8 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
       await apiClient.put('/users/me', { fullName: fullName.trim() });
 
       Alert.alert(
-        'Éxito',
-        'Los cambios se guardaron correctamente',
+        t('general.success') || 'Success',
+        'Changes were successfully saved',
         [
           {
             text: 'OK',
@@ -146,7 +147,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
       );
     } catch (error) {
       console.error('Error guardando cambios:', error);
-      Alert.alert('Error', 'No se pudieron guardar los cambios. Intenta de nuevo.');
+      Alert.alert(t('general.error') || 'Error', 'Could not save changes. Try again.');
     } finally {
       setIsSaving(false);
     }
@@ -154,16 +155,26 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Eliminar Cuenta',
-      '¿Estás seguro de que deseas eliminar tu cuenta definitivamente? Esta acción no se puede deshacer.',
+      'Delete Account',
+      'Are you sure you want to permanently delete your account? This action cannot be undone.',
       [
-        {text: 'Cancelar', style: 'cancel'},
+        {text: t('general.cancel') || 'Cancel', style: 'cancel'},
         {
-          text: 'Eliminar',
+          text: t('general.delete') || 'Delete',
           style: 'destructive',
-          onPress: () => {
-            // TODO: Implementar eliminación de cuenta
-            console.log('Eliminar cuenta');
+          onPress: async () => {
+            setIsSaving(true);
+            try {
+              // Llamar al endpoint de eliminación de la API
+              await apiClient.delete('/users/me');
+              Alert.alert(t('general.success') || 'Success', 'Your account has been deleted.');
+              await logout(); // Cierra sesión y expulsa al usuario al Login
+            } catch (error) {
+              console.error('Error eliminando cuenta:', error);
+              Alert.alert(t('general.error') || 'Error', 'Could not delete your account. Try again later.');
+            } finally {
+              setIsSaving(false);
+            }
           },
         },
       ]
@@ -188,7 +199,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
           style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mi Cuenta</Text>
+        <Text style={styles.headerTitle}>My Account</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -227,12 +238,12 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
         <View style={styles.formSection}>
           {/* Full Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>NOMBRE COMPLETO</Text>
+            <Text style={styles.inputLabel}>{t('auth.fullNameLabel') || 'FULL NAME'}</Text>
             <TextInput
               style={styles.input}
               value={fullName}
               onChangeText={setFullName}
-              placeholder="Tu nombre"
+              placeholder="Your name"
               placeholderTextColor="#CBD5E1"
               autoCapitalize="words"
             />
@@ -240,12 +251,12 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
 
           {/* Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>CORREO ELECTRÓNICO</Text>
+            <Text style={styles.inputLabel}>{t('auth.emailLabel') || 'EMAIL'}</Text>
             <TextInput
               style={[styles.input, styles.inputDisabled]}
               value={email}
               editable={false}
-              placeholder="correo@ejemplo.com"
+              placeholder="example@email.com"
               placeholderTextColor="#CBD5E1"
             />
           </View>
@@ -257,7 +268,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
             activeOpacity={0.7}>
             <View style={styles.passwordButtonLeft}>
               <MaterialIcons name="lock" size={24} color={colors.gold.DEFAULT} />
-              <Text style={styles.passwordButtonText}>Cambiar Contraseña</Text>
+              <Text style={styles.passwordButtonText}>Change Password</Text>
             </View>
             <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
@@ -271,7 +282,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+              <Text style={styles.saveButtonText}>{t('general.save') || 'Save Changes'}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -279,7 +290,7 @@ const AccountScreen: React.FC<AccountScreenProps> = ({navigation}) => {
         {/* Delete Account */}
         <View style={styles.deleteSection}>
           <TouchableOpacity onPress={handleDeleteAccount} activeOpacity={0.7}>
-            <Text style={styles.deleteText}>Eliminar mi cuenta definitivamente</Text>
+            <Text style={styles.deleteText}>Permanently delete my account</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

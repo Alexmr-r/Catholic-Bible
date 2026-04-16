@@ -40,7 +40,8 @@ class ApiClient {
         throw await this.handleError(response);
       }
 
-      return await response.json();
+      const text = await response.text();
+      return text ? JSON.parse(text) : ({} as T);
     } catch (error: any) {
       clearTimeout(id);
       if (error.name === 'AbortError') {

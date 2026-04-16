@@ -27,6 +27,10 @@ public class AuthenticationService implements AuthenticationUseCase {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
+    // Cache simple en memoria para los códigos de recuperación (email -> código)
+    // En producción se recomienda usar Redis o tabla en BD con TTL
+    private final java.util.Map<String, String> resetTokens = new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override
     @Transactional
     public AuthResult register(RegisterCommand command) {
@@ -45,6 +49,8 @@ public class AuthenticationService implements AuthenticationUseCase {
                 .fullName(command.fullName().trim())
                 .emailVerified(true) // Por ahora sin verificación de email
                 .active(true)
+                .premium(false)
+                .trialStartDate(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -61,8 +67,7 @@ public class AuthenticationService implements AuthenticationUseCase {
                 savedUser,
                 accessToken,
                 refreshToken,
-                jwtTokenProvider.getAccessTokenExpiration()
-        );
+                jwtTokenProvider.getAccessTokenExpiration());
     }
 
     @Override
@@ -96,8 +101,7 @@ public class AuthenticationService implements AuthenticationUseCase {
                 user,
                 accessToken,
                 refreshToken,
-                jwtTokenProvider.getAccessTokenExpiration()
-        );
+                jwtTokenProvider.getAccessTokenExpiration());
     }
 
     @Override
@@ -123,8 +127,7 @@ public class AuthenticationService implements AuthenticationUseCase {
                 user,
                 newAccessToken,
                 newRefreshToken,
-                jwtTokenProvider.getAccessTokenExpiration()
-        );
+                jwtTokenProvider.getAccessTokenExpiration());
     }
 
     @Override
@@ -146,5 +149,170 @@ public class AuthenticationService implements AuthenticationUseCase {
         return userRepository.findById(userId)
                 .orElseThrow(AuthenticationException::invalidToken);
     }
-}
 
+    @Override
+    public void forgotPassword(String email) {
+        log.info("Generando código de recuperación para: {}", email);
+
+        userRepository.findByEmail(email.toLowerCase().trim()).ifPresent(user -> {
+            // Generar código aleatorio de 6 dígitos
+            String code = String.format("%06d", new java.util.Random().nextInt(999999));
+
+            // Guardar código
+            resetTokens.put(user.getEmail(), code);
+
+            // Simular envío de correo por consola
+            log.info("*********************************************************");
+            log.info("📧 MOCK CORREO PARA: {}", user.getEmail());
+            log.info("🔔 ASUNTO: Recuperación de contraseña");
+            log.info("🔑 CÓDIGO: {}", code);
+            log.info("*********************************************************");
+        });
+        // IMPORTANTE: Incluso si no existe el email, no lanzamos error por seguridad
+        // (evitar enumeración de usuarios)
+    }
+
+    @Override
+    public boolean verifyResetCode(String email, String code) {
+        String savedCode = resetTokens.get(email.toLowerCase().trim());
+        return savedCode != null && savedCode.equals(code);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String email, String code, String newPassword) {
+        log.info("Restableciendo contraseña para: {}", email);
+        String formattedEmail = email.toLowerCase().trim();
+
+        if (!verifyResetCode(formattedEmail, code)) {
+            throw new AuthenticationException("Código de recuperación inválido o expirado");
+        }
+
+        User user = userRepository.findByEmail(formattedEmail)
+                .orElseThrow(() -> new AuthenticationException("Usuario no encontrado"));
+
+        // Actualizar contraseña
+        String newPasswordHash = passwordEncoder.encode(newPassword);
+        User updatedUser = user.withNewPassword(newPasswordHash);
+
+        userRepository.update(updatedUser);
+
+        // Invalidar el código
+        resetTokens.remove(formattedEmail);
+
+        log.info("Contraseña restablecida exitosamente para: {}", formattedEmail);
+    }
+
+    @Override
+    @Transactional
+    public AuthResult loginWithGoogle(GoogleLoginCommand command) {
+        log.info("Intento de login con Google...");
+        String email;
+        String fullName;
+
+        // ==========================================
+        // TODO: Lógica de Producción (Descomentar cuando tengas Google Client ID)
+        // ==========================================
+        /*
+         * try {
+         * com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier =
+         * new
+         * com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
+         * new com.google.api.client.http.javanet.NetHttpTransport(),
+         * new com.google.api.client.json.gson.GsonFactory())
+         * .setAudience(java.util.Collections.singletonList(
+         * "PEGA_TU_GOOGLE_CLIENT_ID_AQUÍ"))
+         * .build();
+         * 
+         * com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken =
+         * verifier.verify(command.idToken());
+         * if (idToken != null) {
+         * email = idToken.getPayload().getEmail();
+         * fullName = (String) idToken.getPayload().get("name");
+         * } else {
+         * throw new AuthenticationException("Token de Google inválido");
+         * }
+         * } catch (Exception e) {
+         * throw new AuthenticationException("Error verificando token de Google: " +
+         * e.getMessage());
+         * }
+         */
+
+        // MOCK TEMPORAL
+        email = "google@test.com";
+        fullName = "Usuario Google";
+
+        return processSocialLogin(email, fullName);
+    }
+
+    @Override
+    @Transactional
+    public AuthResult loginWithApple(AppleLoginCommand command) {
+        log.info("Intento de login con Apple...");
+        String email;
+        String fullName = command.fullName() != null ? command.fullName() : "Usuario Apple";
+
+        // ==========================================
+        // TODO: Lógica de Producción (Descomentar cuando tengas Apple Sign In)
+        // ==========================================
+        /*
+         * try {
+         * // Apple envía un JWT. Se decodifica sin verificar firma para extraer el
+         * email.
+         * // Para producción estricta, usa la clave pública de Apple en
+         * https://appleid.apple.com/auth/keys
+         * String[] splitToken = command.identityToken().split("\\.");
+         * String unsignedToken = splitToken[0] + "." + splitToken[1] + ".";
+         * io.jsonwebtoken.Claims claims = io.jsonwebtoken.Jwts.parser()
+         * .build()
+         * .parseUnsecuredClaims(unsignedToken)
+         * .getPayload();
+         * 
+         * email = claims.get("email", String.class);
+         * } catch (Exception e) {
+         * throw new AuthenticationException("Error verificando token de Apple: " +
+         * e.getMessage());
+         * }
+         */
+
+        // MOCK TEMPORAL
+        email = "apple@test.com";
+
+        return processSocialLogin(email, fullName);
+    }
+
+    private AuthResult processSocialLogin(String email, String fullName) {
+        String formattedEmail = email.toLowerCase().trim();
+
+        User user = userRepository.findByEmail(formattedEmail).orElseGet(() -> {
+            log.info("Creando nuevo usuario vía Social Login: {}", formattedEmail);
+            User newUser = User.builder()
+                    .id(UUID.randomUUID())
+                    .email(formattedEmail)
+                    .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString())) // Contraseña
+                                                                                        // bloqueada/aleatoria
+                    .fullName(fullName)
+                    .emailVerified(true) // Ya verificado por Google/Apple
+                    .active(true)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            return userRepository.save(newUser);
+        });
+
+        if (!user.isActive()) {
+            throw new AuthenticationException("Usuario inactivo");
+        }
+
+        String accessToken = jwtTokenProvider.generateAccessToken(user);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user);
+
+        log.info("Social Login exitoso para usuario: {}", user.getId());
+
+        return new AuthResult(
+                user,
+                accessToken,
+                refreshToken,
+                jwtTokenProvider.getAccessTokenExpiration());
+    }
+}

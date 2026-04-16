@@ -14,9 +14,9 @@ const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const steps = [
-    {icon: 'touch-app', title: 'Guardar versículos', description: 'Realiza una pulsación prolongada sobre cualquier versículo y toca el icono del corazón para añadirlo a tu lista.'},
-    {icon: 'more-horiz', title: 'Capítulo completo', description: '¿Quieres guardar todo el capítulo? Pulsa en los tres puntos (...) situados en la esquina superior derecha de la lectura.'},
-    {icon: 'bookmarks', title: 'Acceso rápido', description: 'Encuentra todo lo que has guardado rápidamente en la pestaña "Favoritos" del menú inferior.'},
+    {icon: 'touch-app', title: 'Save verses', description: 'Long press any verse and tap the heart icon to add it to your list.'},
+    {icon: 'more-horiz', title: 'Full chapter', description: 'Want to save the entire chapter? Tap the three dots (...) in the top right corner while reading.'},
+    {icon: 'bookmarks', title: 'Quick access', description: 'Quickly find everything you\'ve saved in the "Favorites" tab in the bottom menu.'},
   ];
 
   return (
@@ -25,7 +25,7 @@ const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tus Favoritos</Text>
+        <Text style={styles.headerTitle}>Your Favorites</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -37,8 +37,8 @@ const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
           <View style={styles.heroIconContainer}>
             <MaterialIcons name="favorite" size={28} color="#EF4444" />
           </View>
-          <Text style={styles.heroTitle}>Tus Favoritos</Text>
-          <Text style={styles.heroSubtitle}>Guarda y organiza los versículos y capítulos que más te inspiran en tu camino de fe.</Text>
+          <Text style={styles.heroTitle}>Your Favorites</Text>
+          <Text style={styles.heroSubtitle}>Save and organize the verses and chapters that inspire you most on your faith journey.</Text>
         </View>
 
         <View style={styles.stepsContainer}>
@@ -48,7 +48,7 @@ const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
                 <MaterialIcons name={step.icon as any} size={20} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
               </View>
               <View style={styles.stepContent}>
-                <Text style={styles.stepNumber}>PASO {index + 1}</Text>
+                <Text style={styles.stepNumber}>STEP {index + 1}</Text>
                 <Text style={styles.stepTitle}>{step.title}</Text>
                 <Text style={styles.stepDescription}>{step.description}</Text>
               </View>
@@ -59,9 +59,9 @@ const FavoritesHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
         <View style={styles.infoBox}>
           <View style={styles.infoHeader}>
             <MaterialIcons name="workspace-premium" size={18} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
-            <Text style={styles.infoTitle}>TESORO ESPIRITUAL</Text>
+            <Text style={styles.infoTitle}>SPIRITUAL TREASURE</Text>
           </View>
-          <Text style={styles.infoText}>Tus pasajes favoritos son semillas de sabiduría guardadas en tu corazón, disponibles siempre.</Text>
+          <Text style={styles.infoText}>Your favorite passages are seeds of wisdom saved in your heart, always available.</Text>
         </View>
       </ScrollView>
     </View>

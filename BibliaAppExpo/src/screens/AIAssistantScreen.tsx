@@ -143,7 +143,7 @@ export default function AIAssistantScreen({ navigation, route }: AIAssistantScre
           <View style={[styles.offlineNotice, { backgroundColor: isDarkMode ? `${colors.burgundy.DEFAULT}30` : `${colors.burgundy.DEFAULT}10` }]}>
             <MaterialIcons name="cloud-off" size={16} color={colors.burgundy.DEFAULT} />
             <Text style={[styles.offlineNoticeText, { color: colors.burgundy.DEFAULT }]}>
-              El asistente virtual solo está disponible con conexión a internet.
+              The virtual assistant is only available with an internet connection.
             </Text>
           </View>
         )}
@@ -161,7 +161,7 @@ export default function AIAssistantScreen({ navigation, route }: AIAssistantScre
             style={[styles.input, { color: colors.charcoal.DEFAULT, backgroundColor: isDarkMode ? colors.background.dark : colors.cream }]}
             value={inputText}
             onChangeText={setInputText}
-            placeholder={isOnline ? "Escribe tu pregunta bíblica..." : "Sin conexión..."}
+            placeholder={isOnline ? "Type your biblical question..." : "No connection..."}
             placeholderTextColor={colors.charcoal.muted}
             multiline
             maxLength={500}

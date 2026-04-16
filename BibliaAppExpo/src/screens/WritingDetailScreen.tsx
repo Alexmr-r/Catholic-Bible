@@ -107,11 +107,11 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
         ? `${bookName} ${chapter}:${verse}`
         : '';
 
-      let message = `✍️ ${title || 'Mi escrito'}\n\n`;
+      let message = `✍️ ${title || 'My writing'}\n\n`;
       if (reference) {
-        message += `📖 Basado en: ${reference}\n\n`;
+        message += `📖 Based on: ${reference}\n\n`;
       }
-      message += `${content}\n\n— Compartido desde Biblia App`;
+      message += `${content}\n\n— Shared from Catholic Bible App`;
 
       console.log('[WritingDetail] Llamando a Share.share()...');
 
@@ -122,7 +122,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
       console.log('[WritingDetail] Resultado:', result);
     } catch (error: any) {
       console.error('Error compartiendo escrito:', error);
-      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+      Alert.alert('Error', 'Could not share. Please try again.');
     }
   };
 
@@ -132,27 +132,27 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
       setIsFavorite(updated.isFavorite);
     } catch (err) {
       console.error('Error toggling favorite:', err);
-      Alert.alert('Error', 'No se pudo actualizar el favorito.');
+      Alert.alert('Error', 'Could not update favorite.');
     }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Eliminar escrito',
-      '¿Estás seguro de que quieres eliminar este escrito?',
+      'Delete writing',
+      'Are you sure you want to delete this writing?',
       [
-        {text: 'Cancelar', style: 'cancel'},
+        {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Eliminar',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               await writingsService.deleteWriting(writingId);
-              Alert.alert('✅ Eliminado', 'El escrito ha sido eliminado.');
+              Alert.alert('✅ Deleted', 'The writing has been deleted.');
               navigation.goBack();
             } catch (err) {
               console.error('Error eliminando escrito:', err);
-              Alert.alert('Error', 'No se pudo eliminar el escrito.');
+              Alert.alert('Error', 'Could not delete writing.');
             }
           },
         },
@@ -200,7 +200,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Detalle del Escrito</Text>
+        <Text style={styles.headerTitle}>Writing Detail</Text>
 
         <View style={styles.headerActions}>
           <TouchableOpacity
@@ -271,7 +271,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
               {/* Etiqueta VERSÍCULO ASOCIADO */}
               <View style={styles.verseLabelRow}>
                 <MaterialIcons name="auto-stories" size={20} color={colors.burgundy.DEFAULT} />
-                <Text style={styles.verseLabelText}>VERSÍCULO ASOCIADO</Text>
+                <Text style={styles.verseLabelText}>ASSOCIATED VERSE</Text>
               </View>
 
               {/* Referencia: Salmo 23:1 */}
@@ -281,19 +281,19 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
               {isLoadingVerse ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="small" color={colors.primary.DEFAULT} />
-                  <Text style={styles.loadingText}>Cargando versículo...</Text>
+                  <Text style={styles.loadingText}>Loading verse...</Text>
                 </View>
               ) : verseText ? (
                 <Text style={styles.verseText}>"{verseText}"</Text>
               ) : (
-                <Text style={styles.verseText}>"El versículo no pudo cargarse"</Text>
+                <Text style={styles.verseText}>"The verse could not be loaded"</Text>
               )}
             </View>
 
             {/* Footer del card - Leer Capítulo Completo */}
             <View style={styles.verseCardFooter}>
               <TouchableOpacity style={styles.readChapterButton} onPress={handleReadChapter}>
-                <Text style={styles.readChapterText}>Leer Capítulo Completo</Text>
+                <Text style={styles.readChapterText}>Read Full Chapter</Text>
                 <MaterialIcons name="arrow-forward" size={16} color={colors.primary.DEFAULT} />
               </TouchableOpacity>
             </View>
@@ -304,12 +304,12 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
             <MaterialIcons name="delete" size={20} color={colors.burgundy.DEFAULT} />
-            <Text style={styles.deleteButtonText}>Eliminar</Text>
+            <Text style={styles.deleteButtonText}>Delete</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
             <MaterialIcons name="edit-note" size={20} color="#FFFFFF" />
-            <Text style={styles.editButtonText}>Editar Escrito</Text>
+            <Text style={styles.editButtonText}>Edit Writing</Text>
           </TouchableOpacity>
         </View>
 

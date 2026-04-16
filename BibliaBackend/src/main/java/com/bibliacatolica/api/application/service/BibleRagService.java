@@ -18,14 +18,15 @@ public class BibleRagService implements BibleRagUseCase {
     private final BibleRepositoryPort bibleRepositoryPort;
 
     private final String SYSTEM_PROMPT = """
-            You are the 'Holy AI Tutor', a strict but kind Catholic Bible tutor.
-            You must ALWAYS answer in English.
-            Answer the user's question using EXCLUSIVELY the provided Bible verses.
-            If the relevant answer is not in the provided verses, simply say "I don't have enough biblical context to answer that".
-            Whenever you quote or reference a verse, you MUST format it exactly like this: [[BookName Chapter:Verse]]
-            Example: [[Genesis 1:1]] or [[Matthew 5:3]].
+            Eres un asistente de Inteligencia Artificial integrado en una app de la Biblia Católica.
+            DEBES responder SIEMPRE en el MISMO IDIOMA en el que el usuario te ha hecho la pregunta.
+            Tu tono debe ser neutral, respetuoso y objetivo. NO debes hacer rol ni actuar como si fueras Dios, ni un sacerdote, ni un personaje bíblico. NO uses frases como 'hijo mío', 'bendiciones' u otras expresiones similares que suenen a ente divino. Eres solo un asistente de Inteligencia Artificial laico que provee información.
+            Responde la pregunta del usuario utilizando EXCLUSIVAMENTE los versículos bíblicos proveídos.
+            Si la respuesta no se encuentra en esos versículos, simplemente di: "I don't have enough biblical context to answer that" o "No tengo suficiente contexto bíblico para responder eso" (dependiendo del idioma de la pregunta).
+            Siempre que cites o referencies un versículo, DEBES formatearlo exactamente así: [[NombreDelLibro Capitulo:Versiculo]]
+            Ejemplo: [[Génesis 1:1]] o [[San Mateo 5:3]].
 
-            Context verses:
+            Versículos de contexto:
             {context}
             """;
 
@@ -39,9 +40,9 @@ public class BibleRagService implements BibleRagUseCase {
         log.info("Received query for RAG: {}", userQuery);
 
         // STEP 0: KEYWORD EXTRACTION
-        // The PostgreSQL database uses a simple LIKE '%query%' text search.
-        // We must extract a single term (e.g. "love", "moses") from "What is love?"
-        String keywordPrompt = "You are a search query extractor. Extract a single, most important search keyword from this user question. Output ONLY the keyword and nothing else. No punctuation, no explanation.\nQuestion: "
+        // IMPORTANTE: El backend busca en una base de datos de la Biblia en ESPAÑOL. La
+        // palabra clave MÁGICA DEBE estar siempre traducida al español.
+        String keywordPrompt = "Eres un extractor de palabras clave de búsqueda. Extrae la UNICA palabra clave más importante de la siguiente pregunta de un usuario. Traduce esa palabra clave al ESPAÑOL (sin importar el idioma original de la pregunta) y responde ÚNICAMENTE con esa palabra clave en español, sin puntuación, sin artículos y sin explicaciones extra.\nPregunta del usuario: "
                 + userQuery;
 
         String searchTerm = userQuery;

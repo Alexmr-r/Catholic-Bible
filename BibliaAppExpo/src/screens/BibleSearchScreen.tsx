@@ -96,11 +96,11 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     // Si está offline y no tiene Biblia descargada, mostrar error
     if (needsDownload) {
       Alert.alert(
-        'Sin conexión',
-        'Necesitas conexión a internet o descargar la Biblia para realizar búsquedas.',
+        'No connection',
+        'You need an internet connection or to download the Bible to search.',
         [
-          {text: 'Cancelar', style: 'cancel'},
-          {text: 'Descargar Biblia', onPress: () => navigation.navigate('ManageDownloads')},
+          {text: 'Cancel', style: 'cancel'},
+          {text: 'Download Bible', onPress: () => navigation.navigate('ManageDownloads')},
         ]
       );
       return;
@@ -168,7 +168,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     await loadRecentSearches();
   } catch (err: any) {
     console.error('Error en búsqueda:', err);
-    Alert.alert('Error', 'No se pudo realizar la búsqueda. Verifica tu conexión.');
+    Alert.alert('Error', 'Could not perform search. Check your connection.');
   } finally {
     setIsSearching(false);
     Keyboard.dismiss();
@@ -264,9 +264,9 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   // =====================================================
   const handleVoiceSearch = () => {
     Alert.alert(
-      '🎤 Búsqueda por voz',
-      'Funcionalidad mockeada para demo.\n\nEn producción, aquí podrás buscar versículos usando tu voz.',
-      [{text: 'Entendido'}]
+      '🎤 Voice Search',
+      'Mocked functionality for demo.\n\nIn production, you will be able to search for verses using your voice here.',
+      [{text: 'Got it'}]
     );
   };
 
@@ -299,12 +299,12 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
 
     if (!isOnline && !confirmedDownloaded) {
       Alert.alert(
-        'Sin conexión',
-        'No tienes conexión. Tienes que descargar la Biblia para leerla sin conexión.',
+        'No connection',
+        'You have no connection. You need to download the Bible to read it offline.',
         [
-          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Cancel', style: 'cancel' },
           { 
-            text: 'Descargar', 
+            text: 'Download', 
             onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'OldTestament' }) 
           },
         ]
@@ -320,12 +320,12 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
 
     if (!isOnline && !confirmedDownloaded) {
       Alert.alert(
-        'Sin conexión',
-        'No tienes conexión. Tienes que descargar la Biblia para leerla sin conexión.',
+        'No connection',
+        'You have no connection. You need to download the Bible to read it offline.',
         [
-          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Cancel', style: 'cancel' },
           { 
-            text: 'Descargar', 
+            text: 'Download', 
             onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'NewTestament' }) 
           },
         ]
@@ -352,12 +352,12 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   // =====================================================
   const handleClearSearches = async () => {
     Alert.alert(
-      '🗑️ Borrar búsquedas',
-      '¿Deseas borrar todas las búsquedas recientes?',
+      '🗑️ Delete searches',
+      'Do you want to delete all recent searches?',
       [
-        {text: 'Cancelar', style: 'cancel'},
+        {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Borrar',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             await readingHistoryService.clearSearchHistory();
@@ -373,7 +373,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       <OfflineBanner />
       {/* Header - Fixed */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Buscador</Text>
+        <Text style={styles.headerTitle}>Search</Text>
         <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
           <TouchableOpacity
             onPress={toggleTheme}
@@ -401,7 +401,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar libro, capítulo, versículo..."
+            placeholder="Search book, chapter, verse..."
             placeholderTextColor={`${colors.charcoal.muted}80`}
             value={searchQuery}
             onChangeText={handleSearchQueryChange}
@@ -431,7 +431,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       {/* Sugerencias mientras escribe */}
       {suggestions.length > 0 && !hasSearched && (
         <View style={styles.suggestionsContainer}>
-          <Text style={styles.suggestionsTitle}>Sugerencias</Text>
+          <Text style={styles.suggestionsTitle}>Suggestions</Text>
           {suggestions.map((suggestion, index) => (
             <TouchableOpacity
               key={`sug-${index}`}
@@ -512,15 +512,15 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       {isSearching && (
         <View style={styles.searchingContainer}>
           <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-          <Text style={styles.searchingText}>Buscando...</Text>
+          <Text style={styles.searchingText}>Searching...</Text>
         </View>
       )}
 
       {!isSearching && hasSearched && searchResults.length === 0 && smartResults.length === 0 && (
         <View style={styles.noResultsContainer}>
           <MaterialIcons name="search-off" size={48} color={colors.charcoal.muted} />
-          <Text style={styles.noResultsText}>No se encontraron resultados</Text>
-          <Text style={styles.noResultsSubtext}>Intenta con otras palabras</Text>
+          <Text style={styles.noResultsText}>No results found</Text>
+          <Text style={styles.noResultsSubtext}>Try different terms</Text>
         </View>
       )}
 
@@ -573,10 +573,10 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   <View style={styles.cardBadge}>
                     <View style={[styles.badgeDot, { backgroundColor: lastReading?.testament === 'old' ? colors.primary.DEFAULT : '#FFFFFF' }]} />
                     <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>
-                      46 LIBROS
+                      46 BOOKS
                     </Text>
                   </View>
-                  <Text style={styles.cardTitle}>Antiguo{'\n'}Testamento</Text>
+                  <Text style={styles.cardTitle}>Old{'\n'}Testament</Text>
                 </View>
                 <View style={styles.cardArrowContainer}>
                   <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
@@ -603,10 +603,10 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                   <View style={styles.cardBadge}>
                     <View style={[styles.badgeDot, { backgroundColor: lastReading?.testament === 'new' ? colors.primary.DEFAULT : '#FFFFFF' }]} />
                     <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>
-                      27 LIBROS
+                      27 BOOKS
                     </Text>
                   </View>
-                  <Text style={styles.cardTitle}>Nuevo{'\n'}Testamento</Text>
+                  <Text style={styles.cardTitle}>New{'\n'}Testament</Text>
                 </View>
                 <View style={styles.cardArrowContainer}>
                   <MaterialIcons name="arrow-forward" size={24} color="#FFFFFF" />
@@ -635,10 +635,10 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
                     <Text style={[styles.badgeText, { color: 'rgba(255, 255, 255, 0.9)' }]}>
                       {lastReading
                         ? `${lastReading.bookName.toUpperCase()} ${lastReading.chapter}`
-                        : 'LECTURA DEL DÍA'}
+                        : `TODAY'S READING`}
                     </Text>
                   </View>
-                  <Text style={styles.cardTitle}>Continuar{'\n'}lectura</Text>
+                  <Text style={styles.cardTitle}>Continue{'\n'}reading</Text>
                 </View>
                 <View style={styles.cardArrowContainer}>
                   <MaterialIcons name="play-arrow" size={28} color="#FFFFFF" />
@@ -651,11 +651,11 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
         {/* Recent Searches */}
         <View style={styles.recentSection}>
           <View style={styles.recentHeader}>
-            <Text style={styles.recentTitle}>Búsquedas recientes</Text>
+            <Text style={styles.recentTitle}>Recent searches</Text>
             <TouchableOpacity
               onPress={handleClearSearches}
               activeOpacity={0.7}>
-              <Text style={styles.clearButton}>Borrar</Text>
+              <Text style={styles.clearButton}>Clear</Text>
             </TouchableOpacity>
           </View>
 

@@ -90,7 +90,7 @@ const TextSettingsModal: React.FC<TextSettingsModalProps> = ({visible, onClose})
         <View style={styles.content}>
           {/* Tipo de Letra */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>TIPO DE LETRA</Text>
+            <Text style={styles.sectionTitle}>FONT STYLE</Text>
             <View style={styles.fontSelector}>
               <TouchableOpacity
                 style={[
@@ -130,7 +130,7 @@ const TextSettingsModal: React.FC<TextSettingsModalProps> = ({visible, onClose})
           {/* Tamaño */}
           <View style={styles.section}>
             <View style={styles.sizeHeader}>
-              <Text style={styles.sectionTitle}>TAMAÑO</Text>
+              <Text style={styles.sectionTitle}>SIZE</Text>
               <View style={styles.percentageBadge}>
                 <Text style={styles.percentageText}>{settings.fontSize}%</Text>
               </View>

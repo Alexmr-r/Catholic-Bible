@@ -5,6 +5,7 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { TextSettingsProvider } from './src/contexts/TextSettingsContext';
 import { NetworkProvider } from './src/contexts/NetworkContext';
 import { ThemeProvider } from './src/contexts/ThemeContext';
+import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Mantener la splash nativa visible hasta que auth resuelva
@@ -16,10 +17,12 @@ export default function App() {
       <ThemeProvider>
         <NetworkProvider>
           <AuthProvider>
-            <TextSettingsProvider>
-              <StatusBar style="auto" />
-              <AppNavigator />
-            </TextSettingsProvider>
+            <SubscriptionProvider>
+              <TextSettingsProvider>
+                <StatusBar style="auto" />
+                <AppNavigator />
+              </TextSettingsProvider>
+            </SubscriptionProvider>
           </AuthProvider>
         </NetworkProvider>
       </ThemeProvider>

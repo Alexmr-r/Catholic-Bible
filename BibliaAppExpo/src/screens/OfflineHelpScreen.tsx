@@ -14,9 +14,9 @@ const OfflineHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const steps = [
-    {icon: 'bookmark-border', title: 'Favoritos y Notas', description: 'Tus marcadores locales guardados.', badge: null},
-    {icon: 'workspace-premium', title: 'Biblia en Inglés', description: 'Descarga disponible para offline.', badge: 'OPCIONAL'},
-    {icon: 'menu-book', title: 'Lectura de la Biblia', description: 'Lee la Palabra incluso sin conexión.', badge: null},
+    {icon: 'bookmark-border', title: 'Favorites & Notes', description: 'Your saved local bookmarks.', badge: null},
+    {icon: 'workspace-premium', title: 'English Bible', description: 'Download available for offline.', badge: 'OPTIONAL'},
+    {icon: 'menu-book', title: 'Bible Reading', description: 'Read the Word even without a connection.', badge: null},
   ];
 
   return (
@@ -25,7 +25,7 @@ const OfflineHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Uso sin Conexión</Text>
+        <Text style={styles.headerTitle}>Offline Use</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -37,8 +37,8 @@ const OfflineHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
           <View style={styles.heroIconContainer}>
             <MaterialIcons name="wifi-off" size={28} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
           </View>
-          <Text style={styles.heroTitle}>Uso sin conexión</Text>
-          <Text style={styles.heroSubtitle}>Accede a la Palabra de Dios en cualquier lugar, incluso sin internet.</Text>
+          <Text style={styles.heroTitle}>Offline use</Text>
+          <Text style={styles.heroSubtitle}>Access the Word of God anywhere, even without internet.</Text>
         </View>
 
         <View style={styles.stepsContainer}>
@@ -48,7 +48,7 @@ const OfflineHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
                 <MaterialIcons name={step.icon as any} size={20} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
               </View>
               <View style={styles.stepContent}>
-                <Text style={styles.stepNumber}>PASO {index + 1}</Text>
+                <Text style={styles.stepNumber}>STEP {index + 1}</Text>
                 <View style={styles.stepTitleRow}>
                   <Text style={styles.stepTitle}>{step.title}</Text>
                   {step.badge && (
@@ -66,15 +66,15 @@ const OfflineHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
         <View style={styles.infoBox}>
           <View style={styles.infoHeader}>
             <MaterialIcons name="church" size={18} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
-            <Text style={styles.infoTitle}>REFLEXIÓN ESPIRITUAL</Text>
+            <Text style={styles.infoTitle}>SPIRITUAL REFLECTION</Text>
           </View>
-          <Text style={styles.infoText}>La Palabra de Dios no conoce fronteras. Aprovecha el silencio del modo offline para una meditación más profunda.</Text>
+          <Text style={styles.infoText}>The Word of God knows no boundaries. Take advantage of the silence of offline mode for deeper meditation.</Text>
           <TouchableOpacity
             style={styles.downloadButton}
             activeOpacity={0.8}
             onPress={() => navigation.navigate('ManageDownloads')}>
             <MaterialIcons name="cloud-download" size={16} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
-            <Text style={styles.downloadButtonText}>GESTIONAR DESCARGAS</Text>
+            <Text style={styles.downloadButtonText}>MANAGE DOWNLOADS</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

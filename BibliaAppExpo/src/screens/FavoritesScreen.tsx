@@ -248,11 +248,11 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
     if (selectedIds.size === 0) return;
     
     Alert.alert(
-      'Eliminar favoritos',
-      `¿Eliminar ${selectedIds.size} ${selectedIds.size === 1 ? 'favorito' : 'favoritos'}?`,
+      'Delete favorites',
+      `Delete ${selectedIds.size} ${selectedIds.size === 1 ? 'favorite' : 'favorites'}?`,
       [
         {
-          text: 'Eliminar',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -262,11 +262,11 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
               cancelSelectionMode();
               loadFavorites(false);
             } catch (err) {
-              Alert.alert('Error', 'No se pudieron eliminar los favoritos');
+              Alert.alert('Error', 'Could not delete favorites');
             }
           }
         },
-        {text: 'Cancelar', style: 'cancel'},
+        {text: 'Cancel', style: 'cancel'},
       ]
     );
   };
@@ -325,9 +325,9 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
           {isSelectionMode ? (
             <>
               <TouchableOpacity onPress={cancelSelectionMode} style={styles.headerAction}>
-                <Text style={styles.headerActionText}>Cancelar</Text>
+                <Text style={styles.headerActionText}>Cancel</Text>
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>{selectedIds.size} seleccionados</Text>
+              <Text style={styles.headerTitle}>{selectedIds.size} selected</Text>
               <TouchableOpacity onPress={handleDeleteSelected} style={styles.headerActionRight}>
                 <MaterialIcons name="delete" size={24} color={colors.burgundy.DEFAULT} />
               </TouchableOpacity>
@@ -335,7 +335,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
           ) : (
             <>
               <View style={styles.headerSpacer} />
-              <Text style={styles.headerTitle}>Favoritos</Text>
+              <Text style={styles.headerTitle}>Favorites</Text>
               <View style={styles.headerSpacer} />
             </>
           )}
@@ -346,7 +346,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
             <MaterialIcons name="search" size={20} color={colors.charcoal.muted} style={styles.searchIcon} />
             <TextInput 
               style={styles.searchInput} 
-              placeholder="Buscar en tus favoritos..." 
+              placeholder="Search your favorites..." 
               placeholderTextColor={`${colors.charcoal.muted}80`} 
               value={searchQuery} 
               onChangeText={setSearchQuery} 
@@ -370,7 +370,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
               activeOpacity={0.7}
             >
               <Text style={[styles.filterText, activeFilter === f && styles.filterTextActive]}>
-                {f === 'todos' ? 'Todos' : f === 'antiguo' ? 'Antiguo Testamento' : 'Nuevo Testamento'}
+                {f === 'todos' ? 'All' : f === 'antiguo' ? 'Old Testament' : 'New Testament'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -379,13 +379,13 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-            <Text style={styles.loadingText}>Cargando favoritos...</Text>
+            <Text style={styles.loadingText}>Loading favorites...</Text>
           </View>
         ) : isOfflineEmpty ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="cloud-off" size={48} color={colors.charcoal.muted} />
             <Text style={styles.errorText}>
-              No hay favoritos sincronizados aún.{'\n'}Cuando recuperes la conexión aparecerán aquí.
+              No synced favorites yet.{'\n'}They will appear here when you are online.
             </Text>
           </View>
         ) : error ? (
@@ -393,7 +393,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
             <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={() => loadFavorites()}>
-              <Text style={styles.retryButtonText}>Reintentar</Text>
+              <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -410,7 +410,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
               <View style={styles.emptyContainer}>
                 <MaterialIcons name="favorite-border" size={48} color={colors.charcoal.muted} />
                 <Text style={styles.emptyText}>
-                  {searchQuery.trim() ? `No se encontraron resultados para "${searchQuery}"` : 'No tienes favoritos en esta categoría'}
+                  {searchQuery.trim() ? `No results found for "${searchQuery}"` : 'You have no favorites in this category'}
                 </Text>
               </View>
             } 

@@ -14,9 +14,9 @@ const WritingsHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
   const steps = [
-    {icon: 'edit-calendar', title: 'Escribir tu reflexión', description: "Redacta tus pensamientos en 'Lectura del Día' mientras meditas la Palabra."},
-    {icon: 'auto-awesome', title: 'Guardado automático', description: "Tus escritos se guardan solos y aparecen organizados en 'Escritos'."},
-    {icon: 'ios-share', title: 'Editar y compartir', description: 'Accede a tus reflexiones para editarlas o compartirlas.'},
+    {icon: 'edit-calendar', title: 'Write your reflection', description: "Write down your thoughts in 'Daily Reading' while meditating on the Word."},
+    {icon: 'auto-awesome', title: 'Automatic saving', description: "Your writings save automatically and appear organized in 'Writings'."},
+    {icon: 'ios-share', title: 'Edit and share', description: 'Access your reflections to edit or share them.'},
   ];
 
   return (
@@ -25,7 +25,7 @@ const WritingsHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Flujo de Escritos</Text>
+        <Text style={styles.headerTitle}>Writings Flow</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -37,8 +37,8 @@ const WritingsHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
           <View style={styles.heroIconContainer}>
             <MaterialIcons name="edit-note" size={28} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
           </View>
-          <Text style={styles.heroTitle}>Flujo de Escritos</Text>
-          <Text style={styles.heroSubtitle}>Captura tus reflexiones y momentos de oración mientras meditas la Palabra de Dios.</Text>
+          <Text style={styles.heroTitle}>Writings Flow</Text>
+          <Text style={styles.heroSubtitle}>Capture your reflections and moments of prayer while meditating on the Word of God.</Text>
         </View>
 
         <View style={styles.stepsContainer}>
@@ -48,7 +48,7 @@ const WritingsHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
                 <MaterialIcons name={step.icon as any} size={20} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
               </View>
               <View style={styles.stepContent}>
-                <Text style={styles.stepNumber}>PASO {index + 1}</Text>
+                <Text style={styles.stepNumber}>STEP {index + 1}</Text>
                 <Text style={styles.stepTitle}>{step.title}</Text>
                 <Text style={styles.stepDescription}>{step.description}</Text>
               </View>
@@ -59,9 +59,9 @@ const WritingsHelpScreen: React.FC<{navigation: any}> = ({navigation}) => {
         <View style={styles.infoBox}>
           <View style={styles.infoHeader}>
             <MaterialIcons name="history-edu" size={18} color={isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT} />
-            <Text style={styles.infoTitle}>BIBLIOTECA ESPIRITUAL</Text>
+            <Text style={styles.infoTitle}>SPIRITUAL LIBRARY</Text>
           </View>
-          <Text style={styles.infoText}>Tu diario espiritual siempre contigo, sincronizado en todos tus dispositivos.</Text>
+          <Text style={styles.infoText}>Your spiritual diary is always with you, synchronized across all your devices.</Text>
         </View>
       </ScrollView>
     </View>

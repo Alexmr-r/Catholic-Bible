@@ -40,9 +40,9 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
       navigation.navigate('GenesisReading');
     } else {
       Alert.alert(
-        '🔒 Capítulo Bloqueado',
-        `El capítulo ${chapter} estará disponible próximamente.\n\nPor ahora, solo el capítulo 1 está habilitado para demo.`,
-        [{text: 'Entendido'}]
+        '🔒 Locked Chapter',
+        `Chapter ${chapter} will be available soon.\n\nFor now, only chapter 1 is enabled for the demo.`,
+        [{text: 'Got it'}]
       );
     }
   };
@@ -57,9 +57,9 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
   // =====================================================
   const handleInfo = () => {
     Alert.alert(
-      'ℹ️ Sobre Génesis',
-      'Funcionalidad en desarrollo.\n\nPróximamente verás información detallada sobre el libro de Génesis: autor, contexto histórico, temas principales, etc.',
-      [{text: 'Entendido'}]
+      'ℹ️ About Genesis',
+      'Feature in development.\n\nSoon you will see detailed information about the book of Genesis: author, historical context, main themes, etc.',
+      [{text: 'Got it'}]
     );
   };
 
@@ -109,8 +109,8 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Génesis</Text>
-          <Text style={styles.headerSubtitle}>ANTIGUO TESTAMENTO</Text>
+          <Text style={styles.headerTitle}>Genesis</Text>
+          <Text style={styles.headerSubtitle}>OLD TESTAMENT</Text>
         </View>
         <View style={styles.infoButton} />
       </View>
@@ -123,12 +123,12 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
         {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.categoryBadge}>
-            <Text style={styles.categoryBadgeText}>Pentateuco</Text>
+            <Text style={styles.categoryBadgeText}>Pentateuch</Text>
           </View>
           <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>El Comienzo</Text>
+            <Text style={styles.infoTitle}>The Beginning</Text>
             <Text style={styles.infoDescription}>
-              Narración de la creación del mundo, la historia primitiva de la humanidad y los patriarcas de Israel.
+              Narrative of the creation of the world, early human history, and the patriarchs of Israel.
             </Text>
           </View>
           <View style={styles.infoIconContainer}>
@@ -143,8 +143,8 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
 
         {/* Chapters Header */}
         <View style={styles.chaptersHeader}>
-          <Text style={styles.chaptersTitle}>Capítulos</Text>
-          <Text style={styles.chaptersCount}>{totalChapters} Capítulos</Text>
+          <Text style={styles.chaptersTitle}>Chapters</Text>
+          <Text style={styles.chaptersCount}>{totalChapters} Chapters</Text>
         </View>
 
         {/* Chapters Grid */}

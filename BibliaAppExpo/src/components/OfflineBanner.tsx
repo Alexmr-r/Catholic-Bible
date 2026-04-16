@@ -12,7 +12,7 @@ const OfflineBanner: React.FC = () => {
   const isOnline = isConnected && (isInternetReachable !== false) && !isForcedOffline;
 
   // Determinar mensaje
-  const bannerText = isForcedOffline ? 'Modo sin conexión activo' : 'Sin conexión a internet';
+  const bannerText = isForcedOffline ? 'Offline mode active' : 'No internet connection';
   const indicatorColor = isBibleDownloaded ? colors.primary.DEFAULT : colors.burgundy.DEFAULT;
 
   const visible = React.useRef(new Animated.Value(0)).current;

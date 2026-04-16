@@ -95,17 +95,17 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
 
   const getCategoryName = (category: string): string => {
     const categoryMap: Record<string, string> = {
-      'PENTATEUCH': 'Pentateuco',
-      'HISTORICAL': 'Históricos',
-      'WISDOM': 'Sapienciales',
-      'PROPHETS': 'Profetas',
-      'MAJOR_PROPHETS': 'Profetas Mayores',
-      'MINOR_PROPHETS': 'Profetas Menores',
-      'GOSPELS': 'Evangelios',
-      'ACTS': 'Historia',
-      'PAULINE_EPISTLES': 'Cartas Paulinas',
-      'CATHOLIC_EPISTLES': 'Cartas Católicas',
-      'REVELATION': 'Apocalipsis',
+      'PENTATEUCH': 'Pentateuch',
+      'HISTORICAL': 'Historical Books',
+      'WISDOM': 'Wisdom Books',
+      'PROPHETS': 'Prophets',
+      'MAJOR_PROPHETS': 'Major Prophets',
+      'MINOR_PROPHETS': 'Minor Prophets',
+      'GOSPELS': 'Gospels',
+      'ACTS': 'History',
+      'PAULINE_EPISTLES': 'Pauline Epistles',
+      'CATHOLIC_EPISTLES': 'Catholic Epistles',
+      'REVELATION': 'Revelation',
     };
     return categoryMap[category] || category;
   };
@@ -144,7 +144,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>{bookName}</Text>
           <Text style={styles.headerSubtitle}>
-            {testament === 'old' ? 'ANTIGUO TESTAMENTO' : 'NUEVO TESTAMENTO'}
+            {testament === 'old' ? 'OLD TESTAMENT' : 'NEW TESTAMENT'}
           </Text>
         </View>
         <View style={styles.infoButton} />
@@ -187,8 +187,8 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
 
           {/* Chapters Header */}
           <View style={styles.chaptersHeader}>
-            <Text style={styles.chaptersTitle}>Capítulos</Text>
-            <Text style={styles.chaptersCount}>{totalChapters} Capítulos</Text>
+            <Text style={styles.chaptersTitle}>Chapters</Text>
+            <Text style={styles.chaptersCount}>{totalChapters} Chapters</Text>
           </View>
 
           {/* Chapters Grid */}

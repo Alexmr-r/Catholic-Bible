@@ -73,11 +73,11 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     // Si está offline y no tiene Biblia descargada, redirigir
     if (needsDownload) {
       Alert.alert(
-        'Sin conexión',
-        'No tienes conexión a internet. ¿Deseas descargar la Biblia para leerla sin conexión?',
+        'No connection',
+        'You have no internet connection. Do you want to download the Bible to read offline?',
         [
-          {text: 'Volver', onPress: () => navigation.goBack()},
-          {text: 'Descargar', onPress: () => navigation.navigate('ManageDownloads')},
+          {text: 'Back', onPress: () => navigation.goBack()},
+          {text: 'Download', onPress: () => navigation.navigate('ManageDownloads')},
         ]
       );
       return;
@@ -119,7 +119,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       }
 
       if (!data) {
-        setError('No se pudo cargar el capítulo.');
+        setError('Could not load chapter.');
         return;
       }
 
@@ -162,7 +162,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       }
     } catch (err: any) {
       console.error('Error cargando capítulo:', err);
-      setError('No se pudo cargar el capítulo. Verifica tu conexión.');
+      setError('Could not load chapter. Check your connection.');
     } finally {
       setIsLoading(false);
     }
@@ -278,7 +278,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       });
     } catch (error: any) {
       console.error('[ChapterReading] Error compartiendo capítulo:', error);
-      Alert.alert('Error', 'No se pudo compartir el capítulo. Intenta de nuevo.');
+      Alert.alert('Error', 'Could not share chapter. Please try again.');
     }
   };
 
@@ -315,15 +315,15 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
       if (!modelExists) {
         Alert.alert(
-          'Narrador Premium IA',
-          'Para escuchar la Biblia con voz natural, necesitas descargar el motor de IA (50MB).',
+          'Premium AI Narrator',
+          'To listen to the Bible with a natural voice, you need to download the AI engine (50MB).',
           [
             {
-              text: 'Descargar Ahora',
+              text: 'Download Now',
               onPress: () => audioService.downloadModel(),
             },
             {
-              text: 'Cancelar',
+              text: 'Cancel',
               style: 'cancel',
             },
           ]
@@ -333,7 +333,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       }
     } catch (error) {
       console.error('[ChapterReading] Error al reproducir audio:', error);
-      Alert.alert('Error', 'No se pudo iniciar la lectura de audio.');
+      Alert.alert('Error', 'Could not start audio reading.');
     }
   };
 
@@ -361,7 +361,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
     } catch (err) {
       console.error('Error subrayando:', err);
-      Alert.alert('Error', 'No se pudo subrayar el versículo.');
+      Alert.alert('Error', 'Could not highlight verse.');
     }
     cancelSelection();
   };
@@ -400,20 +400,20 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       }
     } catch (err) {
       console.error('Error eliminando subrayados:', err);
-      Alert.alert('Error', 'No se pudieron eliminar los subrayados.');
+      Alert.alert('Error', 'Could not remove highlights.');
     }
     cancelSelection();
   };
 
   const handleAddNote = () => {
     const verseRef = selectedVerses.length === 1
-      ? `versículo ${selectedVerses[0]}`
-      : `versículos ${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`;
+      ? `verse ${selectedVerses[0]}`
+      : `verses ${Math.min(...selectedVerses)}-${Math.max(...selectedVerses)}`;
 
     Alert.alert(
-      '📝 Agregar Nota',
-      `Funcionalidad en desarrollo.\n\nPróximamente podrás escribir una nota para ${verseRef}.`,
-      [{text: 'Entendido'}]
+      '📝 Add Note',
+      `Feature in development.\n\nSoon you will be able to write a note for ${verseRef}.`,
+      [{text: 'Got it'}]
     );
     cancelSelection();
   };
@@ -436,7 +436,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
 
       const tag = isSingleVerse
         ? ''
-        : `Versículos ${minVerse}-${maxVerse}`;
+        : `Verses ${minVerse}-${maxVerse}`;
 
       // Añadir directamente - el backend ahora permite múltiples combinaciones
       await favoritesService.addFavorite({
@@ -449,7 +449,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       cancelSelection();
     } catch (err: any) {
       console.error('Error añadiendo favorito:', err);
-      Alert.alert('Error', 'No se pudo añadir a favoritos');
+      Alert.alert('Error', 'Could not add to favorites');
       cancelSelection();
     }
   };
@@ -500,12 +500,12 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       }
 
       if (result.action === 'error') {
-        Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+        Alert.alert('Error', 'Could not share. Please try again.');
       }
 
       cancelSelection();
     } catch (error: any) {
-      Alert.alert('Error', 'No se pudo compartir. Intenta de nuevo.');
+      Alert.alert('Error', 'Could not share. Please try again.');
       console.error('Error compartiendo:', error);
       cancelSelection();
     }
@@ -559,12 +559,12 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         bookId,
         chapterNumber: currentChapter,
         verseNumber: minVerse,
-        tags: ['Capítulo completo'],
+        tags: ['Full chapter'],
       });
 
     } catch (err: any) {
       console.error('Error añadiendo capítulo:', err);
-      Alert.alert('Error', 'No se pudo añadir el capítulo a favoritos');
+      Alert.alert('Error', 'Could not add chapter to favorites');
     }
   };
 
@@ -585,7 +585,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-          <Text style={styles.loadingText}>Cargando capítulo...</Text>
+          <Text style={styles.loadingText}>Loading chapter...</Text>
         </View>
       </View>
     );
@@ -608,9 +608,9 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         </View>
         <View style={styles.errorContainer}>
           <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
-          <Text style={styles.errorText}>{error || 'Error desconocido'}</Text>
+          <Text style={styles.errorText}>{error || 'Unknown error'}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadChapter}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -748,7 +748,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                   activeOpacity={0.7}>
                   <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.muted} />
                   <View style={styles.navButtonText}>
-                    <Text style={styles.navButtonLabel}>ANTERIOR</Text>
+                    <Text style={styles.navButtonLabel}>PREVIOUS</Text>
                     <Text style={styles.navButtonTitle}>
                       {chapterData.previousChapter.bookName} {chapterData.previousChapter.chapter}
                     </Text>
@@ -764,7 +764,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                   onPress={handleNextChapter}
                   activeOpacity={0.7}>
                   <View style={[styles.navButtonText, styles.navButtonTextRight]}>
-                    <Text style={styles.navButtonLabel}>SIGUIENTE</Text>
+                    <Text style={styles.navButtonLabel}>NEXT</Text>
                     <Text style={styles.navButtonTitle}>
                       {chapterData.nextChapter.bookName} {chapterData.nextChapter.chapter}
                     </Text>

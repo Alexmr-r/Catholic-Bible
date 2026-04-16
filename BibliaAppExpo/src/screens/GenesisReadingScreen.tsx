@@ -15,10 +15,10 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 // Mock data para Génesis 1 - La Creación
 const GENESIS_1_DATA = {
-  book: 'Génesis',
+  book: 'Genesis',
   chapter: 1,
-  version: 'Biblia de Jerusalén',
-  title: 'La Creación',
+  version: 'Jerusalem Bible',
+  title: 'The Creation',
   verses: [
     {number: 1, text: 'En el principio creó Dios los cielos y la tierra.'},
     {number: 2, text: 'La tierra era caos y confusión y oscuridad por encima del abismo, y un viento de Dios aleteaba por encima de las aguas.'},
@@ -67,69 +67,69 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
 
   const handleTextSettings = () => {
     Alert.alert(
-      '🔤 Ajustes de Texto',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás ajustar el tamaño de letra, tipo de fuente, espaciado, etc.',
-      [{text: 'Entendido'}]
+      '🔤 Text Settings',
+      'Feature in development.\n\nSoon you will be able to adjust font size, font family, spacing, etc.',
+      [{text: 'Got it'}]
     );
   };
 
   const handleMoreOptions = () => {
     Alert.alert(
-      '⚙️ Más Opciones',
-      'Funcionalidad en desarrollo.\n\nPróximamente podrás acceder a:\n• Audio del capítulo\n• Comentarios\n• Referencias cruzadas\n• Compartir capítulo completo',
-      [{text: 'Entendido'}]
+      '⚙️ More Options',
+      'Feature in development.\n\nSoon you will be able to access:\n• Chapter audio\n• Commentaries\n• Cross-references\n• Share full chapter',
+      [{text: 'Got it'}]
     );
   };
 
   const handleHighlight = (color: string) => {
     Alert.alert(
-      '🎨 Resaltar',
-      `Funcionalidad en desarrollo.\n\nPróximamente podrás resaltar el versículo ${selectedVerse} con color ${color}.`,
-      [{text: 'Entendido'}]
+      '🎨 Highlight',
+      `Feature in development.\n\nSoon you will be able to highlight verse ${selectedVerse} with color ${color}.`,
+      [{text: 'Got it'}]
     );
     setSelectedVerse(null);
   };
 
   const handleAddNote = () => {
     Alert.alert(
-      '📝 Agregar Nota',
-      `Funcionalidad en desarrollo.\n\nPróximamente podrás escribir una nota personal para el versículo ${selectedVerse}.`,
-      [{text: 'Entendido'}]
+      '📝 Add Note',
+      `Feature in development.\n\nSoon you will be able to write a personal note for verse ${selectedVerse}.`,
+      [{text: 'Got it'}]
     );
     setSelectedVerse(null);
   };
 
   const handleAddFavorite = () => {
     Alert.alert(
-      '❤️ Agregar a Favoritos',
-      `Funcionalidad en desarrollo.\n\nPróximamente podrás agregar el versículo ${selectedVerse} a tus favoritos.`,
-      [{text: 'Entendido'}]
+      '❤️ Add to Favorites',
+      `Feature in development.\n\nSoon you will be able to add verse ${selectedVerse} to your favorites.`,
+      [{text: 'Got it'}]
     );
     setSelectedVerse(null);
   };
 
   const handleShare = () => {
     Alert.alert(
-      '🔗 Compartir',
-      `Funcionalidad en desarrollo.\n\nPróximamente podrás compartir el versículo ${selectedVerse} en redes sociales o por mensaje.`,
-      [{text: 'Entendido'}]
+      '🔗 Share',
+      `Feature in development.\n\nSoon you will be able to share verse ${selectedVerse} on social media or via message.`,
+      [{text: 'Got it'}]
     );
     setSelectedVerse(null);
   };
 
   const handlePreviousChapter = () => {
     Alert.alert(
-      '⬅️ Capítulo Anterior',
-      'Funcionalidad en desarrollo.\n\nPróximamente navegarás al inicio o al último capítulo del libro anterior.',
-      [{text: 'Entendido'}]
+      '⬅️ Previous Chapter',
+      'Feature in development.\n\nSoon you will navigate to the start or the last chapter of the previous book.',
+      [{text: 'Got it'}]
     );
   };
 
   const handleNextChapter = () => {
     Alert.alert(
-      '➡️ Siguiente Capítulo',
-      'Funcionalidad en desarrollo.\n\nPróximamente navegarás a Génesis 2.',
-      [{text: 'Entendido'}]
+      '➡️ Next Chapter',
+      'Feature in development.\n\nSoon you will navigate to Genesis 2.',
+      [{text: 'Got it'}]
     );
   };
 
@@ -229,8 +229,8 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
               activeOpacity={0.7}>
               <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.muted} />
               <View style={styles.navButtonText}>
-                <Text style={styles.navButtonLabel}>ANTERIOR</Text>
-                <Text style={styles.navButtonTitle}>Inicio</Text>
+                <Text style={styles.navButtonLabel}>PREVIOUS</Text>
+                <Text style={styles.navButtonTitle}>Start</Text>
               </View>
             </TouchableOpacity>
 
@@ -239,8 +239,8 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
               onPress={handleNextChapter}
               activeOpacity={0.7}>
               <View style={[styles.navButtonText, styles.navButtonTextRight]}>
-                <Text style={styles.navButtonLabel}>SIGUIENTE</Text>
-                <Text style={styles.navButtonTitle}>Génesis 2</Text>
+                <Text style={styles.navButtonLabel}>NEXT</Text>
+                <Text style={styles.navButtonTitle}>Genesis 2</Text>
               </View>
               <MaterialIcons name="arrow-forward" size={20} color={colors.charcoal.muted} />
             </TouchableOpacity>

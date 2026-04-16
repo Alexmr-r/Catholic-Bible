@@ -207,15 +207,15 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
 
   const handleDeleteSelected = () => {
     if (selectedIds.size === 0) return;
-    Alert.alert('Eliminar escritos', `¿Eliminar ${selectedIds.size} ${selectedIds.size === 1 ? 'escrito' : 'escritos'}?`, [
-      { text: 'Eliminar', style: 'destructive', onPress: async () => {
+    Alert.alert('Delete writings', `Delete ${selectedIds.size} ${selectedIds.size === 1 ? 'writing' : 'writings'}?`, [
+      { text: 'Delete', style: 'destructive', onPress: async () => {
         try {
           for (const id of selectedIds) { await writingsService.deleteWriting(id); }
           cancelSelectionMode();
           loadWritings(false);
-        } catch (err) { Alert.alert('Error', 'No se pudieron eliminar los escritos'); }
+        } catch (err) { Alert.alert('Error', 'Could not delete writings'); }
       }},
-      {text: 'Cancelar', style: 'cancel'},
+      {text: 'Cancel', style: 'cancel'},
     ]);
   };
 
@@ -256,36 +256,36 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
         <View style={styles.header}>
           {isSelectionMode ? (
             <>
-              <TouchableOpacity onPress={cancelSelectionMode} style={styles.headerAction}><Text style={styles.headerActionText}>Cancelar</Text></TouchableOpacity>
-              <Text style={styles.headerTitle}>{selectedIds.size} seleccionados</Text>
+              <TouchableOpacity onPress={cancelSelectionMode} style={styles.headerAction}><Text style={styles.headerActionText}>Cancel</Text></TouchableOpacity>
+              <Text style={styles.headerTitle}>{selectedIds.size} selected</Text>
               <TouchableOpacity onPress={handleDeleteSelected} style={styles.headerActionRight}><MaterialIcons name="delete" size={24} color={colors.burgundy.DEFAULT} /></TouchableOpacity>
             </>
           ) : (
-            <><View style={styles.headerSpacer} /><Text style={styles.headerTitle}>Escritos Personales</Text><View style={styles.headerSpacer} /></>
+            <><View style={styles.headerSpacer} /><Text style={styles.headerTitle}>Personal Writings</Text><View style={styles.headerSpacer} /></>
           )}
         </View>
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <MaterialIcons name="search" size={20} color={colors.charcoal.muted} style={styles.searchIcon} />
-            <TextInput style={styles.searchInput} placeholder="Buscar en tus escritos..." placeholderTextColor={`${colors.charcoal.muted}80`} value={searchQuery} onChangeText={setSearchQuery} returnKeyType="search" onSubmitEditing={Keyboard.dismiss} />
+            <TextInput style={styles.searchInput} placeholder="Search your writings..." placeholderTextColor={`${colors.charcoal.muted}80`} value={searchQuery} onChangeText={setSearchQuery} returnKeyType="search" onSubmitEditing={Keyboard.dismiss} />
           </View>
         </View>
         <View style={styles.filtersContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContent}>
             {['todos', 'antiguo', 'nuevo'].map((f: any) => (
               <TouchableOpacity key={f} style={[styles.filterChip, activeFilter === f && styles.filterChipActive]} onPress={() => setActiveFilter(f)} activeOpacity={0.7}>
-                <Text style={[styles.filterText, activeFilter === f && styles.filterTextActive]}>{f === 'todos' ? 'Todos' : f === 'antiguo' ? 'Antiguo Testamento' : 'Nuevo Testamento'}</Text>
+                <Text style={[styles.filterText, activeFilter === f && styles.filterTextActive]}>{f === 'todos' ? 'All' : f === 'antiguo' ? 'Old Testament' : 'New Testament'}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
         {isLoading ? (
-          <View style={styles.loadingContainer}><ActivityIndicator size="large" color={colors.primary.DEFAULT} /><Text style={styles.loadingText}>Cargando escritos...</Text></View>
+          <View style={styles.loadingContainer}><ActivityIndicator size="large" color={colors.primary.DEFAULT} /><Text style={styles.loadingText}>Loading writings...</Text></View>
         ) : isOfflineEmpty ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="cloud-off" size={48} color={colors.charcoal.muted} />
             <Text style={styles.errorText}>
-              No hay escritos sincronizados aún.{'\n'}Cuando recuperes la conexión aparecerán aquí.
+              No synced writings yet.{'\n'}They will appear here when you are online.
             </Text>
           </View>
         ) : error ? (
@@ -293,12 +293,12 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
             <MaterialIcons name="error-outline" size={48} color={colors.burgundy.DEFAULT} />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={() => loadWritings()}>
-              <Text style={styles.retryButtonText}>Reintentar</Text>
+              <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <FlatList data={filteredWritings} renderItem={renderWritingCard} keyExtractor={(item) => item.id} contentContainerStyle={[styles.listContent, {flexGrow: 1}]} showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary.DEFAULT} />} ListEmptyComponent={
-            <View style={styles.emptyContainer}><MaterialIcons name={searchQuery ? "search-off" : "edit-note"} size={48} color={colors.charcoal.muted} /><Text style={styles.emptyText}>{searchQuery.trim() ? `No se encontraron resultados para "${searchQuery}"` : activeFilter !== 'todos' ? 'No tienes escritos en esta sección' : 'Aún no tienes escritos personales'}</Text>{!searchQuery && activeFilter === 'todos' && <Text style={styles.emptySubtitle}>Tus reflexiones aparecerán aquí</Text>}</View>
+            <View style={styles.emptyContainer}><MaterialIcons name={searchQuery ? "search-off" : "edit-note"} size={48} color={colors.charcoal.muted} /><Text style={styles.emptyText}>{searchQuery.trim() ? `No results found for "${searchQuery}"` : activeFilter !== 'todos' ? 'You have no writings in this section' : 'You don\'t have any personal writings yet'}</Text>{!searchQuery && activeFilter === 'todos' && <Text style={styles.emptySubtitle}>Your reflections will appear here</Text>}</View>
           } />
         )}
       </View>

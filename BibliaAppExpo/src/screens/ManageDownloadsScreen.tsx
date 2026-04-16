@@ -64,7 +64,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
 
   const handleDownload = async () => {
     if (!isOnline) {
-      Alert.alert('Sin conexión', 'Necesitas conexión a internet para descargar la Biblia.');
+      Alert.alert('No connection', 'You need an internet connection to download the Bible.');
       return;
     }
     setDownloadState(prev => ({...prev, isDownloading: true, progress: 0, error: null}));
@@ -85,8 +85,8 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
       await refreshDownloadStatus();
 
       Alert.alert(
-        '¡Descarga completada!',
-        'La Biblia en Inglés ya está disponible para uso sin conexión.',
+        'Download complete!',
+        'The English Bible is now available for offline use.',
         [{ 
           text: 'OK', 
           onPress: () => {
@@ -101,12 +101,12 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
       setDownloadState(prev => ({
         ...prev,
         isDownloading: false,
-        error: error.message || 'Error en la descarga',
+        error: error.message || 'Download error',
       }));
 
       Alert.alert(
-        'Error en la descarga',
-        'No se pudo descargar la Biblia. Por favor, verifica tu conexión e inténtalo de nuevo.',
+        'Download error',
+        'Could not download the Bible. Please check your connection and try again.',
         [{text: 'OK'}]
       );
     }
@@ -114,12 +114,12 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
 
   const handleDelete = () => {
     Alert.alert(
-      'Eliminar descarga',
-      '¿Estás seguro de que quieres eliminar la Biblia en Inglés? Necesitarás conexión a internet para volver a descargarla.',
+      'Delete download',
+      'Are you sure you want to delete the English Bible? You will need an internet connection to download it again.',
       [
-        {text: 'Cancelar', style: 'cancel'},
+        {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Eliminar',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -135,7 +135,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                 error: null,
               });
             } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar la descarga');
+              Alert.alert('Error', 'Could not delete download');
             }
           },
         },
@@ -162,7 +162,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
         <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Gestionar Descargas</Text>
+        <Text style={styles.headerTitle}>Manage Downloads</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -173,7 +173,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
 
         {/* Sección: Versión Disponible */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>VERSIÓN DISPONIBLE</Text>
+          <Text style={styles.sectionTitle}>AVAILABLE VERSION</Text>
 
           <View style={styles.downloadCard}>
             {/* Header de la tarjeta */}
@@ -183,7 +183,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                   <MaterialIcons name="menu-book" size={24} color={colors.gold.DEFAULT} />
                 </View>
                 <View style={styles.bookInfo}>
-                  <Text style={styles.bookTitle}>Biblia en Inglés</Text>
+                  <Text style={styles.bookTitle}>English Bible</Text>
                   <Text style={styles.bookMeta}>English • ~10 MB</Text>
                 </View>
               </View>
@@ -192,12 +192,12 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
               {downloadState.isDownloaded ? (
                 <View style={styles.badgeActive}>
                   <MaterialIcons name="check-circle" size={14} color="#059669" />
-                  <Text style={styles.badgeActiveText}>ACTIVA</Text>
+                  <Text style={styles.badgeActiveText}>ACTIVE</Text>
                 </View>
               ) : (
                 <View style={styles.badgeInactive}>
                   <MaterialIcons name="info" size={14} color="#94A3B8" />
-                  <Text style={styles.badgeInactiveText}>NO DESCARGADO</Text>
+                  <Text style={styles.badgeInactiveText}>NOT DOWNLOADED</Text>
                 </View>
               )}
             </View>
@@ -209,14 +209,14 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                 <>
                   <View style={styles.statusRow}>
                     <MaterialIcons name="download-done" size={18} color="#059669" />
-                    <Text style={styles.statusText}>Contenido descargado</Text>
+                    <Text style={styles.statusText}>Downloaded content</Text>
                   </View>
                   <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={handleDelete}
                     activeOpacity={0.7}>
                     <MaterialIcons name="delete" size={18} color={colors.burgundy.DEFAULT} />
-                    <Text style={styles.deleteButtonText}>Eliminar descarga</Text>
+                    <Text style={styles.deleteButtonText}>Delete download</Text>
                   </TouchableOpacity>
                 </>
               ) : downloadState.isDownloading ? (
@@ -235,7 +235,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                       {Math.round(downloadState.progress)}%
                     </Text>
                   </View>
-                  <Text style={styles.downloadingText}>Descargando...</Text>
+                  <Text style={styles.downloadingText}>Downloading...</Text>
                 </>
               ) : (
                 // Estado: No descargado
@@ -247,7 +247,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                       color={(isOnline && isServerAvailable) ? "#059669" : colors.burgundy.DEFAULT} 
                     />
                     <Text style={[styles.statusTextMuted, !(isOnline && isServerAvailable) && { color: colors.burgundy.DEFAULT }]}>
-                      {(isOnline && isServerAvailable) ? "Disponible para descargar" : "Sin conexión o servidor no disponible"}
+                      {(isOnline && isServerAvailable) ? "Available to download" : "No connection or server unavailable"}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -264,7 +264,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                       color="#FFFFFF" 
                     />
                     <Text style={styles.downloadButtonText}>
-                      {(isOnline && isServerAvailable) ? "Descargar ahora" : "Requiere conexión segura"}
+                      {(isOnline && isServerAvailable) ? "Download now" : "Requires secure connection"}
                     </Text>
                   </TouchableOpacity>
                 </>
@@ -277,7 +277,7 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
         <View style={styles.infoBox}>
           <MaterialIcons name="info" size={20} color={colors.gold.DEFAULT} />
           <Text style={styles.infoText}>
-            Descargar versiones te permite realizar búsquedas y leer la Palabra de Dios incluso sin conexión a internet.
+            Downloading versions allows you to search and read the Word of God even without an internet connection.
           </Text>
         </View>
       </ScrollView>

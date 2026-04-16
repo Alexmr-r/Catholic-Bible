@@ -7,6 +7,9 @@ export interface User {
   id: string;
   email: string;
   fullName: string;
+  isPremium?: boolean;
+  isTrialActive?: boolean;
+  trialStartDate?: string;
 }
 
 export interface AuthResponse {

@@ -61,6 +61,10 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
                 .fullName(user.getFullName())
                 .emailVerified(user.isEmailVerified())
                 .active(user.isActive())
+                .premium(user.isPremium())
+                .trialStartDate(user.getTrialStartDate())
+                .subscriptionEndDate(user.getSubscriptionEndDate())
+                .revenuecatUserId(user.getRevenuecatUserId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
@@ -74,9 +78,12 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
                 .fullName(entity.getFullName())
                 .emailVerified(entity.isEmailVerified())
                 .active(entity.isActive())
+                .premium(entity.isPremium())
+                .trialStartDate(entity.getTrialStartDate())
+                .subscriptionEndDate(entity.getSubscriptionEndDate())
+                .revenuecatUserId(entity.getRevenuecatUserId())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 }
-

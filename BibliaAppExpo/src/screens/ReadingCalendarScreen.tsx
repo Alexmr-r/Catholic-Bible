@@ -37,11 +37,11 @@ type ReadingCalendarScreenProps = {
 };
 
 const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
@@ -303,7 +303,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
 
   const formatDate = (date: string) => {
     const [, month, day] = date.split('-').map(Number);
-    return `${day} de ${MONTH_NAMES[month - 1]}`;
+    return `${MONTH_NAMES[month - 1]} ${day}`;
   };
 
   const days = getDaysInMonth();
@@ -319,7 +319,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
           <MaterialIcons name="arrow-back" size={24} color={colors.ink.light} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Calendario de Escritos</Text>
+          <Text style={styles.headerTitle}>Reading Calendar</Text>
         </View>
         <View style={styles.backButton} />
       </View>
@@ -408,16 +408,16 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
                 <View style={styles.offlineIconContainer}>
                   <MaterialIcons name="cloud-off" size={32} color={colors.charcoal.muted} />
                 </View>
-                <Text style={styles.offlineTitle}>Lectura no disponible</Text>
+                <Text style={styles.offlineTitle}>Reading not available</Text>
                 <Text style={styles.offlineMessage}>
                   {isOnline
-                    ? 'No se pudo cargar la lectura de este día.'
-                    : 'Sin conexión a internet. Esta lectura no está guardada en tu dispositivo.'
+                    ? 'Could not load the reading for this day.'
+                    : 'No internet connection. This reading is not saved on your device.'
                   }
                 </Text>
                 {!isOnline && (
                   <Text style={styles.offlineHint}>
-                    Conéctate a internet para ver el contenido de este día.
+                    Connect to the internet to view the content for this day.
                   </Text>
                 )}
               </View>
@@ -437,7 +437,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
                       styles.readingCardStatusText,
                       !isDateCompleted(selectedDate) && styles.readingCardStatusPending
                     ]}>
-                      {isDateCompleted(selectedDate) ? 'COMPLETADO' : 'PENDIENTE'}
+                      {isDateCompleted(selectedDate) ? 'COMPLETED' : 'PENDING'}
                     </Text>
                   </View>
                   <Text style={styles.readingCardDate}>{formatDate(selectedDate)}</Text>
@@ -458,7 +458,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
                       <View style={styles.readingCardReflection}>
                         <MaterialIcons name="edit-note" size={18} color={colors.primary.DEFAULT} />
                         <Text style={styles.readingCardReflectionText}>
-                          {hasReflection ? 'Contiene reflexión' : 'Sin reflexión'}
+                          {hasReflection ? 'Contains reflection' : 'No reflection'}
                         </Text>
                       </View>
                       <TouchableOpacity
@@ -492,7 +492,7 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
                         }}
                         style={styles.readingCardButton}>
                         <Text style={styles.readingCardButtonText}>
-                          {hasReflection ? 'VER REFLEXIÓN' : 'ESCRIBIR'}
+                          {hasReflection ? 'VIEW REFLECTION' : 'WRITE'}
                         </Text>
                         <MaterialIcons name="arrow-forward" size={14} color={colors.burgundy.DEFAULT} />
                       </TouchableOpacity>
@@ -503,13 +503,13 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
                       <View style={styles.readingCardReflection}>
                         <MaterialIcons name="schedule" size={18} color={colors.charcoal.muted} />
                         <Text style={styles.readingCardReflectionText}>
-                          Lectura pendiente
+                          Pending reading
                         </Text>
                       </View>
                       <TouchableOpacity
                         onPress={() => navigation.navigate('DailyReading', { date: selectedDate })}
                         style={[styles.readingCardButton, styles.readingCardButtonPrimary]}>
-                        <Text style={styles.readingCardButtonTextPrimary}>LEER</Text>
+                        <Text style={styles.readingCardButtonTextPrimary}>READ</Text>
                         <MaterialIcons name="arrow-forward" size={14} color="#FFFFFF" />
                       </TouchableOpacity>
                     </>

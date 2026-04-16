@@ -54,35 +54,35 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
     // ⛔ Verificar conexión primero
     if (!isOnline) {
       Alert.alert(
-        'Sin conexión',
-        'Necesitas conexión a internet para cambiar tu contraseña. Por seguridad, este cambio se verifica en tiempo real.'
+        'Offline',
+        'You need an internet connection to change your password. For security, this change is verified in real-time.'
       );
       return;
     }
 
     // Validaciones
     if (!currentPassword.trim()) {
-      Alert.alert('Error', 'Ingresa tu contraseña actual');
+      Alert.alert('Error', 'Enter your current password');
       return;
     }
 
     if (!newPassword.trim()) {
-      Alert.alert('Error', 'Ingresa tu nueva contraseña');
+      Alert.alert('Error', 'Enter your new password');
       return;
     }
 
     if (!validatePassword(newPassword)) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
     if (currentPassword === newPassword) {
-      Alert.alert('Error', 'La nueva contraseña debe ser diferente a la actual');
+      Alert.alert('Error', 'New password must be different from current password');
       return;
     }
 
@@ -94,8 +94,8 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
       });
 
       Alert.alert(
-        'Éxito',
-        'Tu contraseña se cambió correctamente',
+        'Success',
+        'Your password was changed successfully',
         [
           {
             text: 'OK',
@@ -105,7 +105,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
       );
     } catch (error: any) {
       console.error('Error cambiando contraseña:', error);
-      const errorMessage = error.message || 'No se pudo cambiar la contraseña. Intenta de nuevo.';
+      const errorMessage = error.message || 'Could not change password. Try again.';
       Alert.alert('Error', errorMessage);
     } finally {
       setIsSaving(false);
@@ -125,7 +125,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
           style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Cambiar Contraseña</Text>
+        <Text style={styles.headerTitle}>Change Password</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -142,14 +142,14 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
             <MaterialIcons name="vpn-key" size={32} color={colors.gold.DEFAULT} />
           </View>
           <Text style={styles.description}>
-            Para proteger tu cuenta, asegúrate de que tu nueva contraseña sea segura.
+            To protect your account, ensure your new password is secure.
           </Text>
         </View>
 
         <View style={styles.formSection}>
           {/* Current Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>CONTRASEÑA ACTUAL</Text>
+            <Text style={styles.inputLabel}>CURRENT PASSWORD</Text>
             <View style={styles.inputWrapper}>
               <MaterialIcons name="lock" size={20} color={colors.gold.DEFAULT} style={styles.inputIcon} />
               <TextInput
@@ -176,14 +176,14 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
 
           {/* New Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>NUEVA CONTRASEÑA</Text>
+            <Text style={styles.inputLabel}>NEW PASSWORD</Text>
             <View style={styles.inputWrapper}>
               <MaterialIcons name="lock-open" size={20} color={colors.gold.DEFAULT} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Minimum 6 characters"
                 placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showNewPassword}
                 autoCapitalize="none"
@@ -203,14 +203,14 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
 
           {/* Confirm Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>CONFIRMAR NUEVA CONTRASEÑA</Text>
+            <Text style={styles.inputLabel}>CONFIRM NEW PASSWORD</Text>
             <View style={styles.inputWrapper}>
               <MaterialIcons name="verified-user" size={20} color={colors.gold.DEFAULT} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Repite la nueva contraseña"
+                placeholder="Repeat new password"
                 placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
@@ -237,9 +237,9 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : !isOnline ? (
-              <Text style={styles.saveButtonText}>Requiere conexión</Text>
+              <Text style={styles.saveButtonText}>Connection Required</Text>
             ) : (
-              <Text style={styles.saveButtonText}>Actualizar Contraseña</Text>
+              <Text style={styles.saveButtonText}>Update Password</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -247,7 +247,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
         {/* Bible Verse */}
         <View style={styles.verseSection}>
           <Text style={styles.verseText}>
-            "El Señor es mi luz y mi salvación, ¿a quién temeré?" — Salmo 27:1
+            "The Lord is my light and my salvation; whom shall I fear?" — Psalm 27:1
           </Text>
         </View>
       </ScrollView>

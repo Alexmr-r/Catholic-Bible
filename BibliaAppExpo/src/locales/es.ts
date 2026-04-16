@@ -1,0 +1,44 @@
+export default {
+    auth: {
+        loginTitle: 'Biblia Católica',
+        loginSubtitle: 'Inicio de Sesión',
+        emailLabel: 'CORREO ELECTRÓNICO',
+        passwordLabel: 'CONTRASEÑA',
+        forgotPassword: '¿Olvidaste tu contraseña?',
+        signInButton: 'Iniciar Sesión',
+        continueGoogle: 'Continuar con Google',
+        continueApple: 'Continuar con Apple',
+        noAccount: '¿No tienes una cuenta?',
+        signUp: 'Regístrate',
+        registerTitle: 'Crear Cuenta',
+        registerSubtitle: 'Únete a nosotros',
+        fullNameLabel: 'NOMBRE COMPLETO',
+        createAccountButton: 'Crear Cuenta',
+        alreadyHaveAccount: '¿Ya tienes una cuenta?',
+        validationWait: 'Procesando...',
+        errors: {
+            invalidEmail: 'Correo electrónico inválido',
+            shortPassword: 'La contraseña debe tener al menos 6 caracteres',
+            invalidCredentials: 'Credenciales inválidas',
+            networkError: 'Error de red, intenta nuevamente',
+            emptyName: 'Por favor, ingresa tu nombre completo',
+        }
+    },
+    navigation: {
+        home: 'Inicio',
+        favorites: 'Favoritos',
+        writings: 'Escritos',
+        profile: 'Perfil',
+        oldTestament: 'Antiguo Testamento',
+        newTestament: 'Nuevo Testamento',
+    },
+    general: {
+        cancel: 'Cancelar',
+        save: 'Guardar',
+        edit: 'Editar',
+        delete: 'Eliminar',
+        success: 'Éxito',
+        error: 'Error',
+        loading: 'Cargando...',
+    }
+};

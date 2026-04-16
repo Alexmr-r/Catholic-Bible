@@ -37,12 +37,12 @@ const MatthewChaptersScreen: React.FC<MatthewChaptersScreenProps> = ({navigation
     const isEnabled = enabledChapters.includes(chapter);
 
     if (isEnabled) {
-      navigation.navigate('ChapterReading', { bookId: 'MAT', bookName: 'Mateo', chapter, testament: 'new' });
+      navigation.navigate('ChapterReading', { bookId: 'MAT', bookName: 'Matthew', chapter, testament: 'new' });
     } else {
       Alert.alert(
-        '🔒 Capítulo Bloqueado',
-        `El capítulo ${chapter} estará disponible próximamente.\n\nPor ahora, solo el capítulo 1 está habilitado para demo.`,
-        [{text: 'Entendido'}]
+        '🔒 Locked Chapter',
+        `Chapter ${chapter} will be available soon.\n\nFor now, only chapter 1 is enabled for the demo.`,
+        [{text: 'Got it'}]
       );
     }
   };
@@ -57,9 +57,9 @@ const MatthewChaptersScreen: React.FC<MatthewChaptersScreenProps> = ({navigation
   // =====================================================
   const handleInfo = () => {
     Alert.alert(
-      'ℹ️ Sobre San Mateo',
-      'Funcionalidad en desarrollo.\n\nPróximamente verás información detallada sobre el Evangelio de San Mateo: autor, contexto histórico, temas principales, etc.',
-      [{text: 'Entendido'}]
+      'ℹ️ About Matthew',
+      'Feature in development.\n\nSoon you will see detailed information about the Gospel of Matthew: author, historical context, main themes, etc.',
+      [{text: 'Got it'}]
     );
   };
 
@@ -109,8 +109,8 @@ const MatthewChaptersScreen: React.FC<MatthewChaptersScreenProps> = ({navigation
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>San Mateo</Text>
-          <Text style={styles.headerSubtitle}>NUEVO TESTAMENTO</Text>
+          <Text style={styles.headerTitle}>Matthew</Text>
+          <Text style={styles.headerSubtitle}>NEW TESTAMENT</Text>
         </View>
         <View style={styles.infoButton} />
       </View>
@@ -123,12 +123,12 @@ const MatthewChaptersScreen: React.FC<MatthewChaptersScreenProps> = ({navigation
         {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.categoryBadge}>
-            <Text style={styles.categoryBadgeText}>Evangelios</Text>
+            <Text style={styles.categoryBadgeText}>Gospels</Text>
           </View>
           <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>El Reino de los Cielos</Text>
+            <Text style={styles.infoTitle}>The Kingdom of Heaven</Text>
             <Text style={styles.infoDescription}>
-              Proclama a Jesús como el Mesías prometido, el Rey de los judíos, y presenta sus enseñanzas sobre el Reino de Dios.
+              Proclaims Jesus as the promised Messiah, the King of the Jews, and presents his teachings on the Kingdom of God.
             </Text>
           </View>
           <View style={styles.infoIconContainer}>
@@ -143,8 +143,8 @@ const MatthewChaptersScreen: React.FC<MatthewChaptersScreenProps> = ({navigation
 
         {/* Chapters Header */}
         <View style={styles.chaptersHeader}>
-          <Text style={styles.chaptersTitle}>Capítulos</Text>
-          <Text style={styles.chaptersCount}>{totalChapters} Capítulos</Text>
+          <Text style={styles.chaptersTitle}>Chapters</Text>
+          <Text style={styles.chaptersCount}>{totalChapters} Chapters</Text>
         </View>
 
         {/* Chapters Grid */}

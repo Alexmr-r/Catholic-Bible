@@ -21,13 +21,14 @@ import {ThemeColors} from '../theme/colors';
 import {LoginScreenProps} from '../navigation/AppNavigator';
 import {useAuth} from '../contexts/AuthContext';
 import {useTheme} from '../contexts/ThemeContext';
+import {t} from '../locales/i18n';
 
-// Configurar Google Sign In (Comentado hasta tener ClientID)
-/*
+// Configurar Google Sign In
 GoogleSignin.configure({
   offlineAccess: true,
+  webClientId: 'TODO: PEGA_AQUI_TU_GOOGLE_EXTERNAL_CLIENT_ID',
+  iosClientId: 'TODO: PEGA_AQUI_TU_GOOGLE_IOS_CLIENT_ID'
 });
-*/
 
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const {height} = useWindowDimensions();
@@ -58,7 +59,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
+      Alert.alert(t('general.error') || 'Error', t('auth.errors.incompleteFields') || 'Please complete all fields');
       return;
     }
 
@@ -69,8 +70,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     } catch (error: any) {
       console.error('Error en login:', error);
       Alert.alert(
-        'Error de inicio de sesión',
-        error.message || 'No se pudo iniciar sesión. Verifica tus credenciales.'
+        t('auth.errors.loginTitle') || 'Login Error',
+        error.message || t('auth.errors.invalidCredentials') || 'Could not sign in. Check your credentials.'
       );
     } finally {
       setIsLoading(false);
@@ -99,7 +100,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     } catch (error: any) {
       if (error.code !== 'ERR_REQUEST_CANCELED') {
         console.error('Error Apple Login:', error);
-        Alert.alert('Error', 'No se pudo iniciar sesión con Apple');
+        Alert.alert(t('general.error') || 'Error', t('auth.errors.appleLoginFailed') || 'Could not sign in with Apple');
       }
     } finally {
       setIsLoading(false);
@@ -126,13 +127,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
         // Ya está en progreso
       } else {
         console.error('Error Google Login:', error);
-        Alert.alert('Error', 'No se pudo iniciar sesión con Google');
+        Alert.alert(t('general.error') || 'Error', t('auth.errors.googleLoginFailed') || 'Could not sign in with Google');
       }
     } finally {
       setIsLoading(false);
     }
   };
-  const handleForgotPassword = () => Alert.alert('Recuperar Contraseña', 'Desarrollo');
+  const handleForgotPassword = () => navigation.navigate('ForgotPassword');
   const handleRegister = () => navigation.navigate('Register');
 
   return (
@@ -158,19 +159,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                 style={[styles.logoImage, {marginBottom: dynamicStyles.logoContainerMarginBottom}]}
                 resizeMode="contain"
               />
-              <Text style={styles.title}>Biblia Católica</Text>
-              <Text style={styles.subtitle}>Inicio de Sesión</Text>
+              <Text style={styles.title}>{t('app.name') || 'Catholic Bible'}</Text>
+              <Text style={styles.subtitle}>{t('auth.loginSubtitle') || 'Sign In'}</Text>
             </View>
 
             <View style={styles.form}>
               {/* Email Input */}
               <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                <Text style={styles.label}>CORREO ELECTRÓNICO</Text>
+                <Text style={styles.label}>{t('auth.emailLabel') || 'EMAIL'}</Text>
                 <View style={styles.inputWrapper}>
                   <MaterialIcons name="mail" size={20} color={colors.gold.dim} style={styles.inputIcon} />
                   <TextInput
                     style={styles.input}
-                    placeholder="ejemplo@email.com"
+                    placeholder={t('auth.emailPlaceholder') || 'example@email.com'}
                     placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                     value={email}
                     onChangeText={setEmail}
@@ -185,7 +186,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
 
               {/* Password Input */}
               <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                <Text style={styles.label}>CONTRASEÑA</Text>
+                <Text style={styles.label}>{t('auth.passwordLabel') || 'PASSWORD'}</Text>
                 <View style={styles.inputWrapper}>
                   <MaterialIcons name="lock" size={20} color={colors.gold.dim} style={styles.inputIcon} />
                   <TextInput
@@ -217,7 +218,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               </View>
 
               <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.7} style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+                <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword') || 'Forgot Password?'}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -228,14 +229,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                 {isLoading ? (
                   <ActivityIndicator color={colors.charcoal.dark} />
                 ) : (
-                  <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                  <Text style={styles.loginButtonText}>{t('auth.signInButton') || 'Sign In'}</Text>
                 )}
               </TouchableOpacity>
             </View>
 
             <View style={[styles.divider, {marginVertical: dynamicStyles.dividerMarginVertical}]}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>O CONTINÚA CON</Text>
+              <Text style={styles.dividerText}>{t('auth.orContinueWith') || 'OR CONTINUE WITH'}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -243,22 +244,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               {Platform.OS === 'ios' && (
                 <TouchableOpacity style={[styles.socialButton, styles.appleButton]} onPress={handleAppleLogin} activeOpacity={0.7}>
                   <AntDesign name="apple" size={20} color={colors.charcoal.dark} />
-                  <Text style={styles.appleButtonText}>Continuar con Apple</Text>
+                  <Text style={styles.appleButtonText}>{t('auth.continueApple') || 'Continue with Apple'}</Text>
                 </TouchableOpacity>
               )}
-              {/* Botón de Google temporalmente deshabilitado */}
-              {/* 
               <TouchableOpacity style={[styles.socialButton, styles.googleButton]} onPress={handleGoogleLogin} activeOpacity={0.7}>
                 <AntDesign name="google" size={20} color={colors.charcoal.dark} />
-                <Text style={styles.googleButtonText}>Continuar con Google</Text>
+                <Text style={styles.googleButtonText}>{t('auth.continueGoogle') || 'Continue with Google'}</Text>
               </TouchableOpacity>
-              */}
             </View>
 
             <View style={[styles.registerSection, {marginTop: dynamicStyles.registerMarginTop}]}>
-              <Text style={styles.registerText}>¿Aún no tienes cuenta? </Text>
+              <Text style={styles.registerText}>{t('auth.noAccount') || 'Dont have an account?'} </Text>
               <TouchableOpacity onPress={handleRegister} activeOpacity={0.7}>
-                <Text style={styles.registerLink}>Regístrate</Text>
+                <Text style={styles.registerLink}>{t('auth.signUp') || 'Sign Up'}</Text>
               </TouchableOpacity>
             </View>
           </View>

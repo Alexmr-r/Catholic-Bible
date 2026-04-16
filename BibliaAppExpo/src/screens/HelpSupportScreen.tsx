@@ -43,8 +43,8 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
 
   const handleContactSupport = async () => {
     const email = 'soporte@bibliacatolica.app'; // TODO: Cambiar por tu email real
-    const subject = encodeURIComponent('Soporte - Biblia Católica App');
-    const body = encodeURIComponent('Hola,\n\nDescripción del problema o consulta:\n\n');
+    const subject = encodeURIComponent('Support - Catholic Bible App');
+    const body = encodeURIComponent('Hello,\n\nProblem description or inquiry:\n\n');
     const url = `mailto:${email}?subject=${subject}&body=${body}`;
 
     try {
@@ -53,13 +53,13 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
         await Linking.openURL(url);
       } else {
         Alert.alert(
-          'Sin app de correo',
-          `No se encontró una app de correo configurada. Puedes escribirnos directamente a:\n\n${email}`,
-          [{text: 'Entendido'}]
+          'No email app',
+          `No email app found. You can write directly to:\n\n${email}`,
+          [{text: 'Got it'}]
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo abrir la app de correo.');
+      Alert.alert('Error', 'Could not open email app.');
     }
   };
 
@@ -75,7 +75,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
           style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Guía y Soporte</Text>
+        <Text style={styles.headerTitle}>Help & Support</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -87,7 +87,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
 
         {/* Sección: Temas Frecuentes */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>TEMAS FRECUENTES</Text>
+          <Text style={styles.sectionTitle}>FREQUENT TOPICS</Text>
 
           {/* Cómo usar los escritos */}
           <TouchableOpacity
@@ -97,7 +97,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
             <View style={styles.iconContainer}>
               <MaterialIcons name="history-edu" size={24} color={colors.gold.DEFAULT} />
             </View>
-            <Text style={styles.topicText}>Cómo usar los escritos</Text>
+            <Text style={styles.topicText}>How to use writings</Text>
             <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
 
@@ -109,7 +109,7 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
             <View style={styles.iconContainer}>
               <MaterialIcons name="favorite" size={24} color={colors.gold.DEFAULT} />
             </View>
-            <Text style={styles.topicText}>Gestión de favoritos</Text>
+            <Text style={styles.topicText}>Managing favorites</Text>
             <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
 
@@ -121,32 +121,32 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
             <View style={styles.iconContainer}>
               <MaterialIcons name="cloud-download" size={24} color={colors.gold.DEFAULT} />
             </View>
-            <Text style={styles.topicText}>Uso sin conexión</Text>
+            <Text style={styles.topicText}>Offline use</Text>
             <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
         </View>
 
         {/* Sección: ¿Necesitas más ayuda? */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>¿NECESITAS MÁS AYUDA?</Text>
+          <Text style={styles.sectionTitle}>NEED MORE HELP?</Text>
 
           {/* Tarjeta de contacto */}
           <TouchableOpacity
             style={[styles.contactCard, !isOnline && {opacity: 0.5}]}
-            onPress={isOnline ? handleContactSupport : () => Alert.alert('Sin conexión', 'Necesitas conexión para enviar un correo.')}
+            onPress={isOnline ? handleContactSupport : () => Alert.alert('No connection', 'You need a connection to send an email.')}
             activeOpacity={0.8}>
             <View style={styles.contactIconContainer}>
               <MaterialIcons name={isOnline ? "mail" : "cloud-off"} size={32} color={isOnline ? colors.gold.DEFAULT : colors.charcoal.muted} />
             </View>
-            <Text style={styles.contactTitle}>{isOnline ? 'Escríbenos por correo' : 'Sin conexión'}</Text>
+            <Text style={styles.contactTitle}>{isOnline ? 'Email us' : 'No connection'}</Text>
             <Text style={styles.contactDescription}>
               {isOnline
-                ? 'Se abrirá tu app de correo con nuestro email ya listo. Cuéntanos tu duda y te responderemos lo antes posible.'
-                : 'Recupera la conexión para poder contactarnos por correo.'}
+                ? 'Your email app will open with our email ready. Tell us your question and we will reply as soon as possible.'
+                : 'Restore your connection to contact us by email.'}
             </Text>
             {isOnline && (
               <View style={styles.contactButton}>
-                <Text style={styles.contactButtonText}>CONTACTAR AHORA</Text>
+                <Text style={styles.contactButtonText}>CONTACT NOW</Text>
               </View>
             )}
           </TouchableOpacity>

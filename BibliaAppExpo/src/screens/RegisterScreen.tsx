@@ -20,6 +20,7 @@ import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {RegisterScreenProps} from '../navigation/AppNavigator';
 import {useAuth} from '../contexts/AuthContext';
+import {t} from '../locales/i18n';
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
@@ -56,19 +57,19 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
 
   const handleRegister = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
+      Alert.alert(t('general.error'), t('auth.errors.incompleteFields') || 'Please complete all fields');
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      Alert.alert(t('general.error'), t('auth.errors.passwordsDoNotMatch') || 'Passwords do not match');
       return;
     }
     if (password.length < 8) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 8 caracteres');
+      Alert.alert(t('general.error'), t('auth.errors.shortPassword'));
       return;
     }
     if (!acceptedTerms) {
-      Alert.alert('Error', 'Debes aceptar los términos y condiciones');
+      Alert.alert(t('general.error'), t('auth.errors.acceptTerms') || 'You must accept the terms');
       return;
     }
 
@@ -78,7 +79,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
       await register({ email, password, fullName });
     } catch (error: any) {
       console.error('Error en registro:', error);
-      Alert.alert('Error de registro', error.message || 'No se pudo crear la cuenta.');
+      Alert.alert(t('general.error'), error.message || t('auth.errors.networkError'));
     } finally {
       setIsLoading(false);
     }
@@ -116,22 +117,22 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                     }]}
                     resizeMode="contain"
                   />
-                  <Text style={styles.title}>Crear Cuenta</Text>
+                  <Text style={styles.title}>{t('auth.registerTitle')}</Text>
                   <Text style={[styles.subtitle, {marginBottom: dynamicStyles.titleMarginBottom}]}>
-                    Únete a nuestra comunidad de fe y comienza tu lectura diaria.
+                    {t('auth.registerSubtitle')}
                   </Text>
                 </View>
 
                 <View style={styles.form}>
                   {/* Full Name Input */}
                   <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                    <Text style={styles.label}>Nombre completo</Text>
+                    <Text style={styles.label}>{t('auth.fullNameLabel')}</Text>
                     <View style={styles.inputWrapper}>
                       <MaterialIcons name="person" size={20} color={colors.gold.dim} style={styles.inputIcon} />
                       <TextInput
                         ref={fullNameRef}
                         style={styles.input}
-                        placeholder="Tu nombre"
+                        placeholder="John Doe"
                         placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                         value={fullName}
                         onChangeText={setFullName}
@@ -145,7 +146,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
 
                   {/* Email Input */}
                   <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                    <Text style={styles.label}>Correo electrónico</Text>
+                    <Text style={styles.label}>{t('auth.emailLabel')}</Text>
                     <View style={styles.inputWrapper}>
                       <MaterialIcons name="mail" size={20} color={colors.gold.dim} style={styles.inputIcon} />
                       <TextInput
@@ -166,13 +167,13 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
 
                   {/* Password Input */}
                   <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                    <Text style={styles.label}>Contraseña</Text>
+                    <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
                     <View style={styles.inputWrapper}>
                       <MaterialIcons name="lock" size={20} color={colors.gold.dim} style={styles.inputIcon} />
                       <TextInput
                         ref={passwordRef}
                         style={[styles.input, styles.passwordInput]}
-                        placeholder="Ingresa tu contraseña"
+                        placeholder="••••••••"
                         placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                         value={password}
                         onChangeText={setPassword}
@@ -197,13 +198,13 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
 
                   {/* Confirm Password Input */}
                   <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                    <Text style={styles.label}>Confirmar Contraseña</Text>
+                    <Text style={styles.label}>{t('auth.passwordLabel')}</Text>
                     <View style={styles.inputWrapper}>
                       <MaterialIcons name="lock-reset" size={20} color={colors.gold.dim} style={styles.inputIcon} />
                       <TextInput
                         ref={confirmPasswordRef}
                         style={[styles.input, styles.passwordInput]}
-                        placeholder="Repite tu contraseña"
+                        placeholder="••••••••"
                         placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
@@ -232,7 +233,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                       </View>
                     </TouchableOpacity>
                     <Text style={styles.termsText}>
-                      Acepto los <Text style={styles.termsLink}>Términos</Text> y la <Text style={styles.termsLink}>Política de Privacidad</Text>.
+                      Accept <Text style={styles.termsLink}>Terms</Text> and <Text style={styles.termsLink}>Privacy Policy</Text>.
                     </Text>
                   </View>
 
@@ -241,14 +242,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                     onPress={handleRegister}
                     activeOpacity={0.8}
                     disabled={isLoading}>
-                    {isLoading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.registerButtonText}>Registrarse</Text>}
+                    {isLoading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.registerButtonText}>{t('auth.createAccountButton')}</Text>}
                   </TouchableOpacity>
                 </View>
 
                 <View style={[styles.loginLinkSection, {marginTop: dynamicStyles.loginLinkMarginTop}]}>
-                  <Text style={styles.loginLinkText}>¿Ya tienes una cuenta? </Text>
+                  <Text style={styles.loginLinkText}>{t('auth.alreadyHaveAccount')} </Text>
                   <TouchableOpacity onPress={handleLogin} activeOpacity={0.7}>
-                    <Text style={styles.loginLink}>Inicia sesión</Text>
+                    <Text style={styles.loginLink}>{t('auth.signInButton')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>

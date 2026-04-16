@@ -20,8 +20,28 @@ public class User {
     private final String fullName;
     private final boolean emailVerified;
     private final boolean active;
+    private final boolean premium;
+    private final LocalDateTime trialStartDate;
+    private final LocalDateTime subscriptionEndDate;
+    private final String revenuecatUserId;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+
+    /**
+     * Devuelve verdadero si el usuario esta dentro de sus 7 dias de prueba.
+     */
+    public boolean isTrialActive() {
+        if (trialStartDate == null)
+            return false;
+        return LocalDateTime.now().isBefore(trialStartDate.plusDays(7));
+    }
+
+    /**
+     * Verifica acceso general a features premium
+     */
+    public boolean hasPremiumAccess() {
+        return premium || isTrialActive();
+    }
 
     /**
      * Verifica si el usuario puede iniciar sesión
@@ -41,6 +61,10 @@ public class User {
                 .fullName(this.fullName)
                 .emailVerified(true)
                 .active(this.active)
+                .premium(this.premium)
+                .trialStartDate(this.trialStartDate)
+                .subscriptionEndDate(this.subscriptionEndDate)
+                .revenuecatUserId(this.revenuecatUserId)
                 .createdAt(this.createdAt)
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -57,9 +81,12 @@ public class User {
                 .fullName(this.fullName)
                 .emailVerified(this.emailVerified)
                 .active(this.active)
+                .premium(this.premium)
+                .trialStartDate(this.trialStartDate)
+                .subscriptionEndDate(this.subscriptionEndDate)
+                .revenuecatUserId(this.revenuecatUserId)
                 .createdAt(this.createdAt)
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
 }
-

@@ -7,10 +7,12 @@ import {CompositeScreenProps} from '@react-navigation/native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useTheme} from '../contexts/ThemeContext';
 import {useAuth} from '../contexts/AuthContext';
+import {t} from '../locales/i18n';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import DailyReadingScreen from '../screens/DailyReadingScreen';
 import WritingsScreen from '../screens/WritingsScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
@@ -36,6 +38,8 @@ import OfflineHelpScreen from "../screens/OfflineHelpScreen";
 import ManageDownloadsScreen from "../screens/ManageDownloadsScreen";
 import AudioPlayerOverlay from "../components/AudioPlayerOverlay";
 import AIAssistantScreen from "../screens/AIAssistantScreen";
+import PaywallScreen from "../screens/PaywallScreen";
+import { useSubscription } from "../contexts/SubscriptionContext";
 
 // =====================================================
 // 🎯 TIPOS DE NAVEGACIÓN
@@ -74,13 +78,15 @@ export type RootStackParamList = {
   OfflineHelp: undefined;
   ManageDownloads: { returnTo?: 'OldTestament' | 'NewTestament' | 'Profile' } | undefined;
   AIAssistant: { bookName?: string; chapter?: number; verse?: number; verseText?: string; } | undefined;
+  Paywall: undefined;
 };
 
-export type AuthStackParamList = { Login: undefined; Register: undefined; };
+export type AuthStackParamList = { Login: undefined; Register: undefined; ForgotPassword: undefined; };
 export type MainTabsParamList = { DailyReading: { date?: string } | undefined; BibleSearch: undefined; Writings: undefined; Favorites: undefined; };
 
 export type LoginScreenProps = CompositeScreenProps<NativeStackScreenProps<AuthStackParamList, 'Login'>, NativeStackScreenProps<RootStackParamList>>;
 export type RegisterScreenProps = CompositeScreenProps<NativeStackScreenProps<AuthStackParamList, 'Register'>, NativeStackScreenProps<RootStackParamList>>;
+export type ForgotPasswordScreenProps = CompositeScreenProps<NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>, NativeStackScreenProps<RootStackParamList>>;
 export type DailyReadingScreenProps = CompositeScreenProps<BottomTabScreenProps<MainTabsParamList, 'DailyReading'>, NativeStackScreenProps<RootStackParamList>>;
 export type BibleSearchScreenProps = CompositeScreenProps<BottomTabScreenProps<MainTabsParamList, 'BibleSearch'>, NativeStackScreenProps<RootStackParamList>>;
 export type WritingsScreenProps = CompositeScreenProps<BottomTabScreenProps<MainTabsParamList, 'Writings'>, NativeStackScreenProps<RootStackParamList>>;
@@ -116,6 +122,7 @@ const AuthNavigator = () => {
       }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
+      <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </AuthStack.Navigator>
   );
 };
@@ -134,10 +141,10 @@ const MainTabsNavigator = () => {
         tabBarActiveTintColor: colors.primary.DEFAULT, 
         tabBarInactiveTintColor: colors.charcoal.muted, 
       }}>
-      <MainTabs.Screen name="DailyReading" component={DailyReadingScreen} options={{ tabBarLabel: 'Lectura', tabBarIcon: ({color}) => (<MaterialIcons name="auto-stories" size={30} color={color} />) }} />
-      <MainTabs.Screen name="BibleSearch" component={BibleSearchScreen} options={{ tabBarLabel: 'Biblia', tabBarIcon: ({color}) => (<MaterialIcons name="menu-book" size={30} color={color} />) }} />
-      <MainTabs.Screen name="Writings" component={WritingsScreen} options={{ tabBarLabel: 'Escritos', tabBarIcon: ({color}) => (<MaterialIcons name="history-edu" size={30} color={color} />) }} />
-      <MainTabs.Screen name="Favorites" component={FavoritesScreen} options={{ tabBarLabel: 'Favoritos', tabBarIcon: ({color}) => (<MaterialIcons name="bookmark" size={30} color={color} />) }} />
+      <MainTabs.Screen name="DailyReading" component={DailyReadingScreen} options={{ tabBarLabel: t('navigation.home') || 'Reading', tabBarIcon: ({color}) => (<MaterialIcons name="auto-stories" size={30} color={color} />) }} />
+      <MainTabs.Screen name="BibleSearch" component={BibleSearchScreen} options={{ tabBarLabel: 'Bible', tabBarIcon: ({color}) => (<MaterialIcons name="menu-book" size={30} color={color} />) }} />
+      <MainTabs.Screen name="Writings" component={WritingsScreen} options={{ tabBarLabel: t('navigation.writings') || 'Writings', tabBarIcon: ({color}) => (<MaterialIcons name="history-edu" size={30} color={color} />) }} />
+      <MainTabs.Screen name="Favorites" component={FavoritesScreen} options={{ tabBarLabel: t('navigation.favorites') || 'Favorites', tabBarIcon: ({color}) => (<MaterialIcons name="bookmark" size={30} color={color} />) }} />
     </MainTabs.Navigator>
   );
 };
@@ -147,6 +154,7 @@ const AppNavigator: React.FC = () => {
   const [appFullyReady, setAppFullyReady] = useState(false);
   const { isThemeLoading, isDarkMode } = useTheme();
   const { isLoading: isAuthLoading, isAuthenticated } = useAuth();
+  const { hasAccess } = useSubscription();
   
   const isEverythingLoaded = !isThemeLoading && !isAuthLoading;
   const [hasStarted, setHasStarted] = useState(false);
@@ -177,30 +185,38 @@ const AppNavigator: React.FC = () => {
             screenOptions={{ headerShown: false, animation: 'fade', animationDuration: 400 }}>
             
             {isAuthenticated ? (
-              <>
-                <RootStack.Screen name="MainTabs" component={MainTabsNavigator} />
-                <RootStack.Screen name="Profile" component={ProfileScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="Account" component={AccountScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="HelpSupport" component={HelpSupportScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="ReadingSettings" component={ReadingSettingsScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="DailyReading" component={DailyReadingScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="WritingsHelp" component={WritingsHelpScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="FavoritesHelp" component={FavoritesHelpScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="OfflineHelp" component={OfflineHelpScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="ManageDownloads" component={ManageDownloadsScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="OldTestament" component={OldTestamentScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="NewTestament" component={NewTestamentScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="BookChapters" component={BookChaptersScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="GenesisChapters" component={GenesisChaptersScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="MatthewChapters" component={MatthewChaptersScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="ChapterReading" component={ChapterReadingScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="WritingDetail" component={WritingDetailScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="EditWriting" component={EditWritingScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="ReadingCalendar" component={ReadingCalendarScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="GenesisReading" component={GenesisReadingScreen} options={{ animation: 'slide_from_right' }} />
-                <RootStack.Screen name="AIAssistant" component={AIAssistantScreen} options={{ animation: 'slide_from_right' }} />
-              </>
+              // 🔒 HARD PAYWALL — Producción: descomentar hasAccess cuando RevenueCat esté configurado
+              // Para activar: envolver con: hasAccess ? (<>..screens..</>) : (<Paywall/>)
+              hasAccess ? (
+                <>
+                  <RootStack.Screen name="MainTabs" component={MainTabsNavigator} />
+                  <RootStack.Screen name="Profile" component={ProfileScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="Account" component={AccountScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="HelpSupport" component={HelpSupportScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="ReadingSettings" component={ReadingSettingsScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="DailyReading" component={DailyReadingScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="WritingsHelp" component={WritingsHelpScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="FavoritesHelp" component={FavoritesHelpScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="OfflineHelp" component={OfflineHelpScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="ManageDownloads" component={ManageDownloadsScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="OldTestament" component={OldTestamentScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="NewTestament" component={NewTestamentScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="BookChapters" component={BookChaptersScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="GenesisChapters" component={GenesisChaptersScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="MatthewChapters" component={MatthewChaptersScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="ChapterReading" component={ChapterReadingScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="WritingDetail" component={WritingDetailScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="EditWriting" component={EditWritingScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="ReadingCalendar" component={ReadingCalendarScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="GenesisReading" component={GenesisReadingScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="AIAssistant" component={AIAssistantScreen} options={{ animation: 'slide_from_right' }} />
+                  <RootStack.Screen name="Paywall" component={PaywallScreen} options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+                </>
+              ) : (
+                // 🚫 Sin acceso: muro ineludible — no hay X para cerrar
+                <RootStack.Screen name="Paywall" component={PaywallScreen} options={{ animation: 'fade' }} />
+              )
             ) : (
               <RootStack.Screen name="Auth" component={AuthNavigator} />
             )}

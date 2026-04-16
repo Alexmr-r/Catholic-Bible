@@ -56,11 +56,11 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
   const handleBack = () => {
     if (title !== initialTitle || content !== initialContent) {
       Alert.alert(
-        'Cambios sin guardar',
-        '¿Deseas descartar los cambios?',
+        'Unsaved changes',
+        'Do you want to discard your changes?',
         [
-          {text: 'Seguir editando', style: 'cancel'},
-          {text: 'Descartar', style: 'destructive', onPress: () => navigation.goBack()},
+          {text: 'Keep editing', style: 'cancel'},
+          {text: 'Discard', style: 'destructive', onPress: () => navigation.goBack()},
         ]
       );
     } else {
@@ -69,24 +69,24 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
   };
 
   const handleCancel = () => {
-    Alert.alert(
-      'Cancelar edición',
-      '¿Estás seguro de que quieres cancelar? Los cambios se perderán.',
-      [
-        {text: 'Seguir editando', style: 'cancel'},
-        {text: 'Cancelar', style: 'destructive', onPress: () => navigation.goBack()},
-      ]
-    );
+      Alert.alert(
+        'Cancel edit',
+        'Are you sure you want to cancel? Your changes will be lost.',
+        [
+          {text: 'Keep editing', style: 'cancel'},
+          {text: 'Cancel', style: 'destructive', onPress: () => navigation.goBack()},
+        ]
+      );
   };
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'El título no puede estar vacío');
+      Alert.alert('Error', 'Title cannot be empty');
       return;
     }
 
     if (!content.trim()) {
-      Alert.alert('Error', 'El contenido no puede estar vacío');
+      Alert.alert('Error', 'Content cannot be empty');
       return;
     }
 
@@ -125,7 +125,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
       navigation.goBack();
     } catch (error) {
       console.error('Error guardando escrito:', error);
-      Alert.alert('Error', 'No se pudo guardar el escrito. Intenta nuevamente.');
+      Alert.alert('Error', 'Could not save writing. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -152,7 +152,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
             <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Editando Escrito</Text>
+          <Text style={styles.headerTitle}>Editing Writing</Text>
 
           <TouchableOpacity style={styles.headerButton} disabled>
             <MaterialIcons name="share" size={24} color={colors.ink.light} style={{opacity: 0.5}} />
@@ -172,7 +172,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
             </View>
 
             <View style={styles.editBadge}>
-              <Text style={styles.editBadgeText}>Modo Edición</Text>
+              <Text style={styles.editBadgeText}>Edit Mode</Text>
             </View>
           </View>
 
@@ -182,7 +182,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
               style={styles.titleInput}
               value={title}
               onChangeText={setTitle}
-              placeholder="Título del escrito"
+              placeholder="Writing title"
               placeholderTextColor={`${colors.ink.light}50`}
               multiline={false}
               maxLength={100}
@@ -198,7 +198,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
               style={styles.contentInput}
               value={content}
               onChangeText={setContent}
-              placeholder="Escribe aquí tu reflexión..."
+              placeholder="Write your reflection here..."
               placeholderTextColor={`${colors.ink.light}70`}
               multiline
               textAlignVertical="top"
@@ -214,8 +214,8 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
               <View style={styles.referenceContent}>
                 <View style={styles.referenceHeader}>
                   <MaterialIcons name="auto-stories" size={18} color={`${colors.burgundy.DEFAULT}80`} />
-                  <Text style={styles.referenceLabel}>REFERENCIA</Text>
-                  <Text style={styles.referenceDisabled}>(no editable)</Text>
+                  <Text style={styles.referenceLabel}>REFERENCE</Text>
+                  <Text style={styles.referenceDisabled}>(not editable)</Text>
                 </View>
 
                 <Text style={styles.referenceTitle}>
@@ -239,7 +239,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
               disabled={isSaving}
               activeOpacity={0.7}>
               <MaterialIcons name="close" size={20} color={colors.burgundy.DEFAULT} />
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -252,7 +252,7 @@ const EditWritingScreen: React.FC<EditWritingScreenProps> = ({navigation, route}
               ) : (
                 <>
                   <MaterialIcons name="save" size={20} color="#FFFFFF" />
-                  <Text style={styles.saveButtonText}>Guardar</Text>
+                  <Text style={styles.saveButtonText}>Save</Text>
                 </>
               )}
             </TouchableOpacity>

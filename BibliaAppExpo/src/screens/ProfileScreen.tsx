@@ -9,11 +9,15 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {useAuth} from '../contexts/AuthContext';
+import {useSubscription} from '../contexts/SubscriptionContext';
+import {RootStackParamList} from '../navigation/AppNavigator';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNetwork} from '../contexts/NetworkContext';
 import {Switch} from 'react-native';
@@ -22,30 +26,32 @@ type ProfileScreenProps = {
   navigation: any;
 };
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {user, logout, profilePhoto, updateProfilePhoto} = useAuth();
   const { colors, isDarkMode } = useTheme();
+  const { isPremium, isTrialActive } = useSubscription();
   const { isForcedOffline, setForcedOffline, isServerAvailable, isConnected, isBibleDownloaded, isInternetReachable } = useNetwork();
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
 
   const handleLogout = async () => {
     Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que deseas cerrar sesión?',
+      'Log Out',
+      'Are you sure you want to log out?',
       [
         {
-          text: 'Cancelar',
+          text: 'Cancel',
           style: 'cancel',
         },
         {
-          text: 'Cerrar Sesión',
+          text: 'Log Out',
           style: 'destructive',
           onPress: async () => {
             try {
               await logout();
             } catch (error) {
-              Alert.alert('Error', 'No se pudo cerrar sesión. Intenta de nuevo.');
+              Alert.alert('Error', 'Could not log out. Try again.');
             }
           },
         },
@@ -71,15 +77,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
 
   const handleChangePhoto = () => {
     Alert.alert(
-      'Cambiar Foto',
-      'Elige una opción',
+      'Change Photo',
+      'Choose an option',
       [
         {
-          text: 'Tomar Foto', 
+          text: 'Take Photo', 
           onPress: async () => {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert('Permiso denegado', 'Se necesita acceso a la cámara');
+              Alert.alert('Permission denied', 'Camera access is required');
               return;
             }
             const result = await ImagePicker.launchCameraAsync({
@@ -93,11 +99,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
           }
         },
         {
-          text: 'Elegir de Galería', 
+          text: 'Choose from Gallery', 
           onPress: async () => {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert('Permiso denegado', 'Se necesita acceso a la galería');
+              Alert.alert('Permission denied', 'Gallery access is required');
               return;
             }
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -111,7 +117,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
             }
           }
         },
-        {text: 'Cancelar', style: 'cancel'},
+        {text: 'Cancel', style: 'cancel'},
       ]
     );
   };
@@ -126,15 +132,35 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
           style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mi Perfil</Text>
+        <Text style={styles.headerTitle}>My Profile</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* Contenido */}
+        {/* Contenido */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
+
+        {/* Tarjeta VIP Ultra-Compacta */}
+        {!isPremium && (
+          <TouchableOpacity 
+            style={[styles.vipCard, { 
+              backgroundColor: isDarkMode ? '#1f1807' : '#fffdf5',
+              borderColor: isDarkMode ? '#8c7324' : '#d4af37' 
+            }]} 
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('Paywall')}
+          >
+            <View style={styles.vipCardContent}>
+              <MaterialIcons name="workspace-premium" size={20} color="#d4af37" />
+              <View style={styles.vipCardText}>
+                <Text style={[styles.vipCardTitle, { color: isDarkMode ? '#d4af37' : '#b8860b' }]}>Upgrade to Premium</Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={20} color="#d4af37" />
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* Profile Section */}
         <TouchableOpacity 
@@ -155,7 +181,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               <MaterialIcons name="edit" size={14} color={isDarkMode ? colors.background.dark : '#FFFFFF'} />
             </View>
           </View>
-          <Text style={styles.userName}>{user?.fullName || 'Usuario'}</Text>
+          <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
           <Text style={styles.userEmail}>{user?.email || 'email@example.com'}</Text>
         </TouchableOpacity>
 
@@ -170,8 +196,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               <MaterialIcons name="menu-book" size={28} color={colors.gold.DEFAULT} />
             </View>
             <View style={styles.textContainer}>
-              <Text style={styles.menuTitle}>Ajustes de Lectura</Text>
-              <Text style={styles.menuSubtitle}>Tamaño de letra y temas</Text>
+              <Text style={styles.menuTitle}>Reading Settings</Text>
+              <Text style={styles.menuSubtitle}>Font size and themes</Text>
             </View>
             <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
@@ -185,8 +211,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               <MaterialIcons name="person" size={28} color={colors.gold.DEFAULT} />
             </View>
             <View style={styles.textContainer}>
-              <Text style={styles.menuTitle}>Mi Cuenta</Text>
-              <Text style={styles.menuSubtitle}>Datos personales y perfil</Text>
+              <Text style={styles.menuTitle}>My Account</Text>
+              <Text style={styles.menuSubtitle}>Personal data and profile</Text>
             </View>
             <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
@@ -200,8 +226,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               <MaterialIcons name="help-outline" size={28} color={colors.gold.DEFAULT} />
             </View>
             <View style={styles.textContainer}>
-              <Text style={styles.menuTitle}>Guía y Soporte</Text>
-              <Text style={styles.menuSubtitle}>Centro de asistencia</Text>
+              <Text style={styles.menuTitle}>Guide & Support</Text>
+              <Text style={styles.menuSubtitle}>Assistance center</Text>
             </View>
             <MaterialIcons name="arrow-forward" size={24} color={colors.charcoal.muted} />
           </TouchableOpacity>
@@ -217,15 +243,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
                 />
               </View>
               <View style={styles.textContainer}>
-                <Text style={styles.menuTitle}>Modo Sin Conexión</Text>
+                <Text style={styles.menuTitle}>Offline Mode</Text>
                 <Text style={[styles.menuSubtitle, { color: colors.charcoal.DEFAULT }]}>
                   {isForcedOffline 
-                    ? 'Modo sin conexión activo' 
+                    ? 'Offline mode active' 
                     : isConnected 
-                      ? (isServerAvailable ? 'En línea • Sincronizado' : 'En línea • Conectando...') 
+                      ? (isServerAvailable ? 'Online • Synced' : 'Online • Connecting...') 
                       : (isConnected === false && !isForcedOffline)
-                        ? 'Sin conexión a internet'
-                        : 'Desconectado'}
+                        ? 'No internet connection'
+                        : 'Disconnected'}
                 </Text>
               </View>
             </View>
@@ -234,12 +260,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               onValueChange={(value) => {
                 if (value && !isBibleDownloaded) {
                   Alert.alert(
-                    'Biblia no descargada',
-                    'Para activar el modo offline necesitas descargar la Biblia primero.',
+                    'Bible not downloaded',
+                    'You need to download the Bible first to enable offline mode.',
                     [
-                      { text: 'Cancelar', style: 'cancel' },
+                      { text: 'Cancel', style: 'cancel' },
                       { 
-                        text: 'Ir a Descargas', 
+                        text: 'Go to Downloads', 
                         onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'Profile' } as never) 
                       },
                     ]
@@ -250,9 +276,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
                 // Si intentan apagarlo pero FÍSICAMENTE no hay internet o el servidor no responde
                 if (!value && (!isConnected || !isServerAvailable)) {
                   Alert.alert(
-                    'Requiere conexión',
-                    'Vuelve a tener conexión a internet para poder desactivar el modo sin conexión.',
-                    [{ text: 'Entendido', style: 'default' }]
+                    'Connection required',
+                    'You need an internet connection to disable offline mode.',
+                    [{ text: 'Got it', style: 'default' }]
                   );
                   return;
                 }
@@ -270,7 +296,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
           style={styles.logoutButton}
           onPress={handleLogout}
           activeOpacity={0.7}>
-          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          <Text style={styles.logoutButtonText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -320,6 +346,34 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
 
   // Profile Section
+  vipCard: {
+    marginBottom: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d4af37',
+    shadowColor: '#d4af37',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    marginHorizontal: 16,
+  },
+  vipCardContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vipCardText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  vipCardTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#d4af37',
+  },
   profileSection: {
     alignItems: 'center',
     marginBottom: 32,

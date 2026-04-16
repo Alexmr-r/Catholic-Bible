@@ -35,9 +35,9 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
 
   // Determinar el label del tamaño
   const getSizeLabel = (fontSize: number): string => {
-    if (fontSize <= 90) return 'Pequeño';
-    if (fontSize <= 110) return 'Intermedio';
-    return 'Grande';
+    if (fontSize <= 90) return 'Small';
+    if (fontSize <= 110) return 'Medium';
+    return 'Large';
   };
 
   const handleBack = () => {
@@ -54,7 +54,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
           style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ajustes de Lectura</Text>
+        <Text style={styles.headerTitle}>Reading Settings</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -67,7 +67,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
         {/* Font Size Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>TAMAÑO DE FUENTE</Text>
+            <Text style={styles.sectionTitle}>FONT SIZE</Text>
             <View style={styles.sizeBadge}>
               <Text style={styles.sizeBadgeText}>{getSizeLabel(settings.fontSize)}</Text>
             </View>
@@ -101,7 +101,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                     fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                   },
                 ]}>
-                "Tu palabra es una lámpara a mis pies"
+                "Your word is a lamp for my feet"
               </Text>
             </View>
           </View>
@@ -110,7 +110,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
         {/* Typography Style Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>ESTILO DE TIPOGRAFÍA</Text>
+            <Text style={styles.sectionTitle}>TYPOGRAPHY STYLE</Text>
           </View>
 
           <View style={styles.typographyGrid}>
@@ -128,7 +128,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                   styles.typographyLabel,
                   settings.fontFamily === 'serif' && styles.typographyLabelActive,
                 ]}>
-                CLÁSICA
+                CLASSIC
               </Text>
               <Text style={styles.typographySubLabel}>Serif</Text>
             </TouchableOpacity>
@@ -147,7 +147,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                   styles.typographyLabel,
                   settings.fontFamily === 'sans' && styles.typographyLabelActive,
                 ]}>
-                MODERNA
+                MODERN
               </Text>
               <Text style={styles.typographySubLabel}>Sans Serif</Text>
             </TouchableOpacity>
@@ -157,7 +157,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
         {/* Preview Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>VISTA PREVIA</Text>
+            <Text style={styles.sectionTitle}>PREVIEW</Text>
           </View>
 
           <View style={styles.previewCard}>
@@ -170,9 +170,9 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                     fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
                   },
                 ]}>
-                En el principio creó Dios los cielos y la tierra. La tierra era caos y confusión y
-                oscuridad por encima del abismo, y un viento de Dios aleteaba por encima de las
-                aguas.
+                In the beginning God created the heavens and the earth. Now the earth was formless and
+                empty, darkness was over the surface of the deep, and the Spirit of God was hovering
+                over the waters.
               </Text>
 
               <Text
@@ -184,8 +184,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
                     marginTop: 16,
                   },
                 ]}>
-                Dijo Dios: «Haya luz», y hubo luz. Vio Dios que la luz estaba bien, y apartó Dios
-                la luz de la oscuridad.
+                And God said, "Let there be light," and there was light. God saw that the light was good, and he separated the light from the darkness.
               </Text>
 
               {/* Gradient Overlay */}
@@ -200,7 +199,7 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
           </View>
 
           <Text style={styles.previewNote}>
-            El tema Marfil/Sepia está optimizado para una lectura prolongada y descanso visual.
+            The Ivory/Sepia theme is optimized for prolonged reading and visual rest.
           </Text>
         </View>
       </ScrollView>
