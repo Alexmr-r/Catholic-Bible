@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Service — CatholicVerse</title>
+  <link rel="icon" href="assets/icon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --gold: #D4AF37; --dark-bg: #1a160d; --charcoal: #1F2937; --muted: #6B7280; --ivory: #FAF9F6; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--ivory); color: var(--charcoal); line-height: 1.8; transition: background 0.3s, color 0.3s; }
+    body.dark { background: var(--dark-bg); color: #f1f5f9; }
+    .theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 100; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); border-radius: 50px; padding: 8px 14px; cursor: pointer; font-size: 16px; }
+    header { background: var(--charcoal); padding: 60px 24px 40px; text-align: center; transition: background 0.3s; }
+    body.dark header { background: #0a0804; }
+    header img { width: 60px; border-radius: 14px; margin-bottom: 16px; }
+    header a { color: var(--gold); text-decoration: none; font-size: 14px; display: block; margin-bottom: 16px; }
+    header h1 { font-family: 'EB Garamond', serif; font-size: 36px; color: #fff; margin-bottom: 8px; }
+    header p { color: rgba(255,255,255,0.5); font-size: 14px; }
+    .content { max-width: 760px; margin: 60px auto; padding: 0 24px 80px; }
+    h2 { font-family: 'EB Garamond', serif; font-size: 24px; color: var(--gold); margin: 40px 0 12px; }
+    p, li { font-size: 16px; color: var(--muted); margin-bottom: 12px; transition: color 0.3s; }
+    body.dark p, body.dark li { color: #94a3b8; }
+    ul { padding-left: 20px; } li { margin-bottom: 8px; }
+    strong { color: var(--charcoal); transition: color 0.3s; }
+    body.dark strong { color: #f1f5f9; }
+    a { color: var(--gold); }
+    footer { text-align: center; padding: 32px; background: var(--charcoal); color: rgba(255,255,255,0.4); font-size: 13px; transition: background 0.3s; }
+    body.dark footer { background: #0a0804; }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+
+  <header>
+    <img src="assets/icon.png" alt="CatholicVerse" />
+    <a href="index.html">← Back to CatholicVerse</a>
+    <h1>Terms of Service</h1>
+    <p>Last updated: April 2025</p>
+  </header>
+
+  <div class="content">
+    <p>Welcome to CatholicVerse. By downloading or using our app, you agree to these Terms of Service. Please read them carefully.</p>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>By accessing or using CatholicVerse, you agree to be bound by these Terms and our Privacy Policy. If you do not agree, please do not use the app.</p>
+
+    <h2>2. Use of the App</h2>
+    <p>CatholicVerse is a Catholic Bible and daily reading application. You agree to use it only for lawful, personal purposes. You may not:</p>
+    <ul>
+      <li>Reproduce, distribute, or sell any part of the app or its content.</li>
+      <li>Attempt to reverse engineer, hack, or disrupt our services.</li>
+      <li>Use the app for any commercial purpose without prior written consent.</li>
+    </ul>
+
+    <h2>3. Accounts</h2>
+    <p>You are responsible for maintaining the confidentiality of your account credentials. You are responsible for all activity that occurs under your account. Notify us immediately of any unauthorized use.</p>
+
+    <h2>4. Subscriptions and Billing</h2>
+    <p>CatholicVerse offers a free 7-day trial followed by paid subscriptions:</p>
+    <ul>
+      <li><strong>Monthly:</strong> $4.99/month</li>
+      <li><strong>Yearly:</strong> $39.99/year (billed annually)</li>
+    </ul>
+    <p>Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. Billing is managed by Apple App Store or Google Play. To cancel, manage your subscription in your device's subscription settings. We do not issue refunds for partial periods.</p>
+
+    <h2>5. Content</h2>
+    <p>Biblical texts included in the app are sourced from public domain translations. AI-generated content is provided for informational and spiritual reflection purposes only and should not replace theological guidance from qualified clergy.</p>
+
+    <h2>6. Intellectual Property</h2>
+    <p>All app design, code, branding, and non-biblical content is the exclusive property of CatholicVerse. Unauthorized use is strictly prohibited.</p>
+
+    <h2>7. Termination</h2>
+    <p>We reserve the right to suspend or terminate your account if you violate these Terms. You may delete your account at any time from within the app.</p>
+
+    <h2>8. Disclaimer of Warranties</h2>
+    <p>The app is provided "as is" without warranties of any kind. We do not guarantee uninterrupted or error-free service.</p>
+
+    <h2>9. Limitation of Liability</h2>
+    <p>To the fullest extent permitted by law, CatholicVerse shall not be liable for any indirect, incidental, or consequential damages arising from your use of the app.</p>
+
+    <h2>10. Changes</h2>
+    <p>We may update these Terms at any time. Continued use of the app after changes constitutes acceptance of the updated Terms.</p>
+
+    <h2>11. Contact</h2>
+    <p>For any questions regarding these Terms, contact us at:<br />
+    <strong><a href="mailto:support@catholicverse.com">support@catholicverse.com</a></strong></p>
+  </div>
+
+  <footer>© 2025 CatholicVerse. All rights reserved.</footer>
+
+  <script>
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDark) { document.body.classList.add('dark'); document.getElementById('themeBtn').textContent = '☀️'; }
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      document.getElementById('themeBtn').textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CatholicVerse — Your Daily Catholic Bible</title>
+  <meta name="description" content="CatholicVerse is a premium Catholic Bible app for iOS and Android. Daily readings, audio narration, AI assistant, and offline access." />
+  <meta property="og:title" content="CatholicVerse — Your Daily Catholic Bible" />
+  <meta property="og:description" content="Daily readings, AI assistant, and offline access. The Catholic Bible app built for the modern faithful." />
+  <meta property="og:image" content="assets/icon.png" />
+  <link rel="icon" href="assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #D4AF37;
+      --gold-light: #EBD698;
+      --gold-dark: #b09050;
+      --sage: #6B9080;
+      --sage-dark: #4A665A;
+      --burgundy: #903040;
+      --ivory: #FAF9F6;
+      --cream: #F4F1EA;
+      --charcoal: #1F2937;
+      --muted: #6B7280;
+      --dark-bg: #1a160d;
+      --dark-surface: #2a2415;
+      --dark-border: #3a3220;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--ivory);
+      color: var(--charcoal);
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.dark {
+      background: var(--dark-bg);
+      color: #f1f5f9;
+    }
+
+    /* ===== THEME TOGGLE ===== */
+    .theme-toggle {
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 50px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s;
+      line-height: 1;
+    }
+    .theme-toggle:hover { background: rgba(212,175,55,0.2); }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 999;
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(250,249,246,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(212,175,55,0.15);
+      transition: background 0.3s;
+    }
+    body.dark nav {
+      background: rgba(26,22,13,0.9);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .nav-logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .nav-logo span {
+      font-family: 'EB Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--charcoal);
+      transition: color 0.3s;
+    }
+    body.dark .nav-logo span { color: #f1f5f9; }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    nav ul a {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color 0.3s;
+    }
+    nav ul a:hover { color: var(--gold); }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.12) 0%, transparent 70%),
+                  radial-gradient(ellipse at 80% 80%, rgba(107,144,128,0.08) 0%, transparent 60%);
+    }
+    body.dark .hero-bg {
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.18) 0%, transparent 70%),
+                  radial-gradient(ellipse at 80% 80%, rgba(107,144,128,0.1) 0%, transparent 60%);
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+    .hero-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      margin: 0 auto 32px;
+      display: block;
+      box-shadow: 0 0 60px rgba(212,175,55,0.3), 0 20px 60px rgba(0,0,0,0.15);
+      animation: floatIcon 4s ease-in-out infinite;
+    }
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(212,175,55,0.1);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 50px;
+      padding: 6px 18px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: 'EB Garamond', serif;
+      font-size: clamp(42px, 8vw, 80px);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      color: var(--charcoal);
+      transition: color 0.3s;
+    }
+    body.dark h1 { color: #f1f5f9; }
+    h1 span {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 520px;
+      margin: 0 auto 48px;
+      transition: color 0.3s;
+    }
+    body.dark .hero-subtitle { color: #94a3b8; }
+
+    .cta-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+    .btn-store {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.3s;
+    }
+    .btn-store-primary {
+      background: var(--charcoal);
+      color: #fff;
+      border: 2px solid transparent;
+    }
+    body.dark .btn-store-primary {
+      background: #f1f5f9;
+      color: var(--dark-bg);
+    }
+    .btn-store-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+    .btn-store-secondary {
+      background: transparent;
+      color: var(--charcoal);
+      border: 2px solid rgba(0,0,0,0.12);
+    }
+    body.dark .btn-store-secondary {
+      color: #f1f5f9;
+      border-color: rgba(255,255,255,0.15);
+    }
+    .btn-store-secondary:hover {
+      transform: translateY(-2px);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .btn-store svg { width: 24px; height: 24px; flex-shrink: 0; }
+    .btn-store-label { display: flex; flex-direction: column; text-align: left; }
+    .btn-store-label small { font-size: 10px; font-weight: 400; opacity: 0.7; }
+
+    .scroll-indicator {
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.4;
+      animation: bounce 2s ease-in-out infinite;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    /* ===== FEATURES ===== */
+    #features {
+      padding: 100px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+      display: block;
+    }
+    h2 {
+      font-family: 'EB Garamond', serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 700;
+      color: var(--charcoal);
+      line-height: 1.2;
+      transition: color 0.3s;
+    }
+    body.dark h2 { color: #f1f5f9; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .feature-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 20px;
+      padding: 32px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    body.dark .feature-card {
+      background: var(--dark-surface);
+      border-color: var(--dark-border);
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      border-color: rgba(212,175,55,0.3);
+    }
+    body.dark .feature-card:hover {
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .feature-icon {
+      font-size: 36px;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .feature-card h3 {
+      font-family: 'EB Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--charcoal);
+      transition: color 0.3s;
+    }
+    body.dark .feature-card h3 { color: #f1f5f9; }
+    .feature-card p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    body.dark .feature-card p { color: #94a3b8; }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    /* ===== PREMIUM ===== */
+    #premium {
+      padding: 100px 24px;
+      background: linear-gradient(135deg, var(--cream), rgba(212,175,55,0.05));
+      transition: background 0.3s;
+    }
+    body.dark #premium {
+      background: linear-gradient(135deg, var(--dark-surface), rgba(212,175,55,0.05));
+    }
+    .premium-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .price-cards {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 48px;
+    }
+    .price-card {
+      background: #fff;
+      border: 2px solid rgba(0,0,0,0.08);
+      border-radius: 24px;
+      padding: 40px 32px;
+      width: 280px;
+      position: relative;
+      transition: all 0.3s;
+    }
+    body.dark .price-card {
+      background: #1f1807;
+      border-color: #3a3220;
+    }
+    .price-card.popular {
+      border-color: var(--gold);
+      transform: scale(1.04);
+      box-shadow: 0 0 40px rgba(212,175,55,0.2);
+    }
+    .popular-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 5px 18px;
+      border-radius: 50px;
+    }
+    .price-card h3 {
+      font-family: 'EB Garamond', serif;
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: var(--charcoal);
+      transition: color 0.3s;
+    }
+    body.dark .price-card h3 { color: #f1f5f9; }
+    .price-amount {
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+      margin: 16px 0 4px;
+    }
+    .price-period {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .price-note {
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .trial-badge {
+      display: inline-block;
+      background: rgba(107,144,128,0.15);
+      color: var(--sage-dark);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 50px;
+      border: 1px solid rgba(107,144,128,0.3);
+    }
+    body.dark .trial-badge {
+      background: rgba(107,144,128,0.2);
+      color: #A4C3B2;
+    }
+
+    /* ===== DOWNLOAD ===== */
+    #download {
+      padding: 120px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .download-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(212,175,55,0.08) 0%, transparent 70%);
+    }
+    .download-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+    .download-icons {
+      font-size: 48px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--charcoal);
+      color: #9ca3af;
+      padding: 48px 24px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+    body.dark footer {
+      background: #0a0804;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .footer-logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      opacity: 0.9;
+    }
+    .footer-logo span {
+      font-family: 'EB Garamond', serif;
+      font-size: 22px;
+      color: var(--gold);
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .footer-links a {
+      text-decoration: none;
+      color: #9ca3af;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--gold); }
+    .footer-copy {
+      font-size: 13px;
+      opacity: 0.5;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 640px) {
+      nav ul { display: none; }
+      nav { padding: 16px 20px; }
+      .price-card { width: 100%; max-width: 320px; }
+      .price-card.popular { transform: scale(1); }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <img src="assets/icon.png" alt="CatholicVerse" />
+      <span>CatholicVerse</span>
+    </a>
+    <ul>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#premium">Premium</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+      <li><button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <img src="assets/icon.png" alt="CatholicVerse App Icon" class="hero-icon" />
+      <span class="hero-eyebrow">✦ Available on iOS &amp; Android</span>
+      <h1>Your Catholic Bible,<br /><span>always at hand.</span></h1>
+      <p class="hero-subtitle">
+        Daily readings, AI-powered scripture assistant, audio narration, and full offline access.
+        Your faith, always at hand.
+      </p>
+      <div class="cta-group">
+        <!-- App Store Button -->
+        <a href="YOUR_APP_STORE_LINK" class="btn-store btn-store-primary" id="appStoreBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+          </svg>
+          <span class="btn-store-label">
+            <small>Download on the</small>
+            App Store
+          </span>
+        </a>
+        <!-- Google Play Button -->
+        <a href="YOUR_PLAY_STORE_LINK" class="btn-store btn-store-secondary" id="playStoreBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3.18 23.76c.3.17.63.24.97.21l12.19-12.01L13.07 8.7 3.18 23.76zm16.09-11.05l-3.35-1.96-3.27 3.22 3.27 3.22 3.38-1.97c.96-.56.96-1.95-.03-2.51zm-16.44-9.6c-.22.3-.33.66-.33 1.05v19.68c0 .39.11.75.33 1.05l.08.08L13.07 12v-.18L2.83 2.89l-.08.08z"/>
+          </svg>
+          <span class="btn-store-label">
+            <small>Get it on</small>
+            Google Play
+          </span>
+        </a>
+      </div>
+      <div class="scroll-indicator">
+        <span>Scroll to explore</span>
+        <span>↓</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="section-header fade-in">
+      <span class="section-label">What's inside</span>
+      <h2>Everything your faith needs</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <span class="feature-icon">📖</span>
+        <h3>Daily Readings</h3>
+        <p>Start each day with the Mass readings of the day, beautifully presented with commentary and reflection.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <span class="feature-icon">🤖</span>
+        <h3>AI Scripture Assistant</h3>
+        <p>Ask any question about the Bible and receive thoughtful, theologically grounded answers powered by AI.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <span class="feature-icon">🎧</span>
+        <h3>Audio Narration</h3>
+        <p>Listen to the full Bible with natural-sounding narration. Perfect for your commute, walks, or prayer time.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <span class="feature-icon">✍️</span>
+        <h3>Personal Writings</h3>
+        <p>Keep personal reflections and notes tied to specific verses. Your spiritual journal, always with you.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <span class="feature-icon">📶</span>
+        <h3>Full Offline Access</h3>
+        <p>Download the entire Bible and readings for offline use. Your faith never depends on your internet connection.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <span class="feature-icon">🔖</span>
+        <h3>Favorites &amp; Highlights</h3>
+        <p>Bookmark your favorite verses and passages. Revisit the words that move you most, anytime.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Premium Section -->
+  <section id="premium">
+    <div class="premium-inner">
+      <div class="section-header fade-in">
+        <span class="section-label">Subscription</span>
+        <h2>Simple, honest pricing</h2>
+      </div>
+      <p style="color: var(--muted); max-width: 480px; margin: 0 auto 48px; transition: color 0.3s;" class="fade-in">
+        Start free for 7 days. No commitment. Cancel anytime.
+      </p>
+      <div class="price-cards">
+        <div class="price-card fade-in">
+          <h3>Monthly</h3>
+          <div class="price-amount">$4.99</div>
+          <div class="price-period">per month</div>
+          <span class="trial-badge">7-day free trial</span>
+        </div>
+        <div class="price-card popular fade-in">
+          <div class="popular-badge">BEST VALUE</div>
+          <h3>Yearly</h3>
+          <div class="price-amount">$39.99</div>
+          <div class="price-period">per year</div>
+          <div class="price-note">Only $3.33/month</div>
+          <span class="trial-badge">7-day free trial</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download Section -->
+  <section id="download">
+    <div class="download-bg"></div>
+    <div class="download-inner">
+      <div class="download-icons">
+        <span>✝️</span><span>📖</span><span>🙏</span>
+      </div>
+      <div class="section-header fade-in">
+        <span class="section-label">Get the app</span>
+        <h2>Ready to begin?</h2>
+      </div>
+      <p class="hero-subtitle fade-in">
+        Download CatholicVerse today and start your 7-day free trial.
+      </p>
+      <div class="cta-group fade-in">
+          </svg>
+          <span class="btn-store-label">
+            <small>Download on the</small>
+            App Store
+          </span>
+        </a>
+        <a href="YOUR_PLAY_STORE_LINK" class="btn-store btn-store-secondary">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3.18 23.76c.3.17.63.24.97.21l12.19-12.01L13.07 8.7 3.18 23.76zm16.09-11.05l-3.35-1.96-3.27 3.22 3.27 3.22 3.38-1.97c.96-.56.96-1.95-.03-2.51zm-16.44-9.6c-.22.3-.33.66-.33 1.05v19.68c0 .39.11.75.33 1.05l.08.08L13.07 12v-.18L2.83 2.89l-.08.08z"/>
+          </svg>
+          <span class="btn-store-label">
+            <small>Get it on</small>
+            Google Play
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">
+      <img src="assets/icon.png" alt="CatholicVerse" />
+      <span>CatholicVerse</span>
+    </div>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#premium">Premium</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+    </div>
+    <p class="footer-copy">© 2025 CatholicVerse. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Theme toggle
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDark) {
+      document.body.classList.add('dark');
+      document.getElementById('themeBtn').textContent = '☀️';
+    }
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+    }
+
+    // Fade-in on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
