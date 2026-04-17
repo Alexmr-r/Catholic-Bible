@@ -12,6 +12,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -28,10 +29,13 @@ import {cacheService} from '../services/cache.service';
 import {audioService} from '../services/audio.service';
 import TextSettingsModal from '../components/TextSettingsModal';
 import OfflineBanner from '../components/OfflineBanner';
+import TrialWelcomeModal from '../components/TrialWelcomeModal';
+import {useAuth} from '../contexts/AuthContext';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, route}) => {
   const { colors, isDarkMode } = useTheme();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
 
@@ -59,6 +63,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   const [isSavingReflection, setIsSavingReflection] = useState(false);
   const [isMarkedAsRead, setIsMarkedAsRead] = useState(false);
   const [isReadingCompleted, setIsReadingCompleted] = useState(false);
+  const [showTrialModal, setShowTrialModal] = useState(false);
 
   // Obtener fecha del parámetro (si viene del calendario)
   const targetDate = route?.params?.date;
@@ -91,7 +96,33 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [reflection, dailyReading]);
+  }, [reflection, dailyReading, lastSavedContent]);
+
+  // ✅ Alerta de bienvenida Trial (una sola vez por usuario)
+  useEffect(() => {
+    const checkFirstTime = async () => {
+      try {
+        if (!user) return;
+        const key = `@cv_trial_shown_${user.id}`;
+        const shown = await AsyncStorage.getItem(key);
+        if (!shown) setShowTrialModal(true);
+      } catch (e) {
+        console.warn('Trial check error', e);
+      }
+    };
+    if (dailyReading && !isLoading && user) checkFirstTime();
+  }, [dailyReading, isLoading, user]);
+
+  const handleCloseTrialModal = async () => {
+    setShowTrialModal(false);
+    if (user) await AsyncStorage.setItem(`@cv_trial_shown_${user.id}`, 'true');
+  };
+
+  const handleViewPlans = async () => {
+    setShowTrialModal(false);
+    if (user) await AsyncStorage.setItem(`@cv_trial_shown_${user.id}`, 'true');
+    navigation.navigate('Paywall');
+  };
 
   const autoSaveReflection = async () => {
     if (!dailyReading || !reflection.trim() || isSavingReflection) return;
@@ -743,6 +774,12 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
       <TextSettingsModal
         visible={showTextSettings}
         onClose={() => setShowTextSettings(false)}
+      />
+
+      <TrialWelcomeModal
+        isVisible={showTrialModal}
+        onClose={handleCloseTrialModal}
+        onViewPlans={handleViewPlans}
       />
     </View>
   );

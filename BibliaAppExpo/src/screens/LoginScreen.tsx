@@ -159,8 +159,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                 style={[styles.logoImage, {marginBottom: dynamicStyles.logoContainerMarginBottom}]}
                 resizeMode="contain"
               />
-              <Text style={styles.title}>{t('app.name') || 'Catholic Bible'}</Text>
-              <Text style={styles.subtitle}>{t('auth.loginSubtitle') || 'Sign In'}</Text>
+              <Text style={styles.title}>{t('app.name') || 'CatholicVerse'}</Text>
             </View>
 
             <View style={styles.form}>

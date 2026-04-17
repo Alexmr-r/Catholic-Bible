@@ -5,6 +5,7 @@ import com.bibliacatolica.api.domain.exception.DuplicateResourceException;
 import com.bibliacatolica.api.domain.model.User;
 import com.bibliacatolica.api.domain.port.in.AuthenticationUseCase;
 import com.bibliacatolica.api.domain.port.out.UserRepositoryPort;
+import com.bibliacatolica.api.infrastructure.adapter.out.email.ResendEmailService;
 import com.bibliacatolica.api.infrastructure.config.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class AuthenticationService implements AuthenticationUseCase {
     private final UserRepositoryPort userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ResendEmailService emailService;
 
     // Cache simple en memoria para los códigos de recuperación (email -> código)
     // En producción se recomienda usar Redis o tabla en BD con TTL
@@ -56,6 +58,9 @@ public class AuthenticationService implements AuthenticationUseCase {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        // Enviar email de bienvenida
+        emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getFullName());
 
         // Generar tokens
         String accessToken = jwtTokenProvider.generateAccessToken(savedUser);
@@ -161,12 +166,9 @@ public class AuthenticationService implements AuthenticationUseCase {
             // Guardar código
             resetTokens.put(user.getEmail(), code);
 
-            // Simular envío de correo por consola
-            log.info("*********************************************************");
-            log.info("📧 MOCK CORREO PARA: {}", user.getEmail());
-            log.info("🔔 ASUNTO: Recuperación de contraseña");
-            log.info("🔑 CÓDIGO: {}", code);
-            log.info("*********************************************************");
+            // Enviar email real con Resend
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), code);
+            log.info("Email de recuperación enviado a: {}", user.getEmail());
         });
         // IMPORTANTE: Incluso si no existe el email, no lanzamos error por seguridad
         // (evitar enumeración de usuarios)

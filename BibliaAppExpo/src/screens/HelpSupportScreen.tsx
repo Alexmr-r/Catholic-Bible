@@ -42,8 +42,8 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
   };
 
   const handleContactSupport = async () => {
-    const email = 'soporte@bibliacatolica.app'; // TODO: Cambiar por tu email real
-    const subject = encodeURIComponent('Support - Catholic Bible App');
+    const email = 'support@getcatholicverse.com';
+    const subject = encodeURIComponent('Support - CatholicVerse');
     const body = encodeURIComponent('Hello,\n\nProblem description or inquiry:\n\n');
     const url = `mailto:${email}?subject=${subject}&body=${body}`;
 

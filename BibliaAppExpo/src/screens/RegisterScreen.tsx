@@ -118,9 +118,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                     resizeMode="contain"
                   />
                   <Text style={styles.title}>{t('auth.registerTitle')}</Text>
-                  <Text style={[styles.subtitle, {marginBottom: dynamicStyles.titleMarginBottom}]}>
-                    {t('auth.registerSubtitle')}
-                  </Text>
                 </View>
 
                 <View style={styles.form}>
@@ -152,7 +149,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                       <TextInput
                         ref={emailRef}
                         style={styles.input}
-                        placeholder="ejemplo@email.com"
+                        placeholder="your@email.com"
                         placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                         value={email}
                         onChangeText={setEmail}

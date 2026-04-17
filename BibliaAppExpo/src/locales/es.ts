@@ -1,11 +1,16 @@
 export default {
+    app: {
+        name: 'CatholicVerse',
+    },
     auth: {
-        loginTitle: 'Biblia Católica',
+        loginTitle: 'CatholicVerse',
         loginSubtitle: 'Inicio de Sesión',
         emailLabel: 'CORREO ELECTRÓNICO',
+        emailPlaceholder: 'tu@correo.com',
         passwordLabel: 'CONTRASEÑA',
         forgotPassword: '¿Olvidaste tu contraseña?',
         signInButton: 'Iniciar Sesión',
+        orContinueWith: 'O continuar con',
         continueGoogle: 'Continuar con Google',
         continueApple: 'Continuar con Apple',
         noAccount: '¿No tienes una cuenta?',
@@ -17,6 +22,7 @@ export default {
         alreadyHaveAccount: '¿Ya tienes una cuenta?',
         validationWait: 'Procesando...',
         errors: {
+            loginTitle: 'Error al iniciar sesión',
             invalidEmail: 'Correo electrónico inválido',
             shortPassword: 'La contraseña debe tener al menos 6 caracteres',
             invalidCredentials: 'Credenciales inválidas',

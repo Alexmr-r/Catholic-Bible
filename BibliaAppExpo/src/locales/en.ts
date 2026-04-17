@@ -1,11 +1,16 @@
 export default {
+    app: {
+        name: 'CatholicVerse',
+    },
     auth: {
-        loginTitle: 'Catholic Bible',
+        loginTitle: 'CatholicVerse',
         loginSubtitle: 'Sign In',
         emailLabel: 'EMAIL',
+        emailPlaceholder: 'your@email.com',
         passwordLabel: 'PASSWORD',
         forgotPassword: 'Forgot Password?',
         signInButton: 'Sign In',
+        orContinueWith: 'Or continue with',
         continueGoogle: 'Continue with Google',
         continueApple: 'Continue with Apple',
         noAccount: "Don't have an account?",
@@ -17,6 +22,7 @@ export default {
         alreadyHaveAccount: 'Already have an account?',
         validationWait: 'Processing...',
         errors: {
+            loginTitle: 'Sign in failed',
             invalidEmail: 'Invalid email address',
             shortPassword: 'Password must be at least 6 characters',
             invalidCredentials: 'Invalid credentials',

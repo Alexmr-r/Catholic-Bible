@@ -45,6 +45,8 @@ services:
       SPRING_DATASOURCE_USERNAME: biblia_user
       SPRING_DATASOURCE_PASSWORD: biblia_secret_2024
       JWT_SECRET: c3VwZXJTZWNyZXRLZXlGb3JCaWJsaWFBcHBKV1QyMDI0VmVyeUxvbmdBbmRTZWN1cmU=
+      RESEND_API_KEY: ${RESEND_API_KEY}
+
     ports:
       - "8080:8080"
     depends_on:
