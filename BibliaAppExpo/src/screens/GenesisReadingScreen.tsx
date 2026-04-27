@@ -146,16 +146,14 @@ const GenesisReadingScreen: React.FC<GenesisReadingScreenProps> = ({navigation})
             onPress={handleBack}
             style={styles.backButton}
             activeOpacity={0.7}>
-            <MaterialIcons name="arrow-back" size={20} color={colors.charcoal.dark} />
+            <MaterialIcons name="arrow-back" size={24} color={colors.charcoal.dark} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.headerCenter}>
           <View style={styles.headerTitleRow}>
             <Text style={styles.headerTitle}>{data.book} {data.chapter}</Text>
-            <MaterialIcons name="expand-more" size={16} color={colors.secondary} style={styles.expandIcon} />
           </View>
-          <Text style={styles.headerSubtitle}>{data.version}</Text>
         </View>
 
         <View style={styles.headerActions}>
@@ -337,17 +335,6 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontWeight: '700',
     color: colors.charcoal.dark,
     lineHeight: 24,
-  },
-  expandIcon: {
-    marginTop: 2,
-  },
-  headerSubtitle: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.charcoal.muted,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginTop: 2,
   },
   headerActions: {
     flexDirection: 'row',

@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/chat").permitAll()
 
                         // Endpoints de biblia son públicos para lectura
                         .requestMatchers(HttpMethod.GET, "/bible/books/**").permitAll()

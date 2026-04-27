@@ -146,17 +146,17 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
   const transformFavorites = (apiFavorites: ApiFavorite[]): Favorite[] => {
     return apiFavorites.map((fav: ApiFavorite) => {
       let verseEnd: number | undefined;
-      const rangeTag = fav.tags?.find(tag => tag.startsWith('Versículos '));
+      const rangeTag = fav.tags?.find(tag => tag.startsWith('Verses '));
       if (rangeTag) {
-        const range = rangeTag.replace('Versículos ', '');
+        const range = rangeTag.replace('Verses ', '');
         const parts = range.split('-');
         if (parts.length === 2) verseEnd = parseInt(parts[1], 10);
       }
-      const isFullChapter = fav.tags?.includes('Capítulo completo');
+      const isFullChapter = fav.tags?.includes('Full chapter');
       return {
         id: fav.id,
         verse: fav.reference,
-        date: new Date(fav.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
+        date: new Date(fav.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
         text: fav.verseText,
         tags: fav.tags || [],
         bookId: fav.bookId,

@@ -169,8 +169,34 @@ class WritingsService {
    * Get a single writing by ID
    */
   async getWriting(writingId: string): Promise<Writing> {
+    const cachedWritings = await cacheService.getWritings() || [];
+    const cachedWriting = cachedWritings.find(w => w.id === writingId);
+
+    if (cachedWriting) {
+      apiClient.get<ApiWritingResponse>(`/writings/${writingId}`)
+        .then(async (response) => {
+          const freshWriting = mapApiToWriting(response);
+          const latestCache = await cacheService.getWritings() || [];
+          const exists = latestCache.some(w => w.id === writingId);
+          const merged = exists
+            ? latestCache.map(w => w.id === writingId ? freshWriting : w)
+            : [freshWriting, ...latestCache];
+          await cacheService.setWritings(merged);
+          console.log('[Writings] 🔄 Escrito sincronizado en segundo plano');
+        })
+        .catch(() => {
+          console.warn('[Writings] ⚠️ Error silencioso al sincronizar escrito en fondo');
+        });
+
+      return cachedWriting;
+    }
+
     const response = await apiClient.get<ApiWritingResponse>(`/writings/${writingId}`);
-    return mapApiToWriting(response);
+    const writing = mapApiToWriting(response);
+    const merged = [writing, ...cachedWritings.filter(w => w.id !== writingId)];
+    await cacheService.setWritings(merged);
+
+    return writing;
   }
 
   /**

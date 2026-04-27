@@ -26,8 +26,8 @@ import {t} from '../locales/i18n';
 // Configurar Google Sign In
 GoogleSignin.configure({
   offlineAccess: true,
-  webClientId: 'TODO: PEGA_AQUI_TU_GOOGLE_EXTERNAL_CLIENT_ID',
-  iosClientId: 'TODO: PEGA_AQUI_TU_GOOGLE_IOS_CLIENT_ID'
+  webClientId: '709014169638-qdhs9p1smr7nbgk0kmb2ca4hhts6qq53.apps.googleusercontent.com',
+  iosClientId: '709014169638-vndu7immjcujct3bied58opabjn5bjbf.apps.googleusercontent.com',
 });
 
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
@@ -48,9 +48,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
 
   const dynamicStyles = {
     headerPaddingTop: 48 * scaleFactor,
-    logoMarginTop: 16 * scaleFactor,
+    logoMarginTop: 10 * scaleFactor,
     logoMarginBottom: 32 * scaleFactor,
-    logoContainerMarginBottom: 24 * scaleFactor,
+    logoSize: 160 * scaleFactor, // Aumentamos tamaño a 160
+    logoContainerMarginBottom: 0 * scaleFactor,
     inputGroupMarginBottom: 20 * scaleFactor,
     dividerMarginVertical: 24 * scaleFactor,
     socialButtonsGap: 12 * scaleFactor,
@@ -98,9 +99,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
         throw new Error('No se recibió token de Apple');
       }
     } catch (error: any) {
-      if (error.code !== 'ERR_REQUEST_CANCELED') {
+      const errorMsg = String(error?.message || error);
+      if (
+        error.code !== 'ERR_REQUEST_CANCELED' && 
+        error.code !== 'ASWebAuthenticationSessionErrorCodeCanceledLogin' &&
+        !errorMsg.toLowerCase().includes('cancel') &&
+        !errorMsg.toLowerCase().includes('unknown reason')
+      ) {
         console.error('Error Apple Login:', error);
-        Alert.alert(t('general.error') || 'Error', t('auth.errors.appleLoginFailed') || 'Could not sign in with Apple');
+        Alert.alert(t('general.error') || 'Error', t('auth.errors.appleLoginFailed') || 'Apple sign-in failed');
       }
     } finally {
       setIsLoading(false);
@@ -111,23 +118,36 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     try {
       setIsLoading(true);
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      const response = await GoogleSignin.signIn() as any;
       
-      const idToken = userInfo.data?.idToken;
-      
-      if (idToken) {
-        await loginWithGoogle(idToken);
+      if (response.type === 'success') {
+        const idToken = response.data?.idToken || (response as any).idToken;
+        if (idToken) {
+          await loginWithGoogle(idToken);
+        } else {
+          throw new Error('No se recibió idToken de Google');
+        }
+      } else if (response.type === 'cancelled' || response.type === 'cancel') {
+        console.log('Google login cancelled by user');
+      } else if (!response.type && response.data?.idToken) {
+        // Fallback p/ obj viejo v15
+        await loginWithGoogle(response.data.idToken);
       } else {
         throw new Error('No se recibió idToken de Google');
       }
     } catch (error: any) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // Usuario canceló
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // Ya está en progreso
+      const errorMsg = String(error?.message || error);
+      if (
+        error.code === statusCodes.SIGN_IN_CANCELLED || 
+        error.code === statusCodes.IN_PROGRESS ||
+        errorMsg.toLowerCase().includes('cancel') ||
+        errorMsg.toLowerCase().includes('12501') // commonly user canceled
+      ) {
+        // Usuario canceló silenciosamente
+        console.log('Google login cancelled by user');
       } else {
         console.error('Error Google Login:', error);
-        Alert.alert(t('general.error') || 'Error', t('auth.errors.googleLoginFailed') || 'Could not sign in with Google');
+        Alert.alert(t('general.error') || 'Error', t('auth.errors.googleLoginFailed') || 'Google sign-in failed');
       }
     } finally {
       setIsLoading(false);
@@ -150,106 +170,114 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
           </View>
 
           <View style={styles.scrollView}>
-            <View style={[styles.logoSection, {
-              marginTop: dynamicStyles.logoMarginTop,
-              marginBottom: dynamicStyles.logoMarginBottom
-            }]}>
-              <Image
-                source={require('../../assets/logo-transparent.png')}
-                style={[styles.logoImage, {marginBottom: dynamicStyles.logoContainerMarginBottom}]}
-                resizeMode="contain"
-              />
-              <Text style={styles.title}>{t('app.name') || 'CatholicVerse'}</Text>
-            </View>
-
-            <View style={styles.form}>
-              {/* Email Input */}
-              <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                <Text style={styles.label}>{t('auth.emailLabel') || 'EMAIL'}</Text>
-                <View style={styles.inputWrapper}>
-                  <MaterialIcons name="mail" size={20} color={colors.gold.dim} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.emailPlaceholder') || 'example@email.com'}
-                    placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    returnKeyType="next"
-                    onSubmitEditing={() => passwordRef.current?.focus()}
-                    blurOnSubmit={false}
-                  />
-                </View>
+            <View style={styles.centerGroup}>
+              <View style={[styles.logoSection, {
+                marginTop: dynamicStyles.logoMarginTop,
+                marginBottom: dynamicStyles.logoMarginBottom
+              }]}>
+                <Image
+                  source={require('../../assets/logo-transparent.png')}
+                  style={[
+                    styles.logoImage, 
+                    {
+                      width: dynamicStyles.logoSize, 
+                      height: dynamicStyles.logoSize,
+                      marginBottom: dynamicStyles.logoContainerMarginBottom
+                    }
+                  ]}
+                  resizeMode="contain"
+                />
               </View>
 
-              {/* Password Input */}
-              <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                <Text style={styles.label}>{t('auth.passwordLabel') || 'PASSWORD'}</Text>
-                <View style={styles.inputWrapper}>
-                  <MaterialIcons name="lock" size={20} color={colors.gold.dim} style={styles.inputIcon} />
-                  <TextInput
-                    ref={passwordRef}
-                    style={[styles.input, styles.passwordInput]}
-                    placeholder="••••••••"
-                    placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                    returnKeyType="done"
-                    onSubmitEditing={() => {
-                        Keyboard.dismiss();
-                        handleLogin();
-                    }}
-                  />
-                  <TouchableOpacity
-                    style={styles.eyeButton}
-                    onPress={() => setShowPassword(!showPassword)}
-                    activeOpacity={0.7}>
-                    <MaterialIcons
-                      name={showPassword ? 'visibility' : 'visibility-off'}
-                      size={20}
-                      color={isDarkMode ? colors.primary.DEFAULT : colors.charcoal.muted}
+              <View style={styles.form}>
+                {/* Email Input */}
+                <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
+                  <Text style={styles.label}>{t('auth.emailLabel') || 'EMAIL'}</Text>
+                  <View style={styles.inputWrapper}>
+                    <MaterialIcons name="mail" size={20} color={colors.gold.dim} style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.emailPlaceholder') || 'example@email.com'}
+                      placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      returnKeyType="next"
+                      onSubmitEditing={() => passwordRef.current?.focus()}
+                      blurOnSubmit={false}
                     />
-                  </TouchableOpacity>
+                  </View>
                 </View>
+
+                {/* Password Input */}
+                <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
+                  <Text style={styles.label}>{t('auth.passwordLabel') || 'PASSWORD'}</Text>
+                  <View style={styles.inputWrapper}>
+                    <MaterialIcons name="lock" size={20} color={colors.gold.dim} style={styles.inputIcon} />
+                    <TextInput
+                      ref={passwordRef}
+                      style={[styles.input, styles.passwordInput]}
+                      placeholder="••••••••"
+                      placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      returnKeyType="done"
+                      onSubmitEditing={() => {
+                          Keyboard.dismiss();
+                          handleLogin();
+                      }}
+                    />
+                    <TouchableOpacity
+                      style={styles.eyeButton}
+                      onPress={() => setShowPassword(!showPassword)}
+                      activeOpacity={0.7}>
+                      <MaterialIcons
+                        name={showPassword ? 'visibility' : 'visibility-off'}
+                        size={20}
+                        color={isDarkMode ? colors.primary.DEFAULT : colors.charcoal.muted}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.7} style={styles.forgotPassword}>
+                  <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword') || 'Forgot Password?'}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+                  onPress={handleLogin}
+                  activeOpacity={0.8}
+                  disabled={isLoading}>
+                  {isLoading ? (
+                    <ActivityIndicator color={colors.charcoal.dark} />
+                  ) : (
+                    <Text style={styles.loginButtonText}>{t('auth.signInButton') || 'Sign In'}</Text>
+                  )}
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.7} style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>{t('auth.forgotPassword') || 'Forgot Password?'}</Text>
-              </TouchableOpacity>
+              <View style={[styles.divider, {marginVertical: dynamicStyles.dividerMarginVertical}]}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>{t('auth.orContinueWith') || 'OR CONTINUE WITH'}</Text>
+                <View style={styles.dividerLine} />
+              </View>
 
-              <TouchableOpacity
-                style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-                onPress={handleLogin}
-                activeOpacity={0.8}
-                disabled={isLoading}>
-                {isLoading ? (
-                  <ActivityIndicator color={colors.charcoal.dark} />
-                ) : (
-                  <Text style={styles.loginButtonText}>{t('auth.signInButton') || 'Sign In'}</Text>
+              <View style={styles.socialButtons}>
+                {Platform.OS === 'ios' && (
+                  <TouchableOpacity style={[styles.socialButton, styles.appleButton]} onPress={handleAppleLogin} activeOpacity={0.7}>
+                    <AntDesign name="apple" size={20} color={colors.charcoal.dark} />
+                    <Text style={styles.appleButtonText}>{t('auth.continueApple') || 'Continue with Apple'}</Text>
+                  </TouchableOpacity>
                 )}
-              </TouchableOpacity>
-            </View>
-
-            <View style={[styles.divider, {marginVertical: dynamicStyles.dividerMarginVertical}]}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('auth.orContinueWith') || 'OR CONTINUE WITH'}</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <View style={styles.socialButtons}>
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity style={[styles.socialButton, styles.appleButton]} onPress={handleAppleLogin} activeOpacity={0.7}>
-                  <AntDesign name="apple" size={20} color={colors.charcoal.dark} />
-                  <Text style={styles.appleButtonText}>{t('auth.continueApple') || 'Continue with Apple'}</Text>
+                <TouchableOpacity style={[styles.socialButton, styles.googleButton]} onPress={handleGoogleLogin} activeOpacity={0.7}>
+                  <AntDesign name="google" size={20} color={colors.charcoal.dark} />
+                  <Text style={styles.googleButtonText}>{t('auth.continueGoogle') || 'Continue with Google'}</Text>
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity style={[styles.socialButton, styles.googleButton]} onPress={handleGoogleLogin} activeOpacity={0.7}>
-                <AntDesign name="google" size={20} color={colors.charcoal.dark} />
-                <Text style={styles.googleButtonText}>{t('auth.continueGoogle') || 'Continue with Google'}</Text>
-              </TouchableOpacity>
+              </View>
             </View>
 
             <View style={[styles.registerSection, {marginTop: dynamicStyles.registerMarginTop}]}>
@@ -270,8 +298,9 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   innerContainer: { flex: 1, maxWidth: 450, width: '100%', alignSelf: 'center' },
   header: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 4 },
   scrollView: { flex: 1, paddingHorizontal: 32, justifyContent: 'space-between' },
+  centerGroup: { flex: 1, justifyContent: 'center' },
   logoSection: { alignItems: 'center', marginTop: 8, marginBottom: 20 },
-  logoImage: { width: 96, height: 96 },
+  logoImage: { width: 96, height: 96 }, // El valor base, pero ahora se sobreescribe dinámicamente
   title: { fontSize: 30, fontWeight: '700', color: colors.charcoal.dark, marginBottom: 4, letterSpacing: -0.5 },
   subtitle: { fontSize: 14, fontWeight: '500', color: colors.charcoal.muted },
   form: { width: '100%' },

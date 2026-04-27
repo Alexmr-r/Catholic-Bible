@@ -42,6 +42,28 @@ export interface UpdateFavoriteRequest {
   note?: string;
 }
 
+export class DuplicateFavoriteError extends Error {
+  code = 'FAVORITE_ALREADY_EXISTS';
+  existingFavorite?: Favorite;
+
+  constructor(existingFavorite?: Favorite) {
+    super('This verse is already in favorites');
+    this.name = 'DuplicateFavoriteError';
+    this.existingFavorite = existingFavorite;
+  }
+}
+
+const normalizeBookId = (bookId: string) => bookId.trim().toLowerCase();
+
+const isSameVerseReference = (
+  favorite: Pick<Favorite, 'bookId' | 'chapterNumber' | 'verseNumber'>,
+  data: AddFavoriteRequest
+) => (
+  normalizeBookId(favorite.bookId) === normalizeBookId(data.bookId) &&
+  favorite.chapterNumber === data.chapterNumber &&
+  favorite.verseNumber === data.verseNumber
+);
+
 // ========== Favorites Service ==========
 
 export const favoritesService = {
@@ -106,18 +128,31 @@ export const favoritesService = {
    * SIN INTERNET: Agregar a caché con ID temporal → Sincronizar después
    */
   async addFavorite(data: AddFavoriteRequest): Promise<Favorite> {
+    const cachedFavorites = await cacheService.getFavorites() || [];
+    const existingFavorite = cachedFavorites.find(f => isSameVerseReference(f, data));
+
+    if (existingFavorite) {
+      throw new DuplicateFavoriteError(existingFavorite);
+    }
+
     try {
       // ✅ Intentar crear en API (CON INTERNET)
       const response = await apiClient.post<Favorite>('/favorites', data);
 
       // 💾 Actualizar caché
-      const cachedFavorites = await cacheService.getFavorites() || [];
-      cachedFavorites.unshift(response);
-      await cacheService.setFavorites(cachedFavorites);
+      const updatedFavorites = [
+        response,
+        ...cachedFavorites.filter(f => !isSameVerseReference(f, data)),
+      ];
+      await cacheService.setFavorites(updatedFavorites);
 
       console.log('[Favorites] ✅ Favorito creado en API y cacheado');
       return response;
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof DuplicateFavoriteError || error?.status === 409) {
+        throw new DuplicateFavoriteError(existingFavorite);
+      }
+
       // ⚠️ Sin internet - guardar localmente con ID temporal
       console.warn('[Favorites] ⚠️ Sin internet, guardando localmente...', error);
 
@@ -136,9 +171,8 @@ export const favoritesService = {
       };
 
       // 💾 Guardar en caché
-      const cachedFavorites = await cacheService.getFavorites() || [];
-      cachedFavorites.unshift(tempFavorite);
-      await cacheService.setFavorites(cachedFavorites);
+      const offlineUpdatedFavorites = [tempFavorite, ...cachedFavorites];
+      await cacheService.setFavorites(offlineUpdatedFavorites);
 
       // 📝 Marcar para sincronización
       await cacheService.addPendingSync({

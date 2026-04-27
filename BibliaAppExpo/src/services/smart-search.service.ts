@@ -4,6 +4,7 @@
  */
 
 import { bibleService } from './bible.service';
+import { t } from '../locales/i18n';
 
 // Tipos de resultados de búsqueda
 export type SmartSearchResultType = 'book' | 'chapter' | 'category' | 'verse';
@@ -300,7 +301,7 @@ class SmartSearchService {
           results.push({
             type: 'verse',
             title: `${bookInfo.name} ${chapter}:${verseStart}${verseEnd ? `-${verseEnd}` : ''}`,
-            subtitle: 'Ir al versículo',
+            subtitle: t('search.goToVerse'),
             bookId: bookInfo.id,
             bookName: bookInfo.name,
             chapter,
@@ -312,7 +313,7 @@ class SmartSearchService {
           results.push({
             type: 'chapter',
             title: `${bookInfo.name} ${chapter}`,
-            subtitle: `Capítulo ${chapter}`,
+            subtitle: `${t('search.chapter')} ${chapter}`,
             bookId: bookInfo.id,
             bookName: bookInfo.name,
             chapter,
@@ -328,7 +329,7 @@ class SmartSearchService {
       results.push({
         type: 'book',
         title: book.name,
-        subtitle: `${book.category} • ${book.testament === 'old' ? 'Antiguo Testamento' : 'Nuevo Testamento'}`,
+        subtitle: `${book.category} • ${book.testament === 'old' ? t('search.oldTestament') : t('search.newTestament')}`,
         bookId: book.id,
         bookName: book.name,
         testament: book.testament,
@@ -342,7 +343,7 @@ class SmartSearchService {
       results.push({
         type: 'category',
         title: cat.name,
-        subtitle: `${cat.bookIds.length} libros • ${cat.testament === 'old' ? 'Antiguo Testamento' : 'Nuevo Testamento'}`,
+        subtitle: `${cat.bookIds.length} ${t('search.books')} • ${cat.testament === 'old' ? t('search.oldTestament') : t('search.newTestament')}`,
         category: cat.name,
         testament: cat.testament,
       });
@@ -459,7 +460,7 @@ class SmartSearchService {
         results.push({
           type: 'category',
           title: cat.name,
-          subtitle: `${cat.bookIds.length} libros`,
+          subtitle: `${cat.bookIds.length} ${t('search.books')}`,
           category: cat.name,
           testament: cat.testament,
         });

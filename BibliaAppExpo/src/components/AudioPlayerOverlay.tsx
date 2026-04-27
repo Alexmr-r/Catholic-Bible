@@ -9,7 +9,8 @@ import {
   Easing,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import {useTheme} from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { t } from '../locales/i18n';
 import {audioService, AudioStatus} from '../services/audio.service';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
@@ -82,7 +83,7 @@ const AudioPlayerOverlay: React.FC = () => {
           </View>
           <View style={styles.textColumn}>
             <Text style={[styles.title, {color: colors.charcoal.DEFAULT}]}>
-              {status.isDownloading ? 'Instalando Narrador IA' : 'Escuchando Lectura'}
+              {status.isDownloading ? t('reading.installingNarrator') : t('reading.listeningReading')}
             </Text>
             <Text style={[styles.subtitle, {color: colors.charcoal.muted}]} numberOfLines={1}>
               {status.isDownloading 
@@ -138,9 +139,7 @@ const AudioPlayerOverlay: React.FC = () => {
           onPress={handleDownload}
         >
           <MaterialIcons name="auto-awesome" size={14} color={colors.primary.DEFAULT} />
-          <Text style={[styles.upgradeText, {color: colors.primary.DEFAULT}]}>
-            Instalar Voz de Narrador Premium (Gratis)
-          </Text>
+          <Text style={styles.downloadText}>{t('reading.installPremiumVoice')}</Text>
         </TouchableOpacity>
       )}
     </Animated.View>

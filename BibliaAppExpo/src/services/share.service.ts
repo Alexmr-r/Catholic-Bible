@@ -18,6 +18,7 @@
  */
 
 import { Share, Platform } from 'react-native';
+import { t } from '../locales/i18n';
 
 // ==========================================
 // TIPOS
@@ -90,9 +91,9 @@ export interface ShareResult {
 // CONFIGURACIÓN
 // ==========================================
 
-const APP_NAME = 'Biblia App';
-const APP_TAGLINE = '📖 Tu compañero de lectura bíblica';
-const SHARE_FOOTER = `\n\n— Compartido desde ${APP_NAME}`;
+const APP_NAME = 'CatholicVerse';
+// APP_TAGLINE and others will use t() directly
+const SHARE_FOOTER = `\n\n— ${APP_NAME}`;
 
 // Emojis para decorar el contenido
 const EMOJI = {
@@ -209,7 +210,7 @@ const generateChapterMessage = (params: ShareChapterParams): { message: string; 
   // Para capítulos largos, truncar inteligentemente al límite seguro de 1500 caracteres
   const maxChapterLength = 1500; // Límite para evitar problemas en algunas apps
   const truncatedText = chapterText.length > maxChapterLength
-    ? truncateText(chapterText, maxChapterLength) + '\n\n[Capítulo completo disponible en la app]'
+    ? truncateText(chapterText, maxChapterLength) + '\n\n[Full chapter available in the app]'
     : chapterText;
 
   const message = `${EMOJI.book} ${reference}\n${truncatedText}${SHARE_FOOTER}`;
@@ -242,7 +243,7 @@ const generateDailyReadingMessage = (params: ShareDailyReadingParams): { message
  */
 const generateReflectionMessage = (params: ShareReflectionParams): { message: string; title: string } => {
   const formattedDate = formatDate(params.date);
-  const title = params.title || 'Mi reflexión';
+  const title = params.title || 'My Reflection';
 
   let message = `${EMOJI.pen} ${title}\n${formattedDate}\n\n`;
 
@@ -391,7 +392,7 @@ class ShareService {
       return {
         success: false,
         action: 'error',
-        error: 'Acción desconocida',
+        error: 'Unknown action',
       };
     } catch (error: any) {
       console.error('[ShareService] Error crítico compartiendo:', error);

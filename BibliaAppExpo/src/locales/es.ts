@@ -23,11 +23,14 @@ export default {
         validationWait: 'Procesando...',
         errors: {
             loginTitle: 'Error al iniciar sesión',
+            googleLoginFailed: 'Error al iniciar sesión con Google',
+            appleLoginFailed: 'Error al iniciar sesión con Apple',
             invalidEmail: 'Correo electrónico inválido',
             shortPassword: 'La contraseña debe tener al menos 6 caracteres',
             invalidCredentials: 'Credenciales inválidas',
             networkError: 'Error de red, intenta nuevamente',
             emptyName: 'Por favor, ingresa tu nombre completo',
+            acceptTerms: 'Debes aceptar los términos y condiciones',
         }
     },
     navigation: {
@@ -46,5 +49,29 @@ export default {
         success: 'Éxito',
         error: 'Error',
         loading: 'Cargando...',
+    },
+    reading: {
+        installingNarrator: 'Instalando Narrador IA',
+        listeningReading: 'Escuchando Lectura',
+        installPremiumVoice: 'Instalar Voz de Narrador Premium (Gratis)',
+        saveFullChapter: 'Guardar capítulo completo',
+        verses: 'Versículos',
+        fullChapter: 'Capítulo completo',
+        devAlertTitle: 'En desarrollo',
+        devAlertMsg: 'Esta función estará disponible próximamente.',
+        gotIt: 'Entendido',
+    },
+    search: {
+        oldTestament: 'Antiguo Testamento',
+        newTestament: 'Nuevo Testamento',
+        books: 'libros',
+        chapter: 'Capítulo',
+        goToVerse: 'Ir al versículo',
+    },
+    share: {
+        tagline: '📖 Tu compañero de lectura bíblica',
+        fullChapterAvailable: '[Capítulo completo disponible en la app]',
+        myReflection: 'Mi reflexión',
+        unknownAction: 'Acción desconocida'
     }
 };

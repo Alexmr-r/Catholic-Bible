@@ -21,6 +21,7 @@ import {useTheme} from '../contexts/ThemeContext';
 import {RegisterScreenProps} from '../navigation/AppNavigator';
 import {useAuth} from '../contexts/AuthContext';
 import {t} from '../locales/i18n';
+import * as WebBrowser from 'expo-web-browser';
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
   const { colors, isDarkMode } = useTheme();
@@ -87,6 +88,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
 
   const handleBack = () => navigation.goBack();
   const handleLogin = () => navigation.navigate('Login');
+
+  const openTerms = async () => {
+    await WebBrowser.openBrowserAsync('https://getcatholicverse.com/terms.html');
+  };
+
+  const openPrivacy = async () => {
+    await WebBrowser.openBrowserAsync('https://getcatholicverse.com/privacy.html');
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -230,7 +239,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
                       </View>
                     </TouchableOpacity>
                     <Text style={styles.termsText}>
-                      Accept <Text style={styles.termsLink}>Terms</Text> and <Text style={styles.termsLink}>Privacy Policy</Text>.
+                      Accept {' '}
+                      <Text style={styles.termsLink} onPress={openTerms}>Terms</Text> 
+                      {' '} and {' '} 
+                      <Text style={styles.termsLink} onPress={openPrivacy}>Privacy Policy</Text>.
                     </Text>
                   </View>
 

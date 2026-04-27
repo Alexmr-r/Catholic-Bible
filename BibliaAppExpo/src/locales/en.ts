@@ -23,11 +23,14 @@ export default {
         validationWait: 'Processing...',
         errors: {
             loginTitle: 'Sign in failed',
+            googleLoginFailed: 'Google sign-in failed',
+            appleLoginFailed: 'Apple sign-in failed',
             invalidEmail: 'Invalid email address',
             shortPassword: 'Password must be at least 6 characters',
             invalidCredentials: 'Invalid credentials',
             networkError: 'Network error, try again',
             emptyName: 'Please enter your full name',
+            acceptTerms: 'You must accept the terms and conditions',
         }
     },
     navigation: {
@@ -46,5 +49,29 @@ export default {
         success: 'Success',
         error: 'Error',
         loading: 'Loading...',
+    },
+    reading: {
+        installingNarrator: 'Installing AI Narrator',
+        listeningReading: 'Listening to Reading',
+        installPremiumVoice: 'Install Premium Narrator Voice (Free)',
+        saveFullChapter: 'Save full chapter',
+        verses: 'Verses',
+        fullChapter: 'Full Chapter',
+        devAlertTitle: 'In development',
+        devAlertMsg: 'This feature will be available shortly.',
+        gotIt: 'Got it',
+    },
+    search: {
+        oldTestament: 'Old Testament',
+        newTestament: 'New Testament',
+        books: 'books',
+        chapter: 'Chapter',
+        goToVerse: 'Go to verse',
+    },
+    share: {
+        tagline: '📖 Your Catholic Bible companion',
+        fullChapterAvailable: '[Full chapter available in the app]',
+        myReflection: 'My Reflection',
+        unknownAction: 'Unknown action'
     }
 };

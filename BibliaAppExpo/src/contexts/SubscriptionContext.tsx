@@ -43,11 +43,15 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Inicializar RevenueCat setup
     const setup = async () => {
       try {
-        if (Platform.OS === 'ios') {
-          Purchases.configure({ apiKey: API_KEYS.apple });
-        } else if (Platform.OS === 'android') {
-          Purchases.configure({ apiKey: API_KEYS.google });
+        const apiKey = Platform.OS === 'ios' ? API_KEYS.apple : API_KEYS.google;
+        
+        // Evitamos peticiones si la API key es de prueba
+        if (apiKey.includes('YOUR_')) {
+          console.log('[RevenueCat] Saltando configuración: API Key de prueba detectada.');
+          return;
         }
+        
+        Purchases.configure({ apiKey });
         
         // Log in el usuario a RevenueCat
         if (user) {

@@ -16,7 +16,7 @@ import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {ChapterReadingScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Chapter} from '../services/bible.service';
-import {favoritesService} from '../services/favorites.service';
+import {DuplicateFavoriteError, favoritesService} from '../services/favorites.service';
 import {highlightService, Highlight, HighlightColor, getHighlightHex, HIGHLIGHT_COLORS} from '../services/highlights.service';
 import {shareService} from '../services/share.service';
 import {audioService} from '../services/audio.service';
@@ -56,6 +56,10 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
   const [showTextSettings, setShowTextSettings] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false); // Modal de opciones (3 puntos)
   const [pendingAction, setPendingAction] = useState<'share' | 'favorite' | 'audio' | null>(null);
+  const [favoriteNotice, setFavoriteNotice] = useState<{
+    type: 'success' | 'info' | 'error';
+    message: string;
+  } | null>(null);
   const {settings} = useTextSettings();
 
   // ✅ Hook para modo offline global
@@ -177,7 +181,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
     setPendingAction(null); // Limpiar inmediatamente para evitar duplicados
 
     if (action === 'share') handleShareChapter();
-    else if (action === 'favorite') handleAddChapterToFavorites();
+    else if (action === 'favorite' ) handleAddChapterToFavorites();
     else if (action === 'audio') handleListenAudio();
   };
 
@@ -190,6 +194,19 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
       return () => clearTimeout(timeout);
     }
   }, [showOptionsMenu, pendingAction]);
+
+  useEffect(() => {
+    if (!favoriteNotice) return;
+    const timeout = setTimeout(() => setFavoriteNotice(null), 2200);
+    return () => clearTimeout(timeout);
+  }, [favoriteNotice]);
+
+  const showFavoriteNotice = (
+    message: string,
+    type: 'success' | 'info' | 'error' = 'success'
+  ) => {
+    setFavoriteNotice({message, type});
+  };
 
   // Cargar subrayados del capítulo
   const loadHighlights = async () => {
@@ -446,10 +463,17 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         tags: tag ? [tag] : [],
       });
 
+      showFavoriteNotice('Saved to favorites', 'success');
       cancelSelection();
     } catch (err: any) {
       console.error('Error añadiendo favorito:', err);
-      Alert.alert('Error', 'Could not add to favorites');
+
+      if (err instanceof DuplicateFavoriteError) {
+        showFavoriteNotice('This verse is already in favorites', 'info');
+      } else {
+        showFavoriteNotice('Could not add to favorites', 'error');
+      }
+
       cancelSelection();
     }
   };
@@ -562,9 +586,15 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         tags: ['Full chapter'],
       });
 
+      showFavoriteNotice('Chapter saved to favorites', 'success');
+
     } catch (err: any) {
       console.error('Error añadiendo capítulo:', err);
-      Alert.alert('Error', 'Could not add chapter to favorites');
+      if (err instanceof DuplicateFavoriteError) {
+        showFavoriteNotice('This chapter is already in favorites', 'info');
+      } else {
+        showFavoriteNotice('Could not add chapter to favorites', 'error');
+      }
     }
   };
 
@@ -633,9 +663,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         <View style={styles.headerCenter}>
           <View style={styles.headerTitleRow}>
             <Text style={styles.headerTitle}>{bookName} {currentChapter}</Text>
-            <MaterialIcons name="expand-more" size={16} color={colors.secondary} style={styles.expandIcon} />
           </View>
-          <Text style={styles.headerSubtitle}>{chapterData.version}</Text>
         </View>
 
         <View style={styles.headerActions}>
@@ -837,6 +865,23 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
         </View>
       )}
 
+      {favoriteNotice && (
+        <View
+          style={[
+            styles.feedbackToast,
+            favoriteNotice.type === 'success' && styles.feedbackToastSuccess,
+            favoriteNotice.type === 'info' && styles.feedbackToastInfo,
+            favoriteNotice.type === 'error' && styles.feedbackToastError,
+          ]}>
+          <MaterialIcons
+            name={favoriteNotice.type === 'success' ? 'check-circle' : favoriteNotice.type === 'info' ? 'info' : 'error'}
+            size={18}
+            color="#FFFFFF"
+          />
+          <Text style={styles.feedbackToastText}>{favoriteNotice.message}</Text>
+        </View>
+      )}
+
       {/* Modal de Configuración de Texto */}
       <TextSettingsModal
         visible={showTextSettings}
@@ -875,7 +920,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               <View style={styles.optionsMenuIcon}>
                 <MaterialIcons name="bookmark" size={20} color={colors.gold.DEFAULT} />
               </View>
-              <Text style={styles.optionsMenuText}>Guardar capítulo completo</Text>
+              <Text style={styles.optionsMenuText}>Save full chapter</Text>
             </TouchableOpacity>
 
             {/* Compartir capítulo */}
@@ -889,7 +934,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               <View style={styles.optionsMenuIcon}>
                 <MaterialIcons name="share" size={20} color={colors.gold.DEFAULT} />
               </View>
-              <Text style={styles.optionsMenuText}>Compartir capítulo</Text>
+              <Text style={styles.optionsMenuText}>Share chapter</Text>
             </TouchableOpacity>
 
             {/* Escuchar audio */}
@@ -903,7 +948,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
               <View style={styles.optionsMenuIcon}>
                 <MaterialIcons name="headphones" size={20} color={colors.gold.DEFAULT} />
               </View>
-              <Text style={styles.optionsMenuText}>Escuchar audio</Text>
+              <Text style={styles.optionsMenuText}>Listen audio</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1234,6 +1279,40 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     width: 1,
     height: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+
+  feedbackToast: {
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    zIndex: 1100,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: isDarkMode ? `${colors.ivory.border}66` : `${colors.ivory.border}CC`,
+  },
+  feedbackToastSuccess: {
+    backgroundColor: colors.primary.DEFAULT,
+  },
+  feedbackToastInfo: {
+    backgroundColor: colors.charcoal.muted,
+  },
+  feedbackToastError: {
+    backgroundColor: colors.burgundy.DEFAULT,
+  },
+  feedbackToastText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   // Modal de Opciones

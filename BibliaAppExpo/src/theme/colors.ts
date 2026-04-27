@@ -1,4 +1,4 @@
-// 🎨 Paleta de colores - Biblia Católica App
+// 🎨 Paleta de colores - CatholicVerse
 // Basado en el diseño HTML con colores litúrgicos y sobrios
 
 export type ThemeColors = {

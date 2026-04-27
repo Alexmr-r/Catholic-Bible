@@ -59,7 +59,11 @@ const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({navigation}) => {
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'Could not open email app.');
+      Alert.alert(
+        'No email app',
+        `Could not open email app. You can write directly to:\n\n${email}`,
+        [{text: 'Got it'}]
+      );
     }
   };
 

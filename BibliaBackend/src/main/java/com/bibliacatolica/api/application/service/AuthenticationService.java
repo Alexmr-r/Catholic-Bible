@@ -212,37 +212,26 @@ public class AuthenticationService implements AuthenticationUseCase {
         String email;
         String fullName;
 
-        // ==========================================
-        // TODO: Lógica de Producción (Descomentar cuando tengas Google Client ID)
-        // ==========================================
-        /*
-         * try {
-         * com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier =
-         * new
-         * com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
-         * new com.google.api.client.http.javanet.NetHttpTransport(),
-         * new com.google.api.client.json.gson.GsonFactory())
-         * .setAudience(java.util.Collections.singletonList(
-         * "PEGA_TU_GOOGLE_CLIENT_ID_AQUÍ"))
-         * .build();
-         * 
-         * com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken =
-         * verifier.verify(command.idToken());
-         * if (idToken != null) {
-         * email = idToken.getPayload().getEmail();
-         * fullName = (String) idToken.getPayload().get("name");
-         * } else {
-         * throw new AuthenticationException("Token de Google inválido");
-         * }
-         * } catch (Exception e) {
-         * throw new AuthenticationException("Error verificando token de Google: " +
-         * e.getMessage());
-         * }
-         */
-
-        // MOCK TEMPORAL
-        email = "google@test.com";
-        fullName = "Usuario Google";
+        try {
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier =
+                new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
+                    new com.google.api.client.http.javanet.NetHttpTransport(),
+                    new com.google.api.client.json.gson.GsonFactory()
+                )
+                .setAudience(java.util.Collections.singletonList("709014169638-qdhs9p1smr7nbgk0kmb2ca4hhts6qq53.apps.googleusercontent.com"))
+                .build();
+            
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken = verifier.verify(command.idToken());
+            
+            if (idToken != null) {
+                email = idToken.getPayload().getEmail();
+                fullName = (String) idToken.getPayload().get("name");
+            } else {
+                throw new AuthenticationException("Token de Google inválido");
+            }
+        } catch (Exception e) {
+            throw new AuthenticationException("Error verificando token de Google: " + e.getMessage());
+        }
 
         return processSocialLogin(email, fullName);
     }
@@ -254,31 +243,20 @@ public class AuthenticationService implements AuthenticationUseCase {
         String email;
         String fullName = command.fullName() != null ? command.fullName() : "Usuario Apple";
 
-        // ==========================================
-        // TODO: Lógica de Producción (Descomentar cuando tengas Apple Sign In)
-        // ==========================================
-        /*
-         * try {
-         * // Apple envía un JWT. Se decodifica sin verificar firma para extraer el
-         * email.
-         * // Para producción estricta, usa la clave pública de Apple en
-         * https://appleid.apple.com/auth/keys
-         * String[] splitToken = command.identityToken().split("\\.");
-         * String unsignedToken = splitToken[0] + "." + splitToken[1] + ".";
-         * io.jsonwebtoken.Claims claims = io.jsonwebtoken.Jwts.parser()
-         * .build()
-         * .parseUnsecuredClaims(unsignedToken)
-         * .getPayload();
-         * 
-         * email = claims.get("email", String.class);
-         * } catch (Exception e) {
-         * throw new AuthenticationException("Error verificando token de Apple: " +
-         * e.getMessage());
-         * }
-         */
-
-        // MOCK TEMPORAL
-        email = "apple@test.com";
+        try {
+            // Apple envía un JWT. Se decodifica sin verificar firma para extraer el email.
+            // Para producción estricta, usa la clave pública de Apple en https://appleid.apple.com/auth/keys
+            String[] splitToken = command.identityToken().split("\\.");
+            String unsignedToken = splitToken[0] + "." + splitToken[1] + ".";
+            io.jsonwebtoken.Claims claims = (io.jsonwebtoken.Claims) io.jsonwebtoken.Jwts.parser()
+                .build()
+                .parse(unsignedToken)
+                .getPayload();
+            
+            email = claims.get("email", String.class);
+        } catch (Exception e) {
+            throw new AuthenticationException("Error verificando token de Apple: " + e.getMessage());
+        }
 
         return processSocialLogin(email, fullName);
     }

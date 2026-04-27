@@ -111,7 +111,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
       if (reference) {
         message += `📖 Based on: ${reference}\n\n`;
       }
-      message += `${content}\n\n— Shared from Catholic Bible App`;
+      message += `${content}\n\n— Shared from CatholicVerse`;
 
       console.log('[WritingDetail] Llamando a Share.share()...');
 

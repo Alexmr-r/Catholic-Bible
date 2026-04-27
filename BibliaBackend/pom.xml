@@ -14,7 +14,7 @@
     <groupId>com.bibliacatolica</groupId>
     <artifactId>biblia-api</artifactId>
     <version>1.0.0</version>
-    <name>Biblia Católica API</name>
+    <name>CatholicVerse API</name>
     <description>Backend API para la aplicación de Biblia Católica</description>
 
     <properties>

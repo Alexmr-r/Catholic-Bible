@@ -26,6 +26,7 @@ import {BibleOfflineService} from '../services/english-bible-download.service';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import OfflineBanner from '../components/OfflineBanner';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 
 type RecentSearch = {
   id: string;
@@ -44,6 +45,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   const [suggestions, setSuggestions] = useState<SmartSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [lastReading, setLastReading] = useState<ReadingHistoryItem | null>(null);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
@@ -259,15 +261,40 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   };
 
   // =====================================================
-  // 🔴 MOCKEADO - Búsqueda por voz
-  // TODO: Implementar reconocimiento de voz
+  // ✅ IMPLEMENTADO - Búsqueda por voz
   // =====================================================
-  const handleVoiceSearch = () => {
-    Alert.alert(
-      '🎤 Voice Search',
-      'Mocked functionality for demo.\n\nIn production, you will be able to search for verses using your voice here.',
-      [{text: 'Got it'}]
-    );
+  
+  useSpeechRecognitionEvent("start", () => setIsListening(true));
+  useSpeechRecognitionEvent("end", () => setIsListening(false));
+  useSpeechRecognitionEvent("result", (event) => {
+    if (event.results && event.results[0]?.transcript) {
+      handleSearchQueryChange(event.results[0].transcript);
+    }
+  });
+
+  const handleVoiceSearch = async () => {
+    if (isListening) {
+      ExpoSpeechRecognitionModule.stop();
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!result.granted) {
+        Alert.alert("Permissions required", "Please allow microphone and speech recognition access in settings.");
+        return;
+      }
+      
+      ExpoSpeechRecognitionModule.start({
+        lang: "en-US",
+        interimResults: true,
+        maxAlternatives: 1,
+      });
+    } catch (e) {
+      console.warn('Error starting speech recognition:', e);
+      Alert.alert('Error', 'Could not start voice search. Please try again.');
+    }
   };
 
   // =====================================================
@@ -420,9 +447,9 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
           ) : (
             <TouchableOpacity
               onPress={handleVoiceSearch}
-              style={styles.micButton}
+              style={[styles.micButton, isListening && { backgroundColor: `${colors.primary.DEFAULT}22`, borderRadius: 20 }]}
               activeOpacity={0.7}>
-              <MaterialIcons name="mic" size={26} color={colors.primary.DEFAULT} />
+              <MaterialIcons name={isListening ? "mic-none" : "mic"} size={26} color={isListening ? colors.burgundy.DEFAULT : colors.primary.DEFAULT} />
             </TouchableOpacity>
           )}
         </View>

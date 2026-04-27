@@ -513,6 +513,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 48,
     backgroundColor: isDarkMode ? colors.ivory.shade : '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
@@ -527,11 +528,16 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   searchIcon: {
     marginRight: 8,
+    alignSelf: 'center',
   },
   searchInput: {
     flex: 1,
+    height: 22,
+    paddingVertical: 0,
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
 
   // Category Chips (exactamente igual que FavoritesScreen)

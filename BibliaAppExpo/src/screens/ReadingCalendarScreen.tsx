@@ -70,26 +70,30 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
   // ✅ Recargar cuando vuelve a la pantalla (por si guardó reflexión)
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      await reloadAndSelectToday();
+      await reloadAndSelectToday(selectedDate);
     });
     return unsubscribe;
-  }, [navigation, currentYear, currentMonth]);
+  }, [navigation, currentYear, currentMonth, selectedDate]);
 
   // Función para recargar datos y seleccionar HOY si corresponde
-  const reloadAndSelectToday = async () => {
+  const reloadAndSelectToday = async (currentSelected: string | null) => {
     try {
       const data = await readingProgressService.getMonthProgress(currentYear, currentMonth);
       setMonthData(data);
 
-      // Auto-seleccionar HOY si está completado
+      // Si ya hay un día seleccionado, simplemente recargamos su lectura
+      if (currentSelected) {
+        await loadReadingForDate(currentSelected);
+        return;
+      }
+
+      // Si no hay seleccionado, auto-seleccionar HOY
       const today = new Date();
       const todayStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
       if (today.getFullYear() === currentYear && today.getMonth() + 1 === currentMonth) {
-        if (data.completedDates.includes(todayStr)) {
-          setSelectedDate(todayStr);
-          await loadReadingForDate(todayStr);
-        }
+        setSelectedDate(todayStr);
+        await loadReadingForDate(todayStr);
       }
     } catch (error) {
       console.error('Error recargando datos:', error);
@@ -126,12 +130,12 @@ const ReadingCalendarScreen: React.FC<ReadingCalendarScreenProps> = ({navigation
   };
 
   useEffect(() => {
-    // Auto-seleccionar el día HOY si está completado (al cargar por primera vez)
+    // Auto-seleccionar el día HOY de forma predeterminada (al cargar calendario)
     const today = new Date();
     if (monthData && today.getFullYear() === currentYear && today.getMonth() + 1 === currentMonth) {
       const todayStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-      if (monthData.completedDates.includes(todayStr) && !selectedDate) {
+      if (!selectedDate) {
         setSelectedDate(todayStr);
         loadReadingForDate(todayStr);
       }
