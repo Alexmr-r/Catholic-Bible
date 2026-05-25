@@ -54,6 +54,11 @@ public interface BibleUseCase {
      */
     List<Verse> getVerses(String bookId, int chapter, int startVerse, int endVerse);
 
+    /**
+     * Actualiza el texto de un versículo para corregir erratas en tiempo real
+     */
+    Verse updateVerseText(String bookId, int chapter, int verse, String newText);
+
     // ========== Búsqueda ==========
 
     /**

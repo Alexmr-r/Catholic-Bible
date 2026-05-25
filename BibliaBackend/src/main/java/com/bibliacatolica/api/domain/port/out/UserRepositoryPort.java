@@ -39,5 +39,10 @@ public interface UserRepositoryPort {
      * Elimina un usuario por ID
      */
     void deleteById(UUID id);
+
+    /**
+     * Obtiene todos los usuarios de la base de datos (CMS / Backoffice)
+     */
+    java.util.List<User> findAll();
 }
 

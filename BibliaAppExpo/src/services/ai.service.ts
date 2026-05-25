@@ -9,20 +9,23 @@ export interface Message {
 }
 
 class AIService {
-    // Intermediario que habliará con el Backend Spring Boot y Ollama.
     async sendMessage(query: string): Promise<string> {
-        console.log('[AIService] Sending query to AI:', query);
+        if (__DEV__) {
+            console.log('[AIService] Sending query to AI:', query);
+        }
 
         try {
             const data = await apiClient.post<{ response: string }>('/chat', { query }, API_CONFIG.TIMEOUT_AI);
-            return data.response || "No response found.";
+            return data.response || "No response received.";
         } catch (error: any) {
-            console.error('[AIService] Failed to fetch from backend:', error);
+            if (__DEV__) {
+                console.error('[AIService] Failed to fetch:', error);
+            }
 
             const status = error?.status;
 
             if (status === 401 || status === 403) {
-                return 'Your session is not authorized for the AI assistant. Please sign in again.';
+                return 'Your session has expired. Please sign in again to continue.';
             }
 
             if (status === 408) {
@@ -30,7 +33,7 @@ class AIService {
             }
 
             if (status === 0) {
-                return 'Network error. Please verify your internet connection and backend availability.';
+                return 'Server unreachable. Please verify your internet connection.';
             }
 
             if (typeof status === 'number' && status >= 500) {

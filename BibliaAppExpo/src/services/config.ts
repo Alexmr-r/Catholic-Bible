@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
  */
 
 // ⚠️ CAMBIA ESTA IP SI CAMBIAS DE RED WIFI
-const LOCAL_IP = '192.168.1.135';
+const LOCAL_IP = '192.168.1.39';
 
 
 // Detectar el entorno y seleccionar la URL correcta
@@ -24,11 +24,11 @@ const getApiBaseUrl = (): string => {
       return 'http://localhost:8080/api/v1';
     }
     // Para iOS y Android (tanto simulador como dispositivo físico)
-    return `http://${LOCAL_IP}:8080/api/v1`;
+    return 'https://api.getcatholicverse.com/api/v1';
   }
 
-  // Producción (cuando tengas un servidor)
-  return 'https://api.tudominio.com/api/v1';
+  // Producción
+  return 'https://api.getcatholicverse.com/api/v1';
 };
 
 const API_BASE_URL = getApiBaseUrl();

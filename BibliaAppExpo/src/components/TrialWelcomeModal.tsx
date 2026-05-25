@@ -6,8 +6,7 @@ import {
   Modal,
   TouchableOpacity,
   Dimensions,
-  Platform,
-} from 'react-native';
+  } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { useTheme } from '../contexts/ThemeContext';
@@ -133,7 +132,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    
     lineHeight: 28,
   },
   desc: {

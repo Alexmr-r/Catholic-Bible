@@ -54,6 +54,10 @@ public class UserEntity {
     @Column(name = "revenuecat_user_id", unique = true, length = 255)
     private String revenuecatUserId;
 
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String provider = "LOCAL";
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -95,15 +95,15 @@ const TextSettingsModal: React.FC<TextSettingsModalProps> = ({visible, onClose})
               <TouchableOpacity
                 style={[
                   styles.fontButton,
-                  settings.fontFamily === 'serif' && styles.fontButtonActive,
+                  settings.fontFamily === 'Lora_400Regular' && styles.fontButtonActive,
                 ]}
-                onPress={() => updateFontFamily('serif')}
+                onPress={() => updateFontFamily('Lora_400Regular')}
                 activeOpacity={0.7}>
                 <Text
                   style={[
                     styles.fontButtonText,
-                    settings.fontFamily === 'serif' && styles.fontButtonTextActive,
-                    {fontFamily: 'serif'},
+                    settings.fontFamily === 'Lora_400Regular' && styles.fontButtonTextActive,
+                    {fontFamily: 'Lora_400Regular'},
                   ]}>
                   Serif
                 </Text>

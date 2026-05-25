@@ -31,5 +31,18 @@ public class Verse {
     public boolean containsText(String searchText) {
         return text.toLowerCase().contains(searchText.toLowerCase());
     }
+
+    /**
+     * Crea una nueva instancia con texto modificado para corregir erratas
+     */
+    public Verse withText(String newText) {
+        return Verse.builder()
+                .id(this.id)
+                .verseNumber(this.verseNumber)
+                .text(newText)
+                .hasNote(this.hasNote)
+                .noteText(this.noteText)
+                .build();
+    }
 }
 

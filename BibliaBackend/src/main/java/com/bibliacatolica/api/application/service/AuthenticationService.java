@@ -5,6 +5,7 @@ import com.bibliacatolica.api.domain.exception.DuplicateResourceException;
 import com.bibliacatolica.api.domain.model.User;
 import com.bibliacatolica.api.domain.port.in.AuthenticationUseCase;
 import com.bibliacatolica.api.domain.port.out.UserRepositoryPort;
+import com.bibliacatolica.api.domain.port.out.UserTrialRepositoryPort;
 import com.bibliacatolica.api.infrastructure.adapter.out.email.ResendEmailService;
 import com.bibliacatolica.api.infrastructure.config.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class AuthenticationService implements AuthenticationUseCase {
 
     private final UserRepositoryPort userRepository;
+    private final UserTrialRepositoryPort userTrialRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final ResendEmailService emailService;
@@ -43,6 +45,14 @@ public class AuthenticationService implements AuthenticationUseCase {
             throw new DuplicateResourceException("Usuario", command.email());
         }
 
+        // Determinar fecha de inicio de prueba (persistente)
+        LocalDateTime trialStartDate = userTrialRepository.findTrialStartDateByEmail(command.email().toLowerCase().trim())
+                .orElseGet(() -> {
+                    LocalDateTime now = LocalDateTime.now();
+                    userTrialRepository.saveTrialStart(command.email().toLowerCase().trim(), now);
+                    return now;
+                });
+
         // Crear el usuario
         User user = User.builder()
                 .id(UUID.randomUUID())
@@ -52,7 +62,8 @@ public class AuthenticationService implements AuthenticationUseCase {
                 .emailVerified(true) // Por ahora sin verificación de email
                 .active(true)
                 .premium(false)
-                .trialStartDate(LocalDateTime.now())
+                .trialStartDate(trialStartDate)
+                .provider("LOCAL")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -84,6 +95,15 @@ public class AuthenticationService implements AuthenticationUseCase {
         User user = userRepository.findByEmail(command.email().toLowerCase().trim())
                 .orElseThrow(AuthenticationException::invalidCredentials);
 
+        // Si el usuario existe pero es de Google o Apple, le avisamos
+        if (!"LOCAL".equals(user.getProvider())) {
+            throw new AuthenticationException("Esta cuenta usa " + user.getProvider() + ". Por favor, inicia sesión con el botón correspondiente.");
+        }
+
+        // MEJORA UX: Si el usuario intenta entrar con password pero la cuenta se creó con Google/Apple
+        // (password aleatorio muy largo o nulo en lógica futura), avisar sutilmente.
+        // Por ahora, simplemente validamos password.
+        
         // Verificar contraseña
         if (!passwordEncoder.matches(command.password(), user.getPasswordHash())) {
             log.warn("Contraseña incorrecta para usuario: {}", command.email());
@@ -218,7 +238,14 @@ public class AuthenticationService implements AuthenticationUseCase {
                     new com.google.api.client.http.javanet.NetHttpTransport(),
                     new com.google.api.client.json.gson.GsonFactory()
                 )
-                .setAudience(java.util.Collections.singletonList("709014169638-qdhs9p1smr7nbgk0kmb2ca4hhts6qq53.apps.googleusercontent.com"))
+                .setAudience(java.util.Arrays.asList(
+                    "1055569033141", // Project Number
+                    "catholicverse-40437", // Firebase Project ID
+                    "1055569033141-9l6tnmaugo5tbco40si0kc9qt887ion2.apps.googleusercontent.com", // Web
+                    "1055569033141-8ol7lvhvgn445bfgcha7l74e7kjsshcr.apps.googleusercontent.com", // iOS
+                    "1055569033141-6rdge1p5ri3vbqassb9u10p11v230o97.apps.googleusercontent.com"  // Android
+                ))
+                .setAcceptableTimeSkewSeconds(60)
                 .build();
             
             com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken = verifier.verify(command.idToken());
@@ -233,7 +260,7 @@ public class AuthenticationService implements AuthenticationUseCase {
             throw new AuthenticationException("Error verificando token de Google: " + e.getMessage());
         }
 
-        return processSocialLogin(email, fullName);
+        return processSocialLogin(email, fullName, "GOOGLE");
     }
 
     @Override
@@ -258,27 +285,58 @@ public class AuthenticationService implements AuthenticationUseCase {
             throw new AuthenticationException("Error verificando token de Apple: " + e.getMessage());
         }
 
-        return processSocialLogin(email, fullName);
+        return processSocialLogin(email, fullName, "APPLE");
     }
 
-    private AuthResult processSocialLogin(String email, String fullName) {
+    private AuthResult processSocialLogin(String email, String fullName, String provider) {
         String formattedEmail = email.toLowerCase().trim();
 
         User user = userRepository.findByEmail(formattedEmail).orElseGet(() -> {
             log.info("Creando nuevo usuario vía Social Login: {}", formattedEmail);
+            
+            // Determinar fecha de inicio de prueba (persistente)
+            LocalDateTime trialStartDate = userTrialRepository.findTrialStartDateByEmail(formattedEmail)
+                    .orElseGet(() -> {
+                        LocalDateTime now = LocalDateTime.now();
+                        userTrialRepository.saveTrialStart(formattedEmail, now);
+                        return now;
+                    });
+
             User newUser = User.builder()
                     .id(UUID.randomUUID())
                     .email(formattedEmail)
-                    .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString())) // Contraseña
-                                                                                        // bloqueada/aleatoria
+                    .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString())) // Contraseña bloqueada
                     .fullName(fullName)
-                    .emailVerified(true) // Ya verificado por Google/Apple
+                    .emailVerified(true) 
                     .active(true)
+                    .trialStartDate(trialStartDate)
+                    .provider(provider)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
             return userRepository.save(newUser);
         });
+
+        // Actualizar provider si es necesario (para usuarios existentes)
+        if (!provider.equals(user.getProvider())) {
+            log.info("Actualizando provider de {} a {} para usuario: {}", user.getProvider(), provider, user.getEmail());
+            User updatedUser = User.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .passwordHash(user.getPasswordHash())
+                    .fullName(user.getFullName())
+                    .emailVerified(user.isEmailVerified())
+                    .active(user.isActive())
+                    .premium(user.isPremium())
+                    .trialStartDate(user.getTrialStartDate())
+                    .subscriptionEndDate(user.getSubscriptionEndDate())
+                    .revenuecatUserId(user.getRevenuecatUserId())
+                    .provider(provider)
+                    .createdAt(user.getCreatedAt())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            user = userRepository.update(updatedUser);
+        }
 
         if (!user.isActive()) {
             throw new AuthenticationException("Usuario inactivo");

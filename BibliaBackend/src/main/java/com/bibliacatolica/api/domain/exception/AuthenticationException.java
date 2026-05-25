@@ -21,4 +21,3 @@ public class AuthenticationException extends DomainException {
         return new AuthenticationException("Token inválido");
     }
 }
-

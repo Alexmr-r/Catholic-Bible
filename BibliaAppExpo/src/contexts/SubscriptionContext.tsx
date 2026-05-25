@@ -3,11 +3,7 @@ import { Platform } from 'react-native';
 import Purchases, { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 import { useAuth } from './AuthContext';
 
-// API Keys para RevenueCat (Reemplaza con los tuyos más adelante)
-const API_KEYS = {
-  apple: 'appl_YOUR_APPLE_API_KEY_HERE',
-  google: 'goog_YOUR_GOOGLE_API_KEY_HERE',
-};
+import { REVENUECAT_KEYS } from '../services/revenuecatConfig';
 
 interface SubscriptionContextType {
   isPremium: boolean;
@@ -43,7 +39,7 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
     // Inicializar RevenueCat setup
     const setup = async () => {
       try {
-        const apiKey = Platform.OS === 'ios' ? API_KEYS.apple : API_KEYS.google;
+        const apiKey = Platform.OS === 'ios' ? REVENUECAT_KEYS.apple : REVENUECAT_KEYS.google;
         
         // Evitamos peticiones si la API key es de prueba
         if (apiKey.includes('YOUR_')) {
@@ -82,8 +78,8 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, [user]);
 
   const checkAccess = (info: CustomerInfo) => {
-    // Reemplaza "premium_access" con el identifier que configures en RevenueCat Entitlements
-    if (typeof info.entitlements.active['premium_access'] !== 'undefined') {
+    // Coincide con el "Identifier" en RevenueCat Entitlements
+    if (typeof info.entitlements.active['CatholicVerse Premium'] !== 'undefined') {
       setRcPremium(true);
     } else {
       setRcPremium(false);
@@ -93,7 +89,7 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   const purchasePackage = async (pack: PurchasesPackage): Promise<boolean> => {
     try {
       const { customerInfo } = await Purchases.purchasePackage(pack);
-      if (typeof customerInfo.entitlements.active['premium_access'] !== 'undefined') {
+      if (typeof customerInfo.entitlements.active['CatholicVerse Premium'] !== 'undefined') {
         setRcPremium(true);
         return true;
       }
@@ -108,7 +104,7 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   const restorePurchases = async (): Promise<boolean> => {
     try {
       const customerInfo = await Purchases.restorePurchases();
-      if (typeof customerInfo.entitlements.active['premium_access'] !== 'undefined') {
+      if (typeof customerInfo.entitlements.active['CatholicVerse Premium'] !== 'undefined') {
         setRcPremium(true);
         return true;
       }

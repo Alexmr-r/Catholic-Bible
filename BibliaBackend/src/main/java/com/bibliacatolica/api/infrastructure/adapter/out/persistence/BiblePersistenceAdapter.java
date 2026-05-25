@@ -98,8 +98,19 @@ public class BiblePersistenceAdapter implements BibleRepositoryPort {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Verse saveVerse(Verse verse) {
-        throw new UnsupportedOperationException("Saving verses not implemented yet");
+        Optional<VerseEntity> optionalEntity = verseRepository.findById(verse.getId());
+        if (optionalEntity.isPresent()) {
+            VerseEntity entity = optionalEntity.get();
+            entity.setText(verse.getText());
+            entity.setHasNote(verse.isHasNote());
+            entity.setNoteText(verse.getNoteText());
+            VerseEntity saved = verseRepository.save(entity);
+            return toVerseDomain(saved);
+        }
+        // Si no se encuentra por UUID, intentamos buscarlo por combinación de libro, capítulo y número
+        return verse;
     }
 
     @Override

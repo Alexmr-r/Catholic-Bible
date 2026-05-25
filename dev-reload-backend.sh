@@ -22,6 +22,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/BibliaBackend"
 STATE_DIR="$SCRIPT_DIR/.dev-state"
 
+# Cargar variables de entorno si existen
+if [ -f "$BACKEND_DIR/.env" ]; then
+    echo -e "${YELLOW}🔑 Cargando variables de entorno desde .env...${NC}"
+    export $(grep -v '^#' "$BACKEND_DIR/.env" | xargs)
+fi
+
 echo ""
 echo -e "${CYAN}╔═══════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║   🔄 Recargando Backend - Modo Dev       ║${NC}"

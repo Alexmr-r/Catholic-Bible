@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Keyboard,
   TouchableWithoutFeedback,
+  Platform
 } from 'react-native';
 import {ImageBackground} from 'expo-image';
 import {MaterialIcons} from '@expo/vector-icons';
@@ -27,6 +28,9 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import OfflineBanner from '../components/OfflineBanner';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
+import Toast from 'react-native-toast-message';
+import { t } from '../locales/i18n';
+import PremiumAlertModal, { PremiumAlertAction } from '../components/PremiumAlertModal';
 
 type RecentSearch = {
   id: string;
@@ -48,6 +52,28 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   const [isListening, setIsListening] = useState(false);
   const [lastReading, setLastReading] = useState<ReadingHistoryItem | null>(null);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  
+  // Modal State
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    icon?: any;
+    actions: PremiumAlertAction[];
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    actions: []
+  });
+
+  const showPremiumAlert = (title: string, message: string, actions: PremiumAlertAction[], icon?: any) => {
+    setAlertConfig({ visible: true, title, message, actions, icon });
+  };
+
+  const hidePremiumAlert = () => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+  };
 
   // ✅ Hook para modo offline unificado
   const {isBibleDownloaded, refreshDownloadStatus} = useNetwork();
@@ -74,7 +100,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     const formatted: RecentSearch[] = history.slice(0, 3).map((item, index) => ({
       id: index.toString(),
       text: item.query,
-      category: item.resultCount ? `${item.resultCount} resultados` : 'Búsqueda',
+      category: item.resultCount ? `${item.resultCount} ${t('search.results')}` : t('search.typeSearch'),
     }));
     setRecentSearches(formatted);
   };
@@ -97,13 +123,21 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
 
     // Si está offline y no tiene Biblia descargada, mostrar error
     if (needsDownload) {
-      Alert.alert(
-        'No connection',
-        'You need an internet connection or to download the Bible to search.',
+      showPremiumAlert(
+        t('general.noConnection'),
+        t('general.downloadRequired'),
         [
-          {text: 'Cancel', style: 'cancel'},
-          {text: 'Download Bible', onPress: () => navigation.navigate('ManageDownloads')},
-        ]
+          { text: t('general.cancel') || 'Cancel', style: 'cancel', onPress: hidePremiumAlert },
+          { 
+            text: t('general.download'), 
+            style: 'default', 
+            onPress: () => {
+              hidePremiumAlert();
+              navigation.navigate('ManageDownloads' as any);
+            }
+          }
+        ],
+        'wifi-off'
       );
       return;
     }
@@ -325,16 +359,21 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     const confirmedDownloaded = await refreshDownloadStatus();
 
     if (!isOnline && !confirmedDownloaded) {
-      Alert.alert(
-        'No connection',
-        'You have no connection. You need to download the Bible to read it offline.',
+      showPremiumAlert(
+        t('general.noConnection'),
+        t('general.downloadRequired'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('general.cancel') || 'Cancel', style: 'cancel', onPress: hidePremiumAlert },
           { 
-            text: 'Download', 
-            onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'OldTestament' }) 
-          },
-        ]
+            text: t('general.download'), 
+            style: 'default', 
+            onPress: () => {
+              hidePremiumAlert();
+              navigation.navigate('ManageDownloads', { returnTo: 'OldTestament' } as any);
+            }
+          }
+        ],
+        'wifi-off'
       );
       return;
     }
@@ -346,16 +385,21 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
     const confirmedDownloaded = await refreshDownloadStatus();
 
     if (!isOnline && !confirmedDownloaded) {
-      Alert.alert(
-        'No connection',
-        'You have no connection. You need to download the Bible to read it offline.',
+      showPremiumAlert(
+        t('general.noConnection'),
+        t('general.downloadRequired'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('general.cancel') || 'Cancel', style: 'cancel', onPress: hidePremiumAlert },
           { 
-            text: 'Download', 
-            onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'NewTestament' }) 
-          },
-        ]
+            text: t('general.download'), 
+            style: 'default', 
+            onPress: () => {
+              hidePremiumAlert();
+              navigation.navigate('ManageDownloads', { returnTo: 'NewTestament' } as any);
+            }
+          }
+        ],
+        'wifi-off'
       );
       return;
     }
@@ -378,20 +422,22 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
   // ✅ IMPLEMENTADO - Borrar búsquedas recientes
   // =====================================================
   const handleClearSearches = async () => {
-    Alert.alert(
-      '🗑️ Delete searches',
+    showPremiumAlert(
+      t('search.deleteSearches'),
       'Do you want to delete all recent searches?',
       [
-        {text: 'Cancel', style: 'cancel'},
+        {text: t('general.cancel') || 'Cancel', style: 'cancel', onPress: hidePremiumAlert},
         {
-          text: 'Delete',
+          text: t('general.delete') || 'Delete',
           style: 'destructive',
           onPress: async () => {
+            hidePremiumAlert();
             await readingHistoryService.clearSearchHistory();
             await loadRecentSearches();
           },
         },
-      ]
+      ],
+      'delete-outline'
     );
   };
 
@@ -487,7 +533,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       {/* Resultados inteligentes (libros, capítulos, categorías) */}
       {!isSearching && smartResults.length > 0 && (
         <View style={styles.smartResultsContainer}>
-          <Text style={styles.smartResultsTitle}>Resultados</Text>
+          <Text style={styles.smartResultsTitle}>{t('search.smartResultsTitle')}</Text>
           <ScrollView style={styles.smartResultsList} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {smartResults.map((result, index) => (
               <TouchableOpacity
@@ -554,7 +600,7 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
       {!isSearching && searchResults.length > 0 && (
         <View style={styles.resultsContainer}>
           <Text style={styles.resultsTitle}>
-            {searchResults.length} resultado{searchResults.length !== 1 ? 's' : ''}
+            {searchResults.length} {searchResults.length !== 1 ? t('search.results') : t('search.result')}
           </Text>
           <ScrollView style={styles.resultsList} keyboardShouldPersistTaps="handled">
             {searchResults.map((result, index) => (
@@ -725,6 +771,14 @@ const BibleSearchScreen: React.FC<BibleSearchScreenProps> = ({navigation}) => {
           <MaterialIcons name="auto-awesome" size={28} color="#FFFFFF" />
         </TouchableOpacity>
       )}
+      <PremiumAlertModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        actions={alertConfig.actions}
+        onDismiss={hidePremiumAlert}
+      />
     </View>
   );
 };
@@ -827,7 +881,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     paddingBottom: 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
@@ -875,6 +929,9 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     flex: 1,
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   micDivider: {
     width: 1,

@@ -1,0 +1,11 @@
+{
+  "name": "catholic-verse-web",
+  "version": "1.0.0",
+  "description": "Landing page for CatholicVerse App",
+  "scripts": {
+    "deploy": "wrangler pages deploy . --project-name catholic-verse-web"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

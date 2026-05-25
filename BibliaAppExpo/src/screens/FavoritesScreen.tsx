@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Keyboard,
   TouchableWithoutFeedback,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -169,6 +170,11 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
 
   useEffect(() => { loadFavorites(); }, []);
   useFocusEffect(useCallback(() => { loadFavorites(false); }, []));
+
+  // ✅ Auto-recargar cuando CAMBIE el estado de internet (subida o bajada)
+  useEffect(() => {
+    loadFavorites(false);
+  }, [isOnline]);
 
   const onRefresh = () => {
     setIsRefreshing(true);
@@ -381,7 +387,7 @@ const FavoritesScreen: React.FC<FavoritesScreenProps> = () => {
             <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
             <Text style={styles.loadingText}>Loading favorites...</Text>
           </View>
-        ) : isOfflineEmpty ? (
+        ) : !isOnline && favorites.length === 0 ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="cloud-off" size={48} color={colors.charcoal.muted} />
             <Text style={styles.errorText}>
@@ -465,7 +471,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center', 
     justifyContent: 'space-between', 
     paddingHorizontal: 20, 
-    paddingTop: Math.max(safeTop, 20) + 16, 
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16, 
     paddingBottom: 16, 
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream, 
     borderBottomWidth: 1, 

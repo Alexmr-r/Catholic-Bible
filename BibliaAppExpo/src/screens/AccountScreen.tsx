@@ -17,6 +17,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Platform
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -316,7 +317,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
@@ -331,7 +332,6 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
     color: colors.charcoal.dark,
     flex: 1,
     textAlign: 'center',
@@ -387,6 +387,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontWeight: '700',
     color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     letterSpacing: 1,
+  
   },
   cameraButton: {
     position: 'absolute',
@@ -420,6 +421,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     color: colors.charcoal.muted,
     letterSpacing: 2,
     marginLeft: 4,
+  
   },
   input: {
     width: '100%',
@@ -431,10 +433,12 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     paddingVertical: 12,
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
+  
   },
   inputDisabled: {
     backgroundColor: isDarkMode ? colors.background.dark : '#F8FAFC',
     color: colors.charcoal.muted,
+  
   },
 
   // Password Button
@@ -463,6 +467,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 15,
     fontWeight: '500',
     color: colors.charcoal.DEFAULT,
+  
   },
 
   // Save Button
@@ -485,6 +490,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
+  
   },
 
   // Delete Section
@@ -496,6 +502,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 12,
     fontWeight: '300',
     color: colors.charcoal.muted,
+  
   },
 });
 

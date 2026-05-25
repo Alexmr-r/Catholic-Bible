@@ -7,31 +7,31 @@ services:
     container_name: biblia-postgres
     environment:
       POSTGRES_DB: biblia_db
-      POSTGRES_USER: biblia_user
-      POSTGRES_PASSWORD: biblia_secret_2024
+      POSTGRES_USER: ${POSTGRES_USER:-biblia_prod_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-una_contrasena_dificil_para_la_db_2026}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U biblia_user -d biblia_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-biblia_prod_user} -d biblia_db"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - biblia-network
 
-  # Ollama AI Server
-  ollama:
-    image: ollama/ollama:latest
-    container_name: biblia-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - biblia-network
-    restart: unless-stopped
+  # Ollama AI Server (DESACTIVADO PARA AHORRAR RAM)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: biblia-ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   networks:
+  #     - biblia-network
+  #   restart: unless-stopped
 
   # Spring Boot API
   api:
@@ -42,13 +42,12 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/biblia_db
-      SPRING_DATASOURCE_USERNAME: biblia_user
-      SPRING_DATASOURCE_PASSWORD: biblia_secret_2024
-      JWT_SECRET: c3VwZXJTZWNyZXRLZXlGb3JCaWJsaWFBcHBKV1QyMDI0VmVyeUxvbmdBbmRTZWN1cmU=
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-biblia_prod_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-una_contrasena_dificil_para_la_db_2026}
+      JWT_SECRET: ${JWT_SECRET}
       RESEND_API_KEY: ${RESEND_API_KEY}
-
     ports:
-      - "8080:8080"
+      - "80:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -81,4 +80,3 @@ volumes:
 networks:
   biblia-network:
     driver: bridge
-

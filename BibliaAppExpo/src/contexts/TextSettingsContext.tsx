@@ -10,7 +10,7 @@ import React, {createContext, useContext, useState, useEffect, ReactNode} from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tipos
-export type FontFamily = 'serif' | 'sans';
+export type FontFamily = 'Lora_400Regular' | 'sans';
 
 export interface TextSettings {
   fontSize: number; // Porcentaje: 80-150
@@ -27,7 +27,7 @@ interface TextSettingsContextType {
 // Valores por defecto
 const DEFAULT_SETTINGS: TextSettings = {
   fontSize: 100, // 100%
-  fontFamily: 'serif',
+  fontFamily: 'Lora_400Regular',
 };
 
 const STORAGE_KEY = '@biblia_text_settings';

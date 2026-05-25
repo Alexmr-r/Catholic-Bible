@@ -3,7 +3,8 @@
  */
 
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform
+} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -75,7 +76,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border
@@ -85,7 +86,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 18,
     fontWeight: '600',
     color: colors.charcoal.dark,
-    fontFamily: 'serif',
+    
     flex: 1,
     textAlign: 'center'
   },
@@ -94,7 +95,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   content: {paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32},
   heroSection: {alignItems: 'center', marginBottom: 20},
   heroIconContainer: {width: 60, height: 60, borderRadius: 16, backgroundColor: isDarkMode ? `${colors.primary.DEFAULT}1A` : colors.gold.DEFAULT + '15', alignItems: 'center', justifyContent: 'center', marginBottom: 14},
-  heroTitle: {fontSize: 22, fontWeight: '700', color: colors.charcoal.DEFAULT, fontFamily: 'serif', marginBottom: 8},
+  heroTitle: {fontSize: 22, fontWeight: '700', color: colors.charcoal.DEFAULT,  marginBottom: 8},
   heroSubtitle: {fontSize: 15, color: colors.charcoal.muted, textAlign: 'center', lineHeight: 21, paddingHorizontal: 8},
   stepsContainer: {gap: 12, marginBottom: 20},
   stepCard: {flexDirection: 'row', backgroundColor: isDarkMode ? colors.paper : '#FFFFFF', borderRadius: 18, padding: 14, gap: 14, shadowColor: '#000', shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.04, shadowRadius: 12, elevation: 2, borderWidth: 1, borderColor: colors.ivory.border},

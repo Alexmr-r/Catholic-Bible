@@ -24,6 +24,7 @@ public class User {
     private final LocalDateTime trialStartDate;
     private final LocalDateTime subscriptionEndDate;
     private final String revenuecatUserId;
+    private final String provider; // LOCAL, GOOGLE, APPLE
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -85,6 +86,27 @@ public class User {
                 .trialStartDate(this.trialStartDate)
                 .subscriptionEndDate(this.subscriptionEndDate)
                 .revenuecatUserId(this.revenuecatUserId)
+                .createdAt(this.createdAt)
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    /**
+     * Crea una nueva instancia con estado premium modificado
+     */
+    public User withPremium(boolean premium) {
+        return User.builder()
+                .id(this.id)
+                .email(this.email)
+                .passwordHash(this.passwordHash)
+                .fullName(this.fullName)
+                .emailVerified(this.emailVerified)
+                .active(this.active)
+                .premium(premium)
+                .trialStartDate(this.trialStartDate)
+                .subscriptionEndDate(this.subscriptionEndDate)
+                .revenuecatUserId(this.revenuecatUserId)
+                .provider(this.provider)
                 .createdAt(this.createdAt)
                 .updatedAt(LocalDateTime.now())
                 .build();

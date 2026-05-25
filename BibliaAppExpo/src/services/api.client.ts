@@ -45,12 +45,12 @@ class ApiClient {
     } catch (error: any) {
       clearTimeout(id);
       if (error.name === 'AbortError') {
-        const timeoutError: any = new Error('Timeout: El servidor tarda demasiado en responder');
+        const timeoutError: any = new Error('Request Timeout: The server is taking too long to respond.');
         timeoutError.status = 408;
         throw timeoutError;
       }
       if (error instanceof TypeError && error.message === 'Network request failed') {
-        const netError: any = new Error('Error de red: Verifica tu conexión a internet');
+        const netError: any = new Error('Network Error: Please verify your internet connection.');
         netError.status = 0;
         throw netError;
       }
@@ -117,7 +117,7 @@ class ApiClient {
     } catch (error: any) {
       clearTimeout(id);
       if (error.name === 'AbortError') {
-        throw new Error('Timeout: El servidor tarda demasiado en responder');
+        throw new Error('Request Timeout: The server is taking too long to respond.');
       }
       throw error;
     }
@@ -126,7 +126,7 @@ class ApiClient {
   private async handleError(response: Response): Promise<Error> {
     try {
       const errorData = await response.json();
-      const error: any = new Error(errorData.message || 'Error en la petición');
+      const error: any = new Error(errorData.message || 'An error occurred with the request.');
       error.status = response.status;
       return error;
     } catch {

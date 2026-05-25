@@ -16,6 +16,7 @@ import {
   Alert,
   ScrollView,
   Dimensions,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -540,7 +541,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     paddingBottom: 12,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
@@ -560,7 +561,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 18,
     fontWeight: '700',
     color: colors.charcoal.dark,
-    fontFamily: 'serif',
+    
   },
 
   scrollView: {
@@ -583,7 +584,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 20,
     fontWeight: '700',
     color: isDarkMode ? colors.primary.DEFAULT : colors.burgundy.DEFAULT,
-    fontFamily: 'serif',
+    
   },
   monthNavigation: {
     flexDirection: 'row',
@@ -715,7 +716,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 20,
     fontWeight: '700',
     color: colors.charcoal.dark,
-    fontFamily: 'serif',
+    
     marginBottom: 8,
   },
   readingCardExcerpt: {
@@ -724,7 +725,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     color: colors.ink.light,
     lineHeight: 20,
     marginBottom: 16,
-    fontFamily: 'serif',
+    
   },
   readingCardDivider: {
     height: 1,

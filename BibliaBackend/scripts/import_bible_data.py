@@ -10,11 +10,11 @@ import os
 
 # Configuración de la base de datos
 DB_CONFIG = {
-    'host': 'localhost',
+    'host': '127.0.0.1',
     'port': 5432,
     'database': 'biblia_db',
-    'user': 'biblia_user',
-    'password': 'biblia_secret_2024'
+    'user': 'biblia_prod_user',
+    'password': 'una_contrasena_dificil_para_la_db_2026'
 }
 
 # Mapeo de nombres de libros del JSON a IDs en la base de datos

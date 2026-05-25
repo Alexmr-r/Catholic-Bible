@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   Share,
-  Platform,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -705,7 +705,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                       fontSize: 24 * (settings.fontSize / 100),
                       // lineHeight mínimo 1.4x para títulos
                       lineHeight: Math.max(32, 24 * (settings.fontSize / 100) * 1.4),
-                      fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
+                      fontFamily: settings.fontFamily === 'sans' ? undefined : ('Lora_400Regular'),
                     },
                   ]}>
                   {displayTitle}
@@ -747,7 +747,7 @@ const ChapterReadingScreen: React.FC<ChapterReadingScreenProps> = ({navigation, 
                             fontSize: 18 * (settings.fontSize / 100),
                             // lineHeight mínimo 1.7x para buena legibilidad
                             lineHeight: Math.max(32, 18 * (settings.fontSize / 100) * 1.7),
-                            fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
+                            fontFamily: settings.fontFamily === 'sans' ? undefined : ('Lora_400Regular'),
                           },
                         ]}>
                         {verse.text}
@@ -1038,7 +1038,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 8,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     paddingBottom: 8,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,

@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Share,
-  Platform,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -236,7 +236,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
               fontSize: 28 * (settings.fontSize / 100),
               // lineHeight mínimo 1.4x para títulos
               lineHeight: Math.max(36, 28 * (settings.fontSize / 100) * 1.4),
-              fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
+              fontFamily: settings.fontFamily === 'sans' ? undefined : ('Lora_400Regular'),
             },
           ]}>
           {title}
@@ -251,7 +251,7 @@ const WritingDetailScreen: React.FC<WritingDetailScreenProps> = ({navigation, ro
                 fontSize: 18 * (settings.fontSize / 100),
                 // lineHeight mínimo 1.6x para texto
                 lineHeight: Math.max(30, 18 * (settings.fontSize / 100) * 1.6),
-                fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
+                fontFamily: settings.fontFamily === 'sans' ? undefined : ('Lora_400Regular'),
               },
             ]}>
             {content}
@@ -339,7 +339,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,

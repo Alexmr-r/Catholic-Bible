@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useFocusEffect} from '@react-navigation/native';
@@ -164,7 +165,10 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
       // Transformar los libros al formato local
       const transformedBooks: Book[] = apiBooks.map((apiBook: ApiBook) => ({
         id: apiBook.id,
-        abbreviation: apiBook.abbreviation,
+        // Estandarización a 3 letras para máxima consistencia visual (Apple Style)
+        abbreviation: apiBook.abbreviation.length > 3 
+          ? apiBook.abbreviation.substring(0, 3).toUpperCase() 
+          : apiBook.abbreviation.toUpperCase(),
         name: apiBook.name,
         chapters: apiBook.totalChapters,
         category: mapCategory(apiBook.category),
@@ -379,6 +383,9 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
                         {backgroundColor: book.enabled ? `${book.color}15` : `${colors.charcoal.muted}10`},
                       ]}>
                       <Text
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}
                         style={[
                           styles.bookIconText,
                           !book.enabled && styles.bookIconTextDisabled,
@@ -432,7 +439,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     paddingBottom: 12,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
@@ -647,6 +654,8 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   bookIconText: {
     fontSize: 14,
     fontWeight: '700',
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
   bookIconTextDisabled: {
     color: colors.charcoal.muted,

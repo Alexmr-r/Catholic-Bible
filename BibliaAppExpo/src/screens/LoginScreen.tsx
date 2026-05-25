@@ -17,17 +17,20 @@ import {
 import {MaterialIcons, AntDesign} from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 import {ThemeColors} from '../theme/colors';
 import {LoginScreenProps} from '../navigation/AppNavigator';
 import {useAuth} from '../contexts/AuthContext';
 import {useTheme} from '../contexts/ThemeContext';
 import {t} from '../locales/i18n';
+import {isValidEmail} from '../utils/validation';
 
 // Configurar Google Sign In
 GoogleSignin.configure({
   offlineAccess: true,
-  webClientId: '709014169638-qdhs9p1smr7nbgk0kmb2ca4hhts6qq53.apps.googleusercontent.com',
-  iosClientId: '709014169638-vndu7immjcujct3bied58opabjn5bjbf.apps.googleusercontent.com',
+  webClientId: '1055569033141-9l6tnmaugo5tbco40si0kc9qt887ion2.apps.googleusercontent.com',
+  iosClientId: '1055569033141-8ol7lvhvgn445bfgcha7l74e7kjsshcr.apps.googleusercontent.com',
 });
 
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
@@ -36,6 +39,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Errores inline
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // Refs para navegar con Enter
   const passwordRef = useRef<TextInput>(null);
@@ -59,21 +66,53 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert(t('general.error') || 'Error', t('auth.errors.incompleteFields') || 'Please complete all fields');
+    setEmailError('');
+    setPasswordError('');
+    let hasError = false;
+
+    if (!email) {
+      setEmailError(t('auth.errors.emailRequired'));
+      hasError = true;
+    } else if (!isValidEmail(email)) {
+      setEmailError(t('auth.errors.invalidEmail'));
+      hasError = true;
+    }
+
+    if (!password) {
+      setPasswordError(t('auth.errors.passwordRequired'));
+      hasError = true;
+    }
+
+    if (hasError) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       return;
     }
 
-    Keyboard.dismiss(); // Ocultar teclado al intentar hacer login
+    Keyboard.dismiss();
     setIsLoading(true);
     try {
       await login({ email, password });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
-      console.error('Error en login:', error);
-      Alert.alert(
-        t('auth.errors.loginTitle') || 'Login Error',
-        error.message || t('auth.errors.invalidCredentials') || 'Could not sign in. Check your credentials.'
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      
+      const serverMessage = error.message || '';
+      let displayTitle = t('auth.errors.loginTitle');
+      let displayMessage = t('auth.errors.invalidCredentials');
+
+      if (serverMessage.toLowerCase().includes('password') || serverMessage.toLowerCase().includes('contraseña')) {
+        displayMessage = t('auth.errors.invalidCredentials');
+      } else if (serverMessage.toLowerCase().includes('not found') || serverMessage.toLowerCase().includes('no encontrado')) {
+        displayMessage = t('auth.errors.invalidCredentials'); // Por seguridad no decimos si el email existe
+      } else {
+        displayMessage = serverMessage.replace(/^Error:?\s*/i, '');
+      }
+      
+      Toast.show({
+        type: 'error',
+        text1: displayTitle,
+        text2: displayMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +146,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
         !errorMsg.toLowerCase().includes('unknown reason')
       ) {
         console.error('Error Apple Login:', error);
-        Alert.alert(t('general.error') || 'Error', t('auth.errors.appleLoginFailed') || 'Apple sign-in failed');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Toast.show({
+          type: 'error',
+          text1: t('general.error') || 'Error',
+          text2: t('auth.errors.appleLoginFailed') || 'Apple sign-in failed',
+        });
       }
     } finally {
       setIsLoading(false);
@@ -147,7 +191,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
         console.log('Google login cancelled by user');
       } else {
         console.error('Error Google Login:', error);
-        Alert.alert(t('general.error') || 'Error', t('auth.errors.googleLoginFailed') || 'Google sign-in failed');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Toast.show({
+          type: 'error',
+          text1: t('general.error') || 'Error',
+          text2: t('auth.errors.googleLoginFailed') || 'Google sign-in failed',
+        });
       }
     } finally {
       setIsLoading(false);
@@ -192,15 +241,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               <View style={styles.form}>
                 {/* Email Input */}
                 <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                  <Text style={styles.label}>{t('auth.emailLabel') || 'EMAIL'}</Text>
-                  <View style={styles.inputWrapper}>
-                    <MaterialIcons name="mail" size={20} color={colors.gold.dim} style={styles.inputIcon} />
+                  <Text style={[styles.label, emailError ? styles.labelError : null]}>{t('auth.emailLabel') || 'EMAIL'}</Text>
+                  <View style={[styles.inputWrapper, emailError ? styles.inputError : null]}>
+                    <MaterialIcons name="mail" size={20} color={emailError ? colors.burgundy.DEFAULT : colors.gold.dim} style={styles.inputIcon} />
                     <TextInput
                       style={styles.input}
                       placeholder={t('auth.emailPlaceholder') || 'example@email.com'}
                       placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                       value={email}
-                      onChangeText={setEmail}
+                      onChangeText={(text) => { setEmail(text); if (emailError) setEmailError(''); }}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       returnKeyType="next"
@@ -208,20 +257,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                       blurOnSubmit={false}
                     />
                   </View>
+                  {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
                 </View>
 
                 {/* Password Input */}
                 <View style={[styles.inputGroup, {marginBottom: dynamicStyles.inputGroupMarginBottom}]}>
-                  <Text style={styles.label}>{t('auth.passwordLabel') || 'PASSWORD'}</Text>
-                  <View style={styles.inputWrapper}>
-                    <MaterialIcons name="lock" size={20} color={colors.gold.dim} style={styles.inputIcon} />
+                  <Text style={[styles.label, passwordError ? styles.labelError : null]}>{t('auth.passwordLabel') || 'PASSWORD'}</Text>
+                  <View style={[styles.inputWrapper, passwordError ? styles.inputError : null]}>
+                    <MaterialIcons name="lock" size={20} color={passwordError ? colors.burgundy.DEFAULT : colors.gold.dim} style={styles.inputIcon} />
                     <TextInput
                       ref={passwordRef}
                       style={[styles.input, styles.passwordInput]}
                       placeholder="••••••••"
                       placeholderTextColor={isDarkMode ? colors.charcoal.muted : `${colors.charcoal.muted}80`}
                       value={password}
-                      onChangeText={setPassword}
+                      onChangeText={(text) => { setPassword(text); if (passwordError) setPasswordError(''); }}
                       secureTextEntry={!showPassword}
                       autoCapitalize="none"
                       returnKeyType="done"
@@ -241,6 +291,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                       />
                     </TouchableOpacity>
                   </View>
+                  {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
                 </View>
 
                 <TouchableOpacity onPress={handleForgotPassword} activeOpacity={0.7} style={styles.forgotPassword}>
@@ -306,10 +357,13 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean) => StyleSheet.creat
   form: { width: '100%' },
   inputGroup: { marginBottom: 14 },
   label: { fontSize: 10, fontWeight: '700', color: colors.charcoal.DEFAULT, letterSpacing: 1.2, marginBottom: 6, marginLeft: 4, opacity: isDarkMode ? 0.8 : 1 },
-  inputWrapper: { position: 'relative', flexDirection: 'row', alignItems: 'center' },
+  labelError: { color: colors.burgundy.DEFAULT },
+  inputWrapper: { position: 'relative', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.ivory.shade, borderRadius: 12, borderWidth: 1, borderColor: colors.ivory.border },
   inputIcon: { position: 'absolute', left: 16, zIndex: 1 },
-  input: { flex: 1, height: 48, paddingLeft: 48, paddingRight: 16, backgroundColor: colors.ivory.shade, borderRadius: 12, fontSize: 16, color: colors.charcoal.DEFAULT, borderWidth: 1, borderColor: colors.ivory.border },
+  input: { flex: 1, height: 48, paddingLeft: 48, paddingRight: 16, fontSize: 16, color: colors.charcoal.DEFAULT },
+  inputError: { borderColor: colors.burgundy.DEFAULT, borderWidth: 1.5 },
   passwordInput: { paddingRight: 48 },
+  errorText: { fontSize: 11, color: colors.burgundy.DEFAULT, marginTop: 4, marginLeft: 4, fontWeight: '700', textTransform: 'uppercase' },
   eyeButton: { position: 'absolute', right: 16, padding: 4 },
   forgotPassword: { alignSelf: 'flex-end', marginBottom: 8 },
   forgotPasswordText: { fontSize: 14, fontWeight: '500', fontStyle: 'italic', color: colors.burgundy.DEFAULT },

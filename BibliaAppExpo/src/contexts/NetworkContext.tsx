@@ -10,10 +10,22 @@
  */
 
 import React, {createContext, useContext, useState, useEffect, useRef, ReactNode} from 'react';
+import {Platform, ActivityIndicator} from 'react-native';
 import NetInfo, {NetInfoState} from '@react-native-community/netinfo';
 import {syncService} from '../services/sync.service';
 import {API_CONFIG} from '../services/config';
 import {EnglishBibleDownloadService} from '../services/english-bible-download.service';
+
+// Configurar NetInfo para que en Android detecte más rápido la pérdida real de internet
+// (no solo cuando se apaga el Wi-Fi/Modo avión)
+NetInfo.configure({
+  reachabilityUrl: 'https://clients3.google.com/generate_204',
+  reachabilityTest: async (response) => response.status === 204,
+  reachabilityLongTimeout: 30 * 1000, // Check every 30s when online
+  reachabilityShortTimeout: 5 * 1000, // Check every 5s when offline
+  reachabilityRequestTimeout: 5 * 1000, // Timeout requests after 5s
+  reachabilityShouldRun: () => true,
+});
 
 interface NetworkContextType {
   isConnected: boolean;
@@ -44,6 +56,8 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
   const [isBibleDownloaded, setIsBibleDownloaded] = useState(false);
   const wasOffline = useRef(false);
   const lastCheckTime = useRef(0);
+  const isConnectedRef = useRef(true);
+  const isServerAvailableRef = useRef(false);
 
   // Cargar estado inicial de descarga
   useEffect(() => {
@@ -80,7 +94,7 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
   useEffect(() => {
     const autoToggleOffline = async () => {
       // 1. Si perdemos conexión real, no hay internet, O EL SERVIDOR NO RESPONDE
-      if (!isConnected || isInternetReachable === false || !isServerAvailable) {
+      if (!isConnected || !isServerAvailable) {
         // Verificamos si hay biblia (usamos el estado actual y un re-check rápido)
         const downloaded = await refreshDownloadStatus();
         
@@ -88,11 +102,13 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
           console.log('[Network] 🤖 Auto-activando modo offline (Biblia detectada y servidor caído)');
           if (!isForcedOffline) setIsForcedOffline(true);
         }
+      } else if (isConnected && isServerAvailable) {
+        // ✅ AUTO-DESACTIVACIÓN: Si todo vuelve a la normalidad, volver a Online
+        if (isForcedOffline) {
+          console.log('[Network] 🚀 Restaurando modo online automáticamente');
+          setIsForcedOffline(false);
+        }
       }
-      // NOTA: Eliminamos la lógica de "auto-desactivar" aquí. 
-      // Si el usuario lo fuerza manualmente a ON, o se activó solo al perder red,
-      // queremos que siga activo hasta que el usuario decida apagarlo o esté implícito
-      // en la navegación, para evitar que el useEffect pise el botón manual del Perfil.
     };
 
     autoToggleOffline();
@@ -102,41 +118,30 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
     const nowConnected = state.isConnected ?? false;
     const nowReachable = state.isInternetReachable !== false;
 
+    // Actualizar Refs inmediatamente (verdad absoluta)
+    isConnectedRef.current = nowConnected;
+    
+    // Actualizar estados para la UI
     setIsConnected(nowConnected);
     setIsInternetReachable(state.isInternetReachable);
     setConnectionType(state.type);
 
     // ✅ SINCRONIZACIÓN AUTOMÁTICA
-    // Si estábamos offline y ahora estamos online, sincronizar
     if (wasOffline.current && nowConnected && nowReachable) {
-      console.log('[Network] 🔄 Conexión recuperada, sincronizando datos pendientes...');
-      try {
-        const synced = await syncService.syncAll();
-        if (synced > 0) {
-          console.log(`[Network] ✅ ${synced} operaciones sincronizadas`);
-        }
-      } catch (error) {
-        console.error('[Network] ❌ Error en sincronización automática:', error);
-      }
+      syncService.syncAll().catch(err => console.error('[Network] Sync error:', err));
     }
 
-    // Actualizar estado de offline
     wasOffline.current = !nowConnected || !nowReachable;
 
-    // Verificar servidor si estamos online
-    if (nowConnected && nowReachable) {
-      refreshServerStatus();
+    if (nowConnected) {
+      refreshServerStatus(true);
+      if (Platform.OS === 'android') {
+        setTimeout(() => refreshServerStatus(true), 3000);
+        setTimeout(() => refreshServerStatus(true), 6000);
+      }
     } else {
+      isServerAvailableRef.current = false;
       setIsServerAvailable(false);
-    }
-
-    // Log para debugging
-    if (__DEV__) {
-      console.log('[Network] Estado:', {
-        isConnected: state.isConnected,
-        isInternetReachable: state.isInternetReachable,
-        type: state.type,
-      });
     }
   };
 
@@ -146,35 +151,38 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
     return state.isConnected ?? false;
   };
 
-  const refreshServerStatus = async (): Promise<boolean> => {
-    // Si no hay internet de base, ni intentamos
-    if (!isConnected) {
+  const refreshServerStatus = async (force = false): Promise<boolean> => {
+    // Usar el Ref para evitar clausuras obsoletas
+    if (!isConnectedRef.current) {
+      isServerAvailableRef.current = false;
       setIsServerAvailable(false);
       return false;
     }
 
     const now = Date.now();
-    // No saturar con peticiones si acabamos de chequear (cada 10s mínimo)
-    if (now - lastCheckTime.current < 10000) {
-      return isServerAvailable;
+    if (!force && (now - lastCheckTime.current < 10000)) {
+      return isServerAvailableRef.current;
     }
     
     lastCheckTime.current = now;
+
+    const healthUrl = `${API_CONFIG.BASE_URL}/health`;
 
     try {
       const controller = new AbortController();
       // Usar el timeout configurado o 5s por defecto
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT || 4000);
       
-      // Intentamos un HEAD al root o health
-      // Si el servidor responde con CUALQUIER COSA, es que está vivo.
-      const response = await fetch(API_CONFIG.BASE_URL, {
+      // Intentamos un HEAD al endpoint de health para evitar redirecciones 302 a HTTP
+      const response = await fetch(healthUrl, {
         method: 'HEAD',
         signal: controller.signal,
+        cache: 'no-store',
       }).catch(() => {
-        return fetch(API_CONFIG.BASE_URL, {
+        return fetch(healthUrl, {
           method: 'GET',
           signal: controller.signal,
+          cache: 'no-store',
         });
       });
 
@@ -183,10 +191,12 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
       // Si recibimos una respuesta del servidor (incluso 404 o 401), el servidor está AHÍ.
       // Solo falla si hay un Error de Red o Timeout.
       const isAvailable = response.status >= 200 && response.status < 500;
+      isServerAvailableRef.current = isAvailable;
       setIsServerAvailable(isAvailable);
       return isAvailable;
-    } catch (error) {
-      console.warn('[Network] Servidor no responde en:', API_CONFIG.BASE_URL);
+    } catch (error: any) {
+      console.warn('[Network] Servidor no responde en:', healthUrl, 'Error:', error.message);
+      isServerAvailableRef.current = false;
       setIsServerAvailable(false);
       return false;
     }
@@ -198,14 +208,14 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
       if (isConnected) {
         refreshServerStatus();
       }
-    }, 60000); // Cada minuto chequeo de "salud"
+    }, 30000); // 30 segundos: Equilibrio perfecto entre detección rápida y escalabilidad
     return () => clearInterval(interval);
   }, [isConnected]);
 
   const setForcedOffline = (forced: boolean) => {
     setIsForcedOffline(forced);
     if (!forced) {
-      refreshServerStatus();
+      refreshServerStatus(true);
     }
   };
 
@@ -243,15 +253,14 @@ export const useNetwork = (): NetworkContextType => {
  * Hook simplificado que solo devuelve si hay conexión
  */
 export const useIsOnline = (): boolean => {
-  const {isConnected, isInternetReachable, isForcedOffline, isServerAvailable} = useNetwork();
+  const {isConnected, isForcedOffline, isServerAvailable} = useNetwork();
   
   // 1. Prioridad: Desconectado si el usuario lo forzó o no hay red física
   if (isForcedOffline || !isConnected) return false;
   
-  // 2. Desconectado si NetInfo confirma que internet no es alcanzable
-  if (isInternetReachable === false) return false;
-  
-  // 3. Estado Online dependiente de si el servidor de la app responde
+  // 2. Estado Online dependiente de si el servidor de la app responde
+  // Ignoramos isInternetReachable porque en Android es muy poco fiable y a veces
+  // se queda en 'false' aunque el WiFi ya funcione. Nuestro ping al servidor es la verdad absoluta.
   return isServerAvailable;
 };
 

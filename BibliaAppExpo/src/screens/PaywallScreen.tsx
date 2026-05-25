@@ -115,7 +115,8 @@ const PaywallScreen: React.FC = () => {
                 <Text style={[styles.packageName, { color: isDarkMode ? '#fff' : '#000' }]}>Yearly Premium</Text>
                 <Text style={[styles.packagePrice, { color: isDarkMode ? '#fff' : '#000' }]}>{annualPackage.product.priceString} / year</Text>
               </View>
-              <Text style={styles.packageCalculatedPrice}>Only ${(annualPackage.product.price / 12).toFixed(2)}/month</Text>
+              {/* Calcula el valor mensual manteniendo el símbolo de la moneda nativa gracias a priceString */}
+              <Text style={styles.packageCalculatedPrice}>Only {annualPackage.product.priceString.replace(/[\d.,]+/, (annualPackage.product.price / 12).toFixed(2))}/month</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity 

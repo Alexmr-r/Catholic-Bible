@@ -12,25 +12,12 @@ const { width } = Dimensions.get('window');
 const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, readyToLeave }) => {
   const { colors, isDarkMode } = useTheme();
   
-  // 1. Empezamos con el color del sistema (donde está el nativo)
-  const systemIsDark = Appearance.getColorScheme() === 'dark';
-  const initialBg = systemIsDark ? '#121212' : '#FAF9F6';
-  const targetBg = isDarkMode ? '#121212' : '#FAF9F6';
+  // 1. Siempre claro para coincidir con el Splash nativo
+  const initialBg = '#FAF9F6';
+  const targetBg = '#FAF9F6'; // Mantenemos blanco para que no haya cambios de color durante el logo
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const bgAnim = useRef(new Animated.Value(isDarkMode === systemIsDark ? 0 : 1)).current;
   
-  useEffect(() => {
-    // Si hay discrepancia entre sistema y guardado, animamos suave el fondo
-    if (isDarkMode !== systemIsDark) {
-      Animated.timing(bgAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: false, // Background no soporta native driver
-      }).start();
-    }
-  }, []);
-
   useEffect(() => {
     if (readyToLeave) {
       // Salida rápida (300ms)
@@ -42,11 +29,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, readyToLeave }) =
     }
   }, [readyToLeave]);
 
-  // Interpolar colores para evitar el parpadeo brusco
-  const backgroundColor = bgAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [initialBg, targetBg]
-  });
+  const backgroundColor = initialBg;
 
   return (
     <Animated.View style={[styles.container, { backgroundColor, opacity: fadeAnim }]}>
@@ -67,8 +50,8 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   logo: {
-    width: width * 0.4,
-    height: width * 0.4,
+    width: width * 0.55, // Aumentado de 0.4 a 0.55 para que el logo se vea más imponente
+    height: width * 0.55,
   },
 });
 

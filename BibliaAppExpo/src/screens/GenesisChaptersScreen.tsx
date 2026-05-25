@@ -7,8 +7,11 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {GenesisChaptersScreenProps} from '../navigation/AppNavigator';
@@ -36,14 +39,14 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
     const isEnabled = enabledChapters.includes(chapter);
 
     if (isEnabled) {
-      // Navegar a la pantalla de lectura de Génesis
       navigation.navigate('GenesisReading');
     } else {
-      Alert.alert(
-        '🔒 Locked Chapter',
-        `Chapter ${chapter} will be available soon.\n\nFor now, only chapter 1 is enabled for the demo.`,
-        [{text: 'Got it'}]
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Toast.show({
+        type: 'info',
+        text1: '🔒 Locked Chapter',
+        text2: `Chapter ${chapter} will be available soon. For now, only chapter 1 is enabled.`,
+      });
     }
   };
 
@@ -56,11 +59,12 @@ const GenesisChaptersScreen: React.FC<GenesisChaptersScreenProps> = ({navigation
   // TODO: Mostrar información detallada del libro
   // =====================================================
   const handleInfo = () => {
-    Alert.alert(
-      'ℹ️ About Genesis',
-      'Feature in development.\n\nSoon you will see detailed information about the book of Genesis: author, historical context, main themes, etc.',
-      [{text: 'Got it'}]
-    );
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Toast.show({
+      type: 'info',
+      text1: 'ℹ️ About Genesis',
+      text2: 'Feature in development. Soon you will see detailed information.',
+    });
   };
 
   const renderChapterButton = (chapter: number, index: number) => {
@@ -172,7 +176,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     paddingBottom: 12,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,

@@ -20,7 +20,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-} from 'react-native';
+  } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
@@ -279,7 +279,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
@@ -294,7 +294,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 20,
     fontWeight: '700',
     color: colors.charcoal.dark,
-    fontFamily: 'serif',
+    
   },
 
   scrollView: {
@@ -336,7 +336,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 12,
     fontStyle: 'italic',
     color: isDarkMode ? colors.primary.DEFAULT : colors.gold.DEFAULT,
-    fontFamily: 'serif',
+    
   },
 
   // Título Editable
@@ -348,7 +348,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 30,
     fontWeight: '700',
     color: colors.charcoal.dark,
-    fontFamily: 'serif',
+    
     padding: 0,
     margin: 0,
     lineHeight: 38,
@@ -371,7 +371,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 18,
     lineHeight: 32,
     color: `${colors.charcoal.DEFAULT}E6`,
-    fontFamily: 'serif',
+    
     padding: 0,
     margin: 0,
     minHeight: 280,
@@ -426,14 +426,14 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 18,
     fontWeight: '700',
     color: `${colors.charcoal.dark}99`, // Más apagado
-    fontFamily: 'serif',
+    
     marginBottom: 4,
   },
   referenceText: {
     fontSize: 16,
     fontStyle: 'italic',
     color: `${colors.ink.light}99`, // Más apagado
-    fontFamily: 'serif',
+    
     lineHeight: 26,
   },
 

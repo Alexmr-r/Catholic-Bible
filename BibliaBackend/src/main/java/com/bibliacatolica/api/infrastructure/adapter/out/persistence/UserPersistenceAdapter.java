@@ -53,6 +53,13 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
         jpaUserRepository.deleteById(id);
     }
 
+    @Override
+    public java.util.List<User> findAll() {
+        return jpaUserRepository.findAll().stream()
+                .map(this::toDomain)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     private UserEntity toEntity(User user) {
         return UserEntity.builder()
                 .id(user.getId())
@@ -65,6 +72,7 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
                 .trialStartDate(user.getTrialStartDate())
                 .subscriptionEndDate(user.getSubscriptionEndDate())
                 .revenuecatUserId(user.getRevenuecatUserId())
+                .provider(user.getProvider())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
@@ -82,6 +90,7 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
                 .trialStartDate(entity.getTrialStartDate())
                 .subscriptionEndDate(entity.getSubscriptionEndDate())
                 .revenuecatUserId(entity.getRevenuecatUserId())
+                .provider(entity.getProvider())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

@@ -170,7 +170,7 @@ const AppNavigator: React.FC = () => {
       const timer = setTimeout(() => {
         ExpoSplashScreen.hideAsync().catch(() => {});
         setAppFullyReady(true);
-      }, 500);
+      }, 1200); // Aumentado de 500ms a 1200ms para que se sienta más premium
       return () => clearTimeout(timer);
     }
   }, [hasStarted]);
@@ -234,7 +234,7 @@ const AppNavigator: React.FC = () => {
       )}
 
       {(isThemeLoading || !hasStarted) && (
-        <View style={[styles.container, { backgroundColor: Appearance.getColorScheme() === 'dark' ? '#121212' : '#FAF9F6' }]} />
+        <View style={[styles.container, { backgroundColor: '#FAF9F6' }]} />
       )}
     </View>
   );

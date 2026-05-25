@@ -13,9 +13,11 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
   ActivityIndicator,
+  Platform
 } from 'react-native';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -23,6 +25,7 @@ import {useTheme} from '../contexts/ThemeContext';
 import {apiClient} from '../services/api.client';
 import {useIsOnline} from '../contexts/NetworkContext';
 import OfflineBanner from '../components/OfflineBanner';
+import {isValidPassword} from '../utils/validation';
 
 type ChangePasswordScreenProps = {
   navigation: any;
@@ -41,48 +44,60 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Errores inline
+  const [currentPasswordError, setCurrentPasswordError] = useState('');
+  const [newPasswordError, setNewPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
   const handleBack = () => {
     navigation.goBack();
   };
 
-  const validatePassword = (password: string): boolean => {
-    // Mínimo 6 caracteres
-    return password.length >= 6;
-  };
-
   const handleSavePassword = async () => {
+    setCurrentPasswordError('');
+    setNewPasswordError('');
+    setConfirmPasswordError('');
+
     // ⛔ Verificar conexión primero
     if (!isOnline) {
-      Alert.alert(
-        'Offline',
-        'You need an internet connection to change your password. For security, this change is verified in real-time.'
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Toast.show({
+        type: 'offline',
+        text1: 'Offline',
+        text2: 'You need an internet connection to change your password.',
+      });
       return;
     }
+
+    let hasError = false;
 
     // Validaciones
     if (!currentPassword.trim()) {
-      Alert.alert('Error', 'Enter your current password');
-      return;
+      setCurrentPasswordError('Enter your current password');
+      hasError = true;
     }
 
     if (!newPassword.trim()) {
-      Alert.alert('Error', 'Enter your new password');
-      return;
+      setNewPasswordError('Enter your new password');
+      hasError = true;
+    } else if (!isValidPassword(newPassword)) {
+      setNewPasswordError('Password must be at least 8 characters long');
+      hasError = true;
+    } else if (currentPassword === newPassword) {
+      setNewPasswordError('New password must be different from current password');
+      hasError = true;
     }
 
-    if (!validatePassword(newPassword)) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
-      return;
+    if (!confirmPassword) {
+      setConfirmPasswordError('Confirm your new password');
+      hasError = true;
+    } else if (newPassword !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      hasError = true;
     }
 
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      Alert.alert('Error', 'New password must be different from current password');
+    if (hasError) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       return;
     }
 
@@ -93,20 +108,21 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
         newPassword: newPassword.trim(),
       });
 
-      Alert.alert(
-        'Success',
-        'Your password was changed successfully',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Your password was changed successfully',
+      });
+      navigation.goBack();
     } catch (error: any) {
       console.error('Error cambiando contraseña:', error);
-      const errorMessage = error.message || 'Could not change password. Try again.';
-      Alert.alert('Error', errorMessage);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message || 'Could not change password. Try again.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -149,13 +165,13 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
         <View style={styles.formSection}>
           {/* Current Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>CURRENT PASSWORD</Text>
-            <View style={styles.inputWrapper}>
-              <MaterialIcons name="lock" size={20} color={colors.gold.DEFAULT} style={styles.inputIcon} />
+            <Text style={[styles.inputLabel, currentPasswordError ? styles.labelError : null]}>CURRENT PASSWORD</Text>
+            <View style={[styles.inputWrapper, currentPasswordError ? styles.inputError : null]}>
+              <MaterialIcons name="lock" size={20} color={currentPasswordError ? colors.burgundy.DEFAULT : colors.gold.DEFAULT} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={currentPassword}
-                onChangeText={setCurrentPassword}
+                onChangeText={(t) => { setCurrentPassword(t); if(currentPasswordError) setCurrentPasswordError(''); }}
                 placeholder="••••••••"
                 placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showCurrentPassword}
@@ -172,18 +188,19 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
                 />
               </TouchableOpacity>
             </View>
+            {currentPasswordError ? <Text style={styles.errorText}>{currentPasswordError}</Text> : null}
           </View>
 
           {/* New Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>NEW PASSWORD</Text>
-            <View style={styles.inputWrapper}>
-              <MaterialIcons name="lock-open" size={20} color={colors.gold.DEFAULT} style={styles.inputIcon} />
+            <Text style={[styles.inputLabel, newPasswordError ? styles.labelError : null]}>NEW PASSWORD</Text>
+            <View style={[styles.inputWrapper, newPasswordError ? styles.inputError : null]}>
+              <MaterialIcons name="lock-open" size={20} color={newPasswordError ? colors.burgundy.DEFAULT : colors.gold.DEFAULT} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={newPassword}
-                onChangeText={setNewPassword}
-                placeholder="Minimum 6 characters"
+                onChangeText={(t) => { setNewPassword(t); if(newPasswordError) setNewPasswordError(''); }}
+                placeholder="Minimum 8 characters"
                 placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showNewPassword}
                 autoCapitalize="none"
@@ -199,17 +216,18 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
                 />
               </TouchableOpacity>
             </View>
+            {newPasswordError ? <Text style={styles.errorText}>{newPasswordError}</Text> : null}
           </View>
 
           {/* Confirm Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>CONFIRM NEW PASSWORD</Text>
-            <View style={styles.inputWrapper}>
-              <MaterialIcons name="verified-user" size={20} color={colors.gold.DEFAULT} style={styles.inputIcon} />
+            <Text style={[styles.inputLabel, confirmPasswordError ? styles.labelError : null]}>CONFIRM NEW PASSWORD</Text>
+            <View style={[styles.inputWrapper, confirmPasswordError ? styles.inputError : null]}>
+              <MaterialIcons name="verified-user" size={20} color={confirmPasswordError ? colors.burgundy.DEFAULT : colors.gold.DEFAULT} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={(t) => { setConfirmPassword(t); if(confirmPasswordError) setConfirmPasswordError(''); }}
                 placeholder="Repeat new password"
                 placeholderTextColor={isDarkMode ? colors.charcoal.muted : "#CBD5E1"}
                 secureTextEntry={!showConfirmPassword}
@@ -226,6 +244,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({navigation})
                 />
               </TouchableOpacity>
             </View>
+            {confirmPasswordError ? <Text style={styles.errorText}>{confirmPasswordError}</Text> : null}
           </View>
 
           {/* Save Button */}
@@ -267,7 +286,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
@@ -282,7 +301,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
+    
     color: colors.charcoal.dark,
     flex: 1,
     textAlign: 'center',
@@ -358,6 +377,19 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     position: 'absolute',
     left: 16,
     zIndex: 1,
+  },
+  inputError: {
+    borderColor: colors.burgundy.DEFAULT,
+  },
+  labelError: {
+    color: colors.burgundy.DEFAULT,
+  },
+  errorText: {
+    fontSize: 12,
+    color: colors.burgundy.DEFAULT,
+    marginTop: 4,
+    marginLeft: 4,
+    fontWeight: '500'
   },
   input: {
     flex: 1,

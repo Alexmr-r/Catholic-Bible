@@ -21,6 +21,8 @@ public interface DailyReadingRepositoryPort {
 
     DailyReading save(DailyReading dailyReading);
 
+    void delete(UUID id);
+
     ReadingHistory saveHistory(ReadingHistory history);
 
     Optional<ReadingHistory> findHistoryByUserAndReading(UUID userId, UUID dailyReadingId);

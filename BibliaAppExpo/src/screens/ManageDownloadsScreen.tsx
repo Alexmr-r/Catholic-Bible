@@ -12,8 +12,11 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -64,7 +67,12 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
 
   const handleDownload = async () => {
     if (!isOnline) {
-      Alert.alert('No connection', 'You need an internet connection to download the Bible.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Toast.show({
+        type: 'offline',
+        text1: 'No connection',
+        text2: 'You need an internet connection to download the Bible.',
+      });
       return;
     }
     setDownloadState(prev => ({...prev, isDownloading: true, progress: 0, error: null}));
@@ -84,19 +92,17 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
       // ✅ Notificar al contexto de red
       await refreshDownloadStatus();
 
-      Alert.alert(
-        'Download complete!',
-        'The English Bible is now available for offline use.',
-        [{ 
-          text: 'OK', 
-          onPress: () => {
-            if (returnTo) {
-              setForcedOffline(true);
-            }
-            navigation.goBack();
-          } 
-        }]
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show({
+        type: 'success',
+        text1: 'Download complete!',
+        text2: 'The English Bible is now available for offline use.',
+      });
+
+      if (returnTo) {
+        setForcedOffline(true);
+      }
+      navigation.goBack();
     } catch (error: any) {
       setDownloadState(prev => ({
         ...prev,
@@ -104,11 +110,12 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
         error: error.message || 'Download error',
       }));
 
-      Alert.alert(
-        'Download error',
-        'Could not download the Bible. Please check your connection and try again.',
-        [{text: 'OK'}]
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show({
+        type: 'error',
+        text1: 'Download error',
+        text2: 'Could not download the Bible. Please check your connection and try again.',
+      });
     }
   };
 
@@ -135,7 +142,12 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
                 error: null,
               });
             } catch (error) {
-              Alert.alert('Error', 'Could not delete download');
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+              Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Could not delete download',
+              });
             }
           },
         },
@@ -300,7 +312,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     paddingBottom: 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
@@ -385,7 +397,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 17,
     fontWeight: '700',
     color: colors.charcoal.DEFAULT,
-    fontFamily: 'serif',
+    
   },
   bookMeta: {
     fontSize: 12,

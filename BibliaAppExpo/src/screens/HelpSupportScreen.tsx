@@ -7,6 +7,7 @@ import {
   ScrollView,
   Linking,
   Alert,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {ThemeColors} from '../theme/colors';
@@ -170,7 +171,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
@@ -185,7 +186,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
+    
     color: colors.charcoal.dark,
     textAlign: 'center',
     flex: 1,

@@ -139,7 +139,7 @@ const AudioPlayerOverlay: React.FC = () => {
           onPress={handleDownload}
         >
           <MaterialIcons name="auto-awesome" size={14} color={colors.primary.DEFAULT} />
-          <Text style={styles.downloadText}>{t('reading.installPremiumVoice')}</Text>
+          <Text style={styles.upgradeText}>{t('reading.installPremiumVoice')}</Text>
         </TouchableOpacity>
       )}
     </Animated.View>

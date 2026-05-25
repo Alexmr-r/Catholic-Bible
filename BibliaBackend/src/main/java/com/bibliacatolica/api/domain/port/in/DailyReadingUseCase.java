@@ -52,6 +52,16 @@ public interface DailyReadingUseCase {
      */
     boolean hasReadToday(UUID userId);
 
+    /**
+     * Guarda o programa una lectura litúrgica diaria (CMS)
+     */
+    DailyReading saveDailyReading(DailyReading dailyReading);
+
+    /**
+     * Elimina una lectura litúrgica programada por fecha (CMS)
+     */
+    void deleteDailyReadingByDate(LocalDate date);
+
     // ========== DTOs ==========
 
     record ReadingHistoryDetail(

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "BibliaAppExpo",
-    "slug": "BibliaAppExpo",
-    "scheme": "bibliaappexpo",
+    "name": "CatholicVerse",
+    "slug": "CatholicVerse",
+    "scheme": "catholicverse",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,23 +13,49 @@
       "resizeMode": "contain",
       "backgroundColor": "#FAF9F6",
       "dark": {
-        "image": "./assets/splash-padded-dark.png",
-        "backgroundColor": "#121212"
+        "image": "./assets/splash-padded.png",
+        "backgroundColor": "#FAF9F6"
       }
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.alexmr.biblia",
-      "usesAppleSignIn": true
+      "bundleIdentifier": "com.catholicverse.app",
+      "usesAppleSignIn": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "CatholicVerse requires speech recognition so you can speak your search queries.",
+        "NSMicrophoneUsageDescription": "CatholicVerse needs access to the microphone to hear your voice searches.",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.1055569033141-8ol7lvhvgn445bfgcha7l74e7kjsshcr"
+            ]
+          }
+        ]
+      }
     },
     "android": {
-      "package": "com.alexmr.biblia",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FAF9F6"
       },
+      "splash": {
+        "image": "./assets/splash-padded.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FAF9F6",
+        "dark": {
+          "image": "./assets/splash-padded.png",
+          "backgroundColor": "#FAF9F6"
+        }
+      },
+      "package": "com.catholicverse.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
     },
     "plugins": [
       "expo-dev-client",
@@ -40,7 +66,15 @@
             "deploymentTarget": "17.0"
           },
           "android": {
-            "minSdkVersion": 24
+            "minSdkVersion": 24,
+            "enableAndroidX": true,
+            "enableJetifier": true,
+            "packagingOptions": {
+              "pickFirst": [
+                "META-INF/*.version",
+                "META-INF/androidx.*.version"
+              ]
+            }
           }
         }
       ],
@@ -50,13 +84,27 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "La aplicación necesita acceso a tus fotos para que puedas elegir tu foto de perfil.",
-          "cameraPermission": "La aplicación necesita acceso a tu cámara para que puedas tomar una foto de perfil."
+          "photosPermission": "CatholicVerse needs access to your photos so you can choose a profile picture.",
+          "cameraPermission": "CatholicVerse needs access to your camera so you can take a profile picture."
         }
-      ]
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "CatholicVerse needs access to the microphone to hear your voice searches.",
+          "speechRecognitionPermission": "CatholicVerse requires speech recognition so you can speak your search queries."
+        }
+      ],
+      "./plugins/withAndroidReplaceAppComponentFactory",
+      "./plugins/withAndroidExcludeSupport"
     ],
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7e3bca76-9b41-433f-bea5-6dd153ae0b28"
+      }
     }
   }
 }

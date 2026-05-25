@@ -9,6 +9,8 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
+import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
@@ -21,6 +23,8 @@ import {RootStackParamList} from '../navigation/AppNavigator';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNetwork} from '../contexts/NetworkContext';
 import {Switch} from 'react-native';
+import { t } from '../locales/i18n';
+import PremiumAlertModal, { PremiumAlertAction } from '../components/PremiumAlertModal';
 
 type ProfileScreenProps = {
   navigation: any;
@@ -35,27 +39,56 @@ const ProfileScreen: React.FC<ProfileScreenProps> = () => {
   const insets = useSafeAreaInsets();
   const styles = React.useMemo(() => getStyles(colors, isDarkMode, insets.top), [colors, isDarkMode, insets.top]);
 
+  const [alertConfig, setAlertConfig] = React.useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    icon?: any;
+    actions: PremiumAlertAction[];
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    actions: []
+  });
+
+  const showPremiumAlert = (title: string, message: string, actions: PremiumAlertAction[], icon?: any) => {
+    setAlertConfig({ visible: true, title, message, actions, icon });
+  };
+
+  const hidePremiumAlert = () => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+  };
+
   const handleLogout = async () => {
-    Alert.alert(
+    showPremiumAlert(
       'Log Out',
       'Are you sure you want to log out?',
       [
         {
           text: 'Cancel',
           style: 'cancel',
+          onPress: hidePremiumAlert
         },
         {
           text: 'Log Out',
           style: 'destructive',
           onPress: async () => {
+            hidePremiumAlert();
             try {
               await logout();
             } catch (error) {
-              Alert.alert('Error', 'Could not log out. Try again.');
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+              Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Could not log out. Try again.',
+              });
             }
           },
         },
-      ]
+      ],
+      'logout'
     );
   };
 
@@ -85,7 +118,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = () => {
           onPress: async () => {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert('Permission denied', 'Camera access is required');
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+              Toast.show({
+                type: 'error',
+                text1: 'Permission denied',
+                text2: 'Camera access is required',
+              });
               return;
             }
             const result = await ImagePicker.launchCameraAsync({
@@ -103,7 +141,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = () => {
           onPress: async () => {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-              Alert.alert('Permission denied', 'Gallery access is required');
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+              Toast.show({
+                type: 'error',
+                text1: 'Permission denied',
+                text2: 'Gallery access is required',
+              });
               return;
             }
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -259,26 +302,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = () => {
               value={isForcedOffline}
               onValueChange={(value) => {
                 if (value && !isBibleDownloaded) {
-                  Alert.alert(
-                    'Bible not downloaded',
-                    'You need to download the Bible first to enable offline mode.',
+                  showPremiumAlert(
+                    t('general.bibleNotDownloadedTitle'),
+                    t('general.downloadRequired'),
                     [
-                      { text: 'Cancel', style: 'cancel' },
+                      { text: t('general.cancel') || 'Cancel', style: 'cancel', onPress: hidePremiumAlert },
                       { 
-                        text: 'Go to Downloads', 
-                        onPress: () => navigation.navigate('ManageDownloads', { returnTo: 'Profile' } as never) 
-                      },
-                    ]
+                        text: 'Descargar', 
+                        style: 'default', 
+                        onPress: () => {
+                          hidePremiumAlert();
+                          navigation.navigate('ManageDownloads', { returnTo: 'Profile' } as never);
+                        }
+                      }
+                    ],
+                    'wifi-off'
                   );
                   return;
                 }
 
                 // Si intentan apagarlo pero FÍSICAMENTE no hay internet o el servidor no responde
                 if (!value && (!isConnected || !isServerAvailable)) {
-                  Alert.alert(
-                    'Connection required',
+                  showPremiumAlert(
+                    t('general.error'),
                     'You need an internet connection to disable offline mode.',
-                    [{ text: 'Got it', style: 'default' }]
+                    [
+                      { text: 'Got it', style: 'default', onPress: hidePremiumAlert }
+                    ],
+                    'error-outline'
                   );
                   return;
                 }
@@ -299,6 +350,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = () => {
           <Text style={styles.logoutButtonText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
+      <PremiumAlertModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        actions={alertConfig.actions}
+        onDismiss={hidePremiumAlert}
+      />
     </View>
   );
 };
@@ -313,7 +372,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
@@ -328,7 +387,6 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    fontFamily: 'serif',
     color: colors.charcoal.dark,
     flex: 1,
     textAlign: 'center',
@@ -373,6 +431,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 15,
     fontWeight: '600',
     color: '#d4af37',
+  
   },
   profileSection: {
     alignItems: 'center',
@@ -397,6 +456,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontWeight: '700',
     color: isDarkMode ? colors.charcoal.dark : '#FFFFFF',
     letterSpacing: 1,
+  
   },
   avatarBadge: {
     position: 'absolute',
@@ -422,11 +482,13 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     color: colors.charcoal.dark,
     marginBottom: 4,
     letterSpacing: -0.5,
+  
   },
   userEmail: {
     fontSize: 14,
     fontWeight: '400',
     color: colors.charcoal.muted,
+  
   },
 
   // Menu Container
@@ -466,11 +528,13 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontWeight: '600',
     color: colors.charcoal.dark,
     marginBottom: 4,
+  
   },
   menuSubtitle: {
     fontSize: 13,
     fontWeight: '400',
     color: colors.charcoal.muted,
+  
   },
 
   // Logout Button
@@ -484,6 +548,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontWeight: '600',
     color: colors.burgundy.DEFAULT,
     letterSpacing: 0.3,
+  
   },
 });
 

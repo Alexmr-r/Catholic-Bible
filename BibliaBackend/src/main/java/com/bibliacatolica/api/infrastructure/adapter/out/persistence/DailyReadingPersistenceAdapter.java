@@ -54,6 +54,11 @@ public class DailyReadingPersistenceAdapter implements DailyReadingRepositoryPor
     }
 
     @Override
+    public void delete(UUID id) {
+        dailyReadingRepository.deleteById(id);
+    }
+
+    @Override
     public ReadingHistory saveHistory(ReadingHistory history) {
         ReadingHistoryEntity entity = toHistoryEntity(history);
         ReadingHistoryEntity saved = readingHistoryRepository.save(entity);

@@ -11,7 +11,7 @@ import {
   Keyboard,
   Platform,
   KeyboardAvoidingView,
-} from 'react-native';
+  } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import {MaterialIcons} from '@expo/vector-icons';
@@ -110,8 +110,8 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
         console.warn('Trial check error', e);
       }
     };
-    if (dailyReading && !isLoading && user) checkFirstTime();
-  }, [dailyReading, isLoading, user]);
+    if (user) checkFirstTime();
+  }, [user]);
 
   const handleCloseTrialModal = async () => {
     setShowTrialModal(false);
@@ -430,7 +430,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
   // =====================================================
   const handleSaveReflection = async () => {
     if (!reflection.trim()) {
-      Alert.alert('⚠️ Empty field', 'Write your reflection before saving.');
+      Alert.alert(`⚠️ ${t('share.emptyField')}`, t('share.writeReflection'));
       return;
     }
     if (!dailyReading) return;
@@ -497,7 +497,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
       }
     } catch (err: any) {
       console.error('Error guardando reflexión:', err);
-      const message = err.message || 'No se pudo guardar la reflexión.';
+      const message = err.message || t('share.errorSaving');
       Alert.alert('Error', message);
     } finally {
       setIsSavingReflection(false);
@@ -676,7 +676,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
                 {
                   fontSize: 18 * (settings.fontSize / 100),
                   // lineHeight fijo - solo crece el texto, no el espaciado
-                  fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
+                  fontFamily: settings.fontFamily === 'sans' ? undefined : ('Lora_400Regular'),
                 },
               ]}>
               <Text style={[
@@ -684,7 +684,7 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
                 {
                     lineHeight: 34 * (settings.fontSize / 100),
                   fontSize: 35 * (settings.fontSize / 100),
-                  fontFamily: settings.fontFamily === 'sans' ? undefined : (Platform.OS === 'ios' ? 'Georgia' : 'serif'),
+                  fontFamily: settings.fontFamily === 'sans' ? undefined : ('Lora_400Regular'),
                 },
               ]}>
                 {dailyReading.readingText.charAt(0)}
@@ -798,7 +798,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16, // Dinámico para Dynamic Island o Notch
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16, // Dinámico para Dynamic Island o Notch
     backgroundColor: isDarkMode ? colors.background.dark : colors.cream,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,

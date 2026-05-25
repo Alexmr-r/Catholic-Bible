@@ -118,15 +118,15 @@ const ReadingSettingsScreen: React.FC<ReadingSettingsScreenProps> = ({navigation
             <TouchableOpacity
               style={[
                 styles.typographyCard,
-                settings.fontFamily === 'serif' && styles.typographyCardActive,
+                settings.fontFamily === 'Lora_400Regular' && styles.typographyCardActive,
               ]}
-              onPress={() => updateFontFamily('serif')}
+              onPress={() => updateFontFamily('Lora_400Regular')}
               activeOpacity={0.7}>
-              <Text style={[styles.typographySample, {fontFamily: 'serif'}]}>Aa</Text>
+              <Text style={[styles.typographySample, {fontFamily: 'Lora_400Regular'}]}>Aa</Text>
               <Text
                 style={[
                   styles.typographyLabel,
-                  settings.fontFamily === 'serif' && styles.typographyLabelActive,
+                  settings.fontFamily === 'Lora_400Regular' && styles.typographyLabelActive,
                 ]}>
                 CLASSIC
               </Text>
@@ -219,7 +219,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Math.max(safeTop, 20) + 16,
+    paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16,
     backgroundColor: isDarkMode ? colors.background.dark : colors.ivory.DEFAULT,
     borderBottomWidth: 1,
     borderBottomColor: colors.ivory.border,
@@ -235,8 +235,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    fontFamily: 'serif',
+    fontWeight: '600',
     color: colors.charcoal.dark,
     flex: 1,
     textAlign: 'center',
@@ -295,11 +294,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     borderRadius: 32,
     borderWidth: 1,
     borderColor: colors.ivory.border,
-    shadowColor: colors.charcoal.DEFAULT,
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    elevation: isDarkMode ? 1 : 0, // Elevation con transparencia falla en Android claro
   },
   sliderContainer: {
     flexDirection: 'row',
@@ -318,6 +313,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontStyle: 'italic',
     color: colors.ink.light,
     textAlign: 'center',
+    backgroundColor: 'transparent', // Forzar transparencia en Android
   },
 
   // Typography Grid
@@ -372,11 +368,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     borderRadius: 32,
     borderWidth: 1,
     borderColor: colors.ivory.border,
-    shadowColor: colors.charcoal.DEFAULT,
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    elevation: isDarkMode ? 2 : 0, // Evitar artefactos en Android claro
   },
   previewContent: {
     maxHeight: 160,
@@ -386,6 +378,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   previewText: {
     lineHeight: 28,
     color: colors.charcoal.DEFAULT,
+    backgroundColor: 'transparent', // Crucial para Android
   },
   previewGradient: {
     position: 'absolute',

@@ -195,5 +195,41 @@ public class DailyReadingService implements DailyReadingUseCase {
                 .map(reading -> dailyReadingRepository.hasUserReadToday(userId, reading.getId()))
                 .orElse(false);
     }
+
+    @Override
+    @Transactional
+    public DailyReading saveDailyReading(DailyReading dailyReading) {
+        log.info("CMS: Guardando lectura litúrgica para fecha {}", dailyReading.getDate());
+        // Si el id es nulo, asignamos uno aleatorio
+        if (dailyReading.getId() == null) {
+            dailyReading = baseReadingWithGeneratedId(dailyReading);
+        }
+        return dailyReadingRepository.save(dailyReading);
+    }
+
+    private DailyReading baseReadingWithGeneratedId(DailyReading reading) {
+        return DailyReading.builder()
+                .id(UUID.randomUUID())
+                .date(reading.getDate())
+                .title(reading.getTitle())
+                .badge(reading.getBadge())
+                .imageUrl(reading.getImageUrl())
+                .bookId(reading.getBookId())
+                .bookName(reading.getBookName())
+                .chapterNumber(reading.getChapterNumber())
+                .verseNumbers(reading.getVerseNumbers())
+                .readingText(reading.getReadingText())
+                .officialReflection(reading.getOfficialReflection())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteDailyReadingByDate(LocalDate date) {
+        log.info("CMS: Eliminando lectura litúrgica de fecha {}", date);
+        dailyReadingRepository.findByDate(date).ifPresent(reading -> {
+            dailyReadingRepository.delete(reading.getId());
+        });
+    }
 }
 

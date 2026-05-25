@@ -32,21 +32,14 @@ echo -e "${CYAN}╚════════════════════�
 echo ""
 
 # =====================================================
-# 1. Detener todos los procesos que usen puerto 8080
+# 1. Bajar contenedores actuales
 # =====================================================
-echo -e "${BLUE}🛑 Liberando puerto 8080...${NC}"
+echo -e "${BLUE}📦 Bajando contenedores Docker...${NC}"
 
-EXISTING_PID=$(lsof -ti:8080 2>/dev/null || true)
-if [ ! -z "$EXISTING_PID" ]; then
-    echo -e "${YELLOW}   Matando proceso(s): $EXISTING_PID${NC}"
-    kill -9 $EXISTING_PID 2>/dev/null || true
-    sleep 1
-    echo -e "${GREEN}✓ Puerto 8080 liberado${NC}"
-else
-    echo -e "${GREEN}✓ Puerto 8080 ya está libre${NC}"
-fi
+cd "$BACKEND_DIR"
+docker compose down
 
-echo ""
+echo -e "${GREEN}✓ Contenedores detenidos${NC}"
 
 # =====================================================
 # 2. Bajar contenedores actuales

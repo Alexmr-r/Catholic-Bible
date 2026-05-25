@@ -76,6 +76,18 @@ public class BibleService implements BibleUseCase {
     }
 
     @Override
+    @Transactional
+    public Verse updateVerseText(String bookId, int chapter, int verse, String newText) {
+        log.info("CMS: Actualizando texto de versículo {}.{}:{} -> {}", bookId, chapter, verse, newText);
+        Verse currentVerse = bibleRepository.findVerse(bookId, chapter, verse)
+                .orElseThrow(() -> new ResourceNotFoundException("Versículo", 
+                        String.format("%s %d:%d", bookId, chapter, verse)));
+        
+        Verse updatedVerse = currentVerse.withText(newText);
+        return bibleRepository.saveVerse(updatedVerse);
+    }
+
+    @Override
     public SearchResult.SearchResultPage searchVerses(SearchQuery query) {
         log.debug("Buscando versículos con query: {}", query.query());
 

@@ -12,6 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
+  Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
 import {useFocusEffect} from '@react-navigation/native';
@@ -130,6 +131,11 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
 
   useEffect(() => { loadWritings(); }, []);
   useFocusEffect(useCallback(() => { loadWritings(false); }, []));
+
+  // ✅ Auto-recargar cuando CAMBIE el estado de internet (subida o bajada)
+  useEffect(() => {
+    loadWritings(false);
+  }, [isOnline]);
 
   const onRefresh = () => {
     setIsRefreshing(true);
@@ -281,7 +287,7 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
         </View>
         {isLoading ? (
           <View style={styles.loadingContainer}><ActivityIndicator size="large" color={colors.primary.DEFAULT} /><Text style={styles.loadingText}>Loading writings...</Text></View>
-        ) : isOfflineEmpty ? (
+        ) : !isOnline && writings.length === 0 ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="cloud-off" size={48} color={colors.charcoal.muted} />
             <Text style={styles.errorText}>
@@ -298,7 +304,16 @@ const WritingsScreen: React.FC<WritingsScreenProps> = ({navigation}) => {
           </View>
         ) : (
           <FlatList data={filteredWritings} renderItem={renderWritingCard} keyExtractor={(item) => item.id} contentContainerStyle={[styles.listContent, {flexGrow: 1}]} showsVerticalScrollIndicator={false} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary.DEFAULT} />} ListEmptyComponent={
-            <View style={styles.emptyContainer}><MaterialIcons name={searchQuery ? "search-off" : "edit-note"} size={48} color={colors.charcoal.muted} /><Text style={styles.emptyText}>{searchQuery.trim() ? `No results found for "${searchQuery}"` : activeFilter !== 'todos' ? 'You have no writings in this section' : 'You don\'t have any personal writings yet'}</Text>{!searchQuery && activeFilter === 'todos' && <Text style={styles.emptySubtitle}>Your reflections will appear here</Text>}</View>
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name={searchQuery ? "search-off" : "edit-note"} size={48} color={colors.charcoal.muted} />
+              <Text style={styles.emptyText}>
+                {searchQuery.trim() 
+                  ? `No results found for "${searchQuery}"` 
+                  : activeFilter !== 'todos' 
+                    ? 'You have no writings in this section' 
+                    : "You don't have any personal writings yet."}
+              </Text>
+            </View>
           } />
         )}
       </View>
@@ -314,7 +329,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   errorText: { marginTop: 16, fontSize: 16, color: colors.charcoal.muted, textAlign: 'center' },
   retryButton: { marginTop: 20, paddingHorizontal: 24, paddingVertical: 12, backgroundColor: colors.burgundy.DEFAULT, borderRadius: 8 },
   retryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Math.max(safeTop, 20) + 16, paddingBottom: 16, backgroundColor: isDarkMode ? colors.background.dark : colors.cream, borderBottomWidth: 1, borderBottomColor: colors.ivory.border },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? Math.max(safeTop, 45) + 20 : Math.max(safeTop, 20) + 16, paddingBottom: 16, backgroundColor: isDarkMode ? colors.background.dark : colors.cream, borderBottomWidth: 1, borderBottomColor: colors.ivory.border },
   headerTitle: { fontSize: 20, fontWeight: '700', color: colors.charcoal.dark, textAlign: 'center' },
   headerSpacer: { width: 60, height: 36 },
   headerAction: { width: 80, justifyContent: 'center' },

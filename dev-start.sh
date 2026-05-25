@@ -27,6 +27,12 @@ BACKEND_DIR="$SCRIPT_DIR/BibliaBackend"
 FRONTEND_DIR="$SCRIPT_DIR/BibliaAppExpo"
 SCRIPTS_DIR="$BACKEND_DIR/scripts"
 
+# Cargar variables de entorno si existen
+if [ -f "$BACKEND_DIR/.env" ]; then
+    echo -e "${YELLOW}🔑 Cargando variables de entorno desde .env...${NC}"
+    export $(grep -v '^#' "$BACKEND_DIR/.env" | xargs)
+fi
+
 # Archivos de estado
 STATE_DIR="$SCRIPT_DIR/.dev-state"
 MIGRATIONS_DONE="$STATE_DIR/migrations_done"
