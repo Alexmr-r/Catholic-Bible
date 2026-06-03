@@ -45,12 +45,31 @@ body.dark-theme {
   box-sizing: border-box;
 }
 
+html {
+  background-color: #1a160d;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg);
   color: var(--text);
   overflow-x: hidden;
   transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* Prevent white flash on page-content transitions */
+.page-content {
+  animation: pageIn 0.15s ease;
+}
+
+@keyframes pageIn {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 h1, h2, h3, h4, h5, h6 {

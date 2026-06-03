@@ -203,5 +203,5 @@ jwt:
   secret: ${JWT_SECRET} # No default fallback in PROD. Must be set by ENVs or it will crash.
 
 cors:
-  allowed-origins: "https://getcatholicverse.com,https://www.getcatholicverse.com"
+  allowed-origins: "https://getcatholicverse.com,https://www.getcatholicverse.com,https://catholic-verse-admin.pages.dev,http://localhost:5173,http://localhost:3000"
 
