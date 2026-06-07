@@ -22,6 +22,13 @@ const PaywallScreen: React.FC = () => {
   const monthlyPackage = packages.find(p => p.packageType === 'MONTHLY');
 
   const handlePurchase = async (pack: any) => {
+    if (!pack) {
+      Alert.alert(
+        'Store not ready',
+        'We could not load the products from the App Store / Play Store. Please check your internet connection or try again later.'
+      );
+      return;
+    }
     try {
       setIsLoading(true);
       const success = await purchasePackage(pack);

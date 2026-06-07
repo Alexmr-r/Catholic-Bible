@@ -16,6 +16,7 @@ import {BookChaptersScreenProps} from '../navigation/AppNavigator';
 import {bibleService, Book} from '../services/bible.service';
 import {useOfflineBible} from '../hooks/useOfflineBible';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { highlightService, getHighlightHex } from '../services/highlights.service';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const HORIZONTAL_PADDING = 16;
@@ -33,6 +34,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
 
   const [bookInfo, setBookInfo] = useState<Book | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [chapterHighlights, setChapterHighlights] = useState<Record<number, string[]>>({});
 
   useEffect(() => {
     loadBookInfo();
@@ -41,6 +43,26 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
   const loadBookInfo = async () => {
     try {
       setIsLoading(true);
+
+      // Cargar subrayados
+      try {
+        const allHighlights = await highlightService.getHighlights();
+        const bookHighlights = allHighlights.filter(h => h.bookId === bookId);
+        const highlightsMap: Record<number, string[]> = {};
+        bookHighlights.forEach(h => {
+          if (!highlightsMap[h.chapterNumber]) {
+            highlightsMap[h.chapterNumber] = [];
+          }
+          const hex = getHighlightHex(h.color);
+          if (!highlightsMap[h.chapterNumber].includes(hex)) {
+            highlightsMap[h.chapterNumber].push(hex);
+          }
+        });
+        setChapterHighlights(highlightsMap);
+      } catch (highlightError) {
+        console.warn('[BookChapters] Error cargando highlights:', highlightError);
+      }
+
       if (isOnline) {
         try {
           const book = await bibleService.getBook(bookId);
@@ -114,6 +136,7 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
   const renderChapterButton = (chapter: number, index: number) => {
     const isLastInRow = (index + 1) % COLUMNS === 0;
     const isLastRow = index >= totalChapters - COLUMNS;
+    const colorsForChapter = chapterHighlights[chapter] || [];
 
     return (
       <TouchableOpacity
@@ -126,6 +149,16 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
         onPress={() => handleChapterPress(chapter)}
         activeOpacity={0.7}>
         <Text style={styles.chapterText}>{chapter}</Text>
+        {colorsForChapter.length > 0 && (
+          <View style={styles.dotsContainer}>
+            {colorsForChapter.slice(0, 3).map((hex, i) => (
+              <View 
+                key={i} 
+                style={[styles.dot, { backgroundColor: hex }]} 
+              />
+            ))}
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -353,6 +386,20 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     fontSize: 16,
     fontWeight: '600',
     color: colors.charcoal.dark,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 6,
+    alignSelf: 'center',
+    gap: 4,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0,0,0,0.15)',
   },
 
   bottomSpacer: {

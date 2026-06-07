@@ -49,6 +49,7 @@ public interface JpaVerseRepository extends JpaRepository<VerseEntity, UUID> {
            "JOIN sections s ON v.section_id = s.id " +
            "JOIN chapters c ON s.chapter_id = c.id " +
            "WHERE LOWER(v.text) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(c.book_id) = LOWER(:query) " +
            "ORDER BY c.book_id, c.chapter_number, v.verse_number " +
            "LIMIT :limit OFFSET :offset", nativeQuery = true)
     List<VerseEntity> searchByText(

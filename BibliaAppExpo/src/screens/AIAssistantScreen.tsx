@@ -9,6 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ScrollView,
+  Share,
+  Clipboard,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +20,7 @@ import { useNetwork, useIsOnline } from '../contexts/NetworkContext';
 import { aiService, Message } from '../services/ai.service';
 import MessageParser from '../components/MessageParser';
 import { AIAssistantScreenProps } from '../navigation/AppNavigator';
+import Toast from 'react-native-toast-message';
 
 export default function AIAssistantScreen({ navigation, route }: AIAssistantScreenProps) {
   const { colors, isDarkMode } = useTheme();
@@ -46,16 +50,47 @@ export default function AIAssistantScreen({ navigation, route }: AIAssistantScre
   
   const flatListRef = useRef<FlatList>(null);
 
+  const copyToClipboard = (textToCopy: string) => {
+    const cleanText = textToCopy.replace(/\*\*|\[\[|\]\]/g, '');
+    Clipboard.setString(cleanText);
+    Toast.show({
+      type: 'success',
+      text1: 'Copied',
+      text2: 'Response copied to clipboard.',
+    });
+  };
+
+  const shareMessage = async (textToShare: string) => {
+    try {
+      const cleanText = textToShare.replace(/\*\*|\[\[|\]\]/g, '');
+      await Share.share({ message: cleanText });
+    } catch (error) {
+      console.error('Error sharing message: ', error);
+    }
+  };
+
+  const suggestions = [
+    { label: '📖 Creation & Genesis', text: 'Tell me about creation in Genesis' },
+    { label: '👑 King David', text: 'Who was King David and what does he teach us?' },
+    { label: '🕊️ Overcoming Anxiety', text: 'Give me Psalms to find peace and overcome anxiety' },
+    { label: '⛪ Catholic Tradition', text: 'What does Catholic tradition teach us about the Sacraments?' },
+  ];
+
   const sendMessage = async () => {
     if (!inputText.trim()) return;
 
     const userText = inputText.trim();
     setInputText('');
+    await sendDirectMessage(userText);
+  };
+
+  const sendDirectMessage = async (textToSend: string) => {
+    if (isTyping) return;
 
     // Añadir mensaje del usuario
     const userMsg: Message = {
       id: Date.now().toString(),
-      text: userText,
+      text: textToSend,
       sender: 'user',
       timestamp: new Date()
     };
@@ -64,8 +99,7 @@ export default function AIAssistantScreen({ navigation, route }: AIAssistantScre
     setIsTyping(true);
 
     try {
-      // Llamar al mock service (próximamente llamará al Spring Boot RAG via Ollama)
-      const aiResponseText = await aiService.sendMessage(userText);
+      const aiResponseText = await aiService.sendMessage(textToSend);
       
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -101,6 +135,29 @@ export default function AIAssistantScreen({ navigation, route }: AIAssistantScre
           ) : (
              <MessageParser text={item.text} />
           )}
+          {!isUser && (
+            <View style={[
+              styles.bubbleFooter,
+              { borderTopColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }
+            ]}>
+              <TouchableOpacity
+                onPress={() => copyToClipboard(item.text)}
+                style={styles.footerButton}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="content-copy" size={12} color={colors.charcoal.muted} />
+                <Text style={[styles.footerButtonText, { color: colors.charcoal.muted }]}>Copy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => shareMessage(item.text)}
+                style={styles.footerButton}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons name="share" size={12} color={colors.charcoal.muted} />
+                <Text style={[styles.footerButtonText, { color: colors.charcoal.muted }]}>Share</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -131,6 +188,30 @@ export default function AIAssistantScreen({ navigation, route }: AIAssistantScre
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
+
+        {messages.length === 1 && !isTyping && isOnline && (
+          <View style={styles.suggestionsContainer}>
+            <Text style={[styles.suggestionsTitle, { color: colors.charcoal.muted }]}>Suggested Questions:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsScroll}>
+              {suggestions.map((suggestion, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.suggestionChip, 
+                    { 
+                      backgroundColor: isDarkMode ? colors.surface.highlight : '#FFFFFF', 
+                      borderColor: colors.ivory.border 
+                    }
+                  ]}
+                  onPress={() => sendDirectMessage(suggestion.text)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.suggestionText, { color: colors.charcoal.DEFAULT }]}>{suggestion.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {isTyping && (
           <View style={styles.typingIndicator}>
@@ -235,6 +316,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+  bubbleFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    gap: 12,
+  },
+  footerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  footerButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -270,7 +369,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 10,
-    marginBottom: 2, // Alinear con la parte inferior del input
+    marginBottom: 2,
   },
   offlineNotice: {
     flexDirection: 'row',
@@ -285,5 +384,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  suggestionsContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    marginBottom: 4,
+  },
+  suggestionsTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  suggestionsScroll: {
+    gap: 8,
+  },
+  suggestionChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  suggestionText: {
+    fontSize: 14,
+    fontWeight: '500',
   }
 });

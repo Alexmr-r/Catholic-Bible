@@ -148,11 +148,11 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({navigation}) => {
   const handleLogin = () => navigation.navigate('Login');
 
   const openTerms = async () => {
-    await WebBrowser.openBrowserAsync('https://getcatholicverse.com/terms.html');
+    await WebBrowser.openBrowserAsync('https://catholic-verse-web.pages.dev/terms');
   };
 
   const openPrivacy = async () => {
-    await WebBrowser.openBrowserAsync('https://getcatholicverse.com/privacy.html');
+    await WebBrowser.openBrowserAsync('https://catholic-verse-web.pages.dev/privacy');
   };
 
   return (

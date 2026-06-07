@@ -87,6 +87,10 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   const purchasePackage = async (pack: PurchasesPackage): Promise<boolean> => {
+    if (!pack) {
+      console.warn('[SubscriptionContext] purchasePackage: parameter pack is null or undefined');
+      return false;
+    }
     try {
       const { customerInfo } = await Purchases.purchasePackage(pack);
       if (typeof customerInfo.entitlements.active['CatholicVerse Premium'] !== 'undefined') {

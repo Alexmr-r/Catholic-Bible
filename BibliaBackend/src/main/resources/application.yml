@@ -13,6 +13,7 @@ spring:
 
   # AI Configuration
   ai:
+    provider: ${SPRING_AI_PROVIDER:cloudflare}
     ollama:
       base-url: http://biblia-ollama:11434
       chat:
@@ -70,6 +71,16 @@ resend:
   api-key: ${RESEND_API_KEY}
   from-email: catholicverse@getcatholicverse.com
   from-name: CatholicVerse
+
+# ====================================
+# Cloudflare Workers AI Configuration
+# ====================================
+cloudflare:
+  ai:
+    account-id: ${CLOUDFLARE_ACCOUNT_ID:}
+    api-token: ${CLOUDFLARE_API_TOKEN:}
+    model: ${CLOUDFLARE_AI_MODEL:@cf/meta/llama-3.1-8b-instruct}
+
 
 # ====================================
 # OpenAPI Configuration

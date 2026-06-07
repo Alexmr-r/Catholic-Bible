@@ -32,9 +32,9 @@ const MODEL_FILES = {
 
 class AudioService {
     private isSpeaking: boolean = false;
-    private currentVoiceName: string = 'Voz Nativa';
+    private currentVoiceName: string = 'Narrador Premium IA';
     private onStatusChange?: (status: AudioStatus) => void;
-    private engineType: 'native' | 'ai-local' = 'native';
+    private engineType: 'native' | 'ai-local' = 'ai-local';
 
     private isDownloading: boolean = false;
     private downloadProgress: number = 0;
@@ -107,9 +107,9 @@ class AudioService {
             isPaused: this.isPaused,
             readProgress: this.readProgress,
             voiceName: this.currentVoiceName,
-            engineType: this.engineType,
+            isDownloading: this.isDownloading,
             downloadProgress: this.downloadProgress,
-            isDownloading: this.isDownloading
+            engineType: this.engineType,
         };
     }
 
@@ -138,10 +138,14 @@ class AudioService {
     async downloadModel(): Promise<boolean> {
         if (this.isDownloading) return false;
 
-        try {
-            this.isDownloading = true;
-            this.notify();
+        const alreadyExists = await this.checkModelExists();
+        if (alreadyExists) return true;
 
+        this.isDownloading = true;
+        this.downloadProgress = 0;
+        this.notify();
+
+        try {
             const modelDir = this.getModelDir();
             const dirInfo = await FileSystem.getInfoAsync(modelDir);
             if (!dirInfo.exists) {
@@ -156,7 +160,7 @@ class AudioService {
             this.notify();
             return true;
         } catch (error) {
-            console.error('[AudioService] Error en descarga:', error);
+            console.error('[AudioService] Error al descargar modelo:', error);
             this.isDownloading = false;
             this.notify();
             return false;
@@ -178,29 +182,17 @@ class AudioService {
         if (!result) throw new Error(`Error descargando ${filename}`);
     }
 
-    async speak(text: string, title?: string, forceEngine?: 'native' | 'ai-local') {
+    async speak(text: string, title?: string) {
         try {
             await this.stop(); // Stop any previous playback
 
             const modelExists = await this.checkModelExists();
 
-            if (forceEngine === 'native') {
-                await this.speakNative(text, title);
-            } else if (forceEngine === 'ai-local') {
-                if (modelExists && SherpaTTS) {
-                    await this.speakLocal(text, title);
-                } else {
-                    console.error('[AudioService] IA no disponible: modelo no encontrado o módulo no cargado');
-                    throw new Error('MODEL_NOT_READY');
-                }
+            if (modelExists && SherpaTTS) {
+                await this.speakLocal(text, title);
             } else {
-                // Default fallback logic si no se especifica fuerza
-                if (modelExists && SherpaTTS) {
-                    await this.speakLocal(text, title);
-                } else {
-                    console.error('[AudioService] IA no disponible: modelo no encontrado o módulo no cargado');
-                    throw new Error('MODEL_NOT_READY');
-                }
+                console.error('[AudioService] IA no disponible: modelo no encontrado o módulo no cargado');
+                throw new Error('MODEL_NOT_READY');
             }
         } catch (error) {
             console.error('[AudioService] Error al iniciar lectura:', error);
