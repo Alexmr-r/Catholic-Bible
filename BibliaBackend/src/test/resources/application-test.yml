@@ -1,0 +1,52 @@
+# ====================================
+# Test Profile Configuration
+# ====================================
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    show-sql: true
+
+  flyway:
+    enabled: false
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama3.2:1b
+          temperature: 0.2
+
+jwt:
+  secret: dGVzdFNlY3JldEtleUZvclRlc3RpbmdQdXJwb3Nlc09ubHlWZXJ5TG9uZ0FuZFNlY3VyZUtleQ==
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+cors:
+  allowed-origins: "*"
+
+resend:
+  api-key: test-api-key
+  from-email: test@test.com
+  from-name: Test
+
+cloudflare:
+  ai:
+    account-id: test-account
+    api-token: test-token
+    model: test-model
+
+logging:
+  level:
+    root: WARN
+    com.bibliacatolica: DEBUG

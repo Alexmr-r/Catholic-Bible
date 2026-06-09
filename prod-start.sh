@@ -23,6 +23,16 @@ fi
 # 3. Subir al servidor (opcional pero recomendado)
 echo "📤 Subiendo el JAR al servidor..."
 scp ./BibliaBackend/target/biblia-api-1.0.0.jar root@137.184.139.1:/root/BibliaBackend/
+echo "📤 Subiendo docker-compose.yml al servidor..."
+scp ./BibliaBackend/docker-compose.yml root@137.184.139.1:/root/BibliaBackend/
+
+# Preguntar si se desea subir el archivo .env
+read -p "❓ ¿Deseas subir también el archivo .env de configuración al servidor? (s/n): " SUBIR_ENV
+if [ "$SUBIR_ENV" = "s" ] || [ "$SUBIR_ENV" = "S" ]; then
+    echo "📤 Subiendo archivo .env al servidor..."
+    scp ./BibliaBackend/.env root@137.184.139.1:/root/BibliaBackend/
+fi
+
 
 # 4. Ejecutar el arranque en el servidor
 echo "🐳 Reiniciando servidor remoto..."
