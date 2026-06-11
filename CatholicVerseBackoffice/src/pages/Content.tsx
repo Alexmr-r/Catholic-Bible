@@ -126,9 +126,14 @@ export default function Content() {
       const res = await fetch(`${backendUrl}/bible/books`);
       if (!res.ok) throw new Error('Failed to load books');
       const data = await res.json();
-      setBooks(data);
-      if (data.length > 0) {
-        setSelectedBookId(data[0].id);
+      
+      const parsedBooks = Array.isArray(data) 
+        ? data 
+        : [...(data.oldTestament || []), ...(data.newTestament || [])];
+
+      setBooks(parsedBooks);
+      if (parsedBooks.length > 0) {
+        setSelectedBookId(parsedBooks[0].id);
       }
     } catch (err) {
       console.error(err);

@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CatholicVerse — Documentación Técnica Completa</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --paper:#faf8f3; --card:#ffffff; --ink:#2c2a26; --muted:#6f6a60;
+    --gold:#b8860b; --gold-soft:#f4e9cd; --blue:#2456a6; --blue-soft:#e3ecfa;
+    --red:#b3403f; --red-soft:#fbe5e4; --amber:#9a6b00; --amber-soft:#fdf3d7;
+    --green:#2e7d4f; --green-soft:#e2f3e8; --gray-soft:#eeece6; --border:#e3ded2;
+    --shadow:0 2px 10px rgba(60,50,20,.07);
+  }
+  *{box-sizing:border-box} html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--paper);color:var(--ink);display:flex;min-height:100vh}
+  nav{width:300px;background:#fffdf8;border-right:1px solid var(--border);position:fixed;top:0;bottom:0;overflow-y:auto;padding:22px 18px}
+  nav h1{font-family:Georgia,serif;font-size:20px;color:var(--gold);margin:0 0 2px}
+  nav .sub{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.4}
+  nav input{width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--ink);font-size:13px;margin-bottom:14px;outline:none}
+  nav input:focus{border-color:var(--gold)}
+  nav a{display:block;padding:7px 11px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:13.5px;margin:1px 0;transition:all .15s}
+  nav a:hover{background:var(--gold-soft);color:var(--ink)}
+  nav a.h{color:var(--ink);font-weight:650;margin-top:10px}
+  nav a.h::before{content:'§ ';color:var(--gold)}
+  nav a.active{background:var(--gold-soft);color:var(--ink)}
+  main{margin-left:300px;padding:44px 60px;max-width:1120px;width:100%}
+  h2{font-family:Georgia,serif;color:var(--ink);font-size:30px;margin-top:64px;margin-bottom:8px}
+  h2::after{content:'';display:block;width:64px;height:3px;background:var(--gold);border-radius:2px;margin-top:8px}
+  h3{font-family:Georgia,serif;color:var(--blue);font-size:20px;margin-top:34px}
+  h4{color:var(--amber);font-size:16px;margin-top:24px}
+  p,li{line-height:1.7;font-size:15.5px}
+  code{background:var(--gray-soft);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:13px;color:#7a4a00}
+  pre{background:#2c2a26;border-radius:12px;padding:18px;overflow-x:auto;font-size:13px;line-height:1.55;box-shadow:var(--shadow)}
+  pre code{background:none;border:none;padding:0;color:#f0e9d8}
+  table{border-collapse:separate;border-spacing:0;width:100%;margin:18px 0;font-size:13.5px;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  th{background:var(--gold-soft);color:#6b4e00;text-align:left;font-size:12.5px;text-transform:uppercase;letter-spacing:.4px}
+  th,td{border-bottom:1px solid var(--border);padding:9px 13px;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr:nth-child(even) td{background:#fcfaf5}
+  .mermaid{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin:20px 0;display:flex;justify-content:center;overflow-x:auto;box-shadow:var(--shadow)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 24px;margin:18px 0;box-shadow:var(--shadow)}
+  .warn{border-left:5px solid var(--red);background:#fffafa}
+  .ok{border-left:5px solid var(--green);background:#fafffb}
+  .tip{border-left:5px solid var(--gold);background:#fffdf6}
+  .badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;margin-right:6px;font-weight:650}
+  .b-pub{background:var(--green-soft);color:var(--green)} .b-jwt{background:var(--amber-soft);color:var(--amber)} .b-fix{background:var(--red-soft);color:var(--red)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:20px 0}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 10px;text-align:center;box-shadow:var(--shadow)}
+  .stat .n{font-family:Georgia,serif;font-size:30px;color:var(--gold);font-weight:700}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  details{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 20px;margin:12px 0;box-shadow:var(--shadow)}
+  summary{cursor:pointer;font-weight:650;color:var(--blue);font-size:15px}
+  summary:hover{color:var(--gold)}
+  details p{margin:10px 0 4px}
+  .hero{background:linear-gradient(135deg,#fffdf6,#f6efdd);border:1px solid var(--border);border-radius:18px;padding:36px 40px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .hero h2{margin:0;font-size:34px}
+  .hero h2::after{display:none}
+  .hero p{color:var(--muted)}
+  /* ───── cadenas de clases (pills) ───── */
+  .chain{display:flex;flex-wrap:wrap;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin:14px 0;box-shadow:var(--shadow)}
+  .pill{padding:5px 13px;border-radius:999px;font-size:12.5px;font-weight:650;border:1.5px solid;white-space:nowrap}
+  .p-cli{background:var(--gray-soft);border-color:#c9c4b8;color:#55504a}
+  .p-inf{background:var(--red-soft);border-color:#e0a8a7;color:var(--red)}
+  .p-dom{background:var(--blue-soft);border-color:#a9c2e8;color:var(--blue)}
+  .p-app{background:var(--amber-soft);border-color:#e3cd92;color:var(--amber)}
+  .p-db{background:#efeae0;border-color:#cfc6b3;color:#6b5d3e}
+  .p-ext{background:var(--green-soft);border-color:#a8d4ba;color:var(--green)}
+  .ar{color:#b9b2a3;font-size:15px;font-weight:700}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+  .flow-title{font-weight:700;font-size:15.5px;color:var(--ink);margin:26px 0 2px;display:flex;align-items:center;gap:8px}
+  .flow-title .num{background:var(--gold);color:#fff;border-radius:8px;font-size:12px;padding:2px 8px}
+  .dict th:first-child{width:190px}
+  .dict td:first-child code{font-weight:700}
+  @media(max-width:920px){nav{display:none}main{margin-left:0;padding:22px}}
+</style>
+</head>
+<body>
+<nav>
+  <h1>✝ CatholicVerse</h1>
+  <div class="sub">Documentación técnica completa<br>verificada contra el código · jun 2026</div>
+  <input id="filter" placeholder="Filtrar secciones…" oninput="filterNav(this.value)">
+  <a href="#vision" class="h">1 · Visión general</a>
+  <a href="#backend" class="h">2 · Arquitectura hexagonal</a>
+  <a href="#anatomia">&nbsp;&nbsp;Anatomía de una petición</a>
+  <a href="#flujos" class="h">3 · Flujos clase a clase</a>
+  <a href="#f-auth">&nbsp;&nbsp;Autenticación (7 flujos)</a>
+  <a href="#f-biblia">&nbsp;&nbsp;Biblia y búsqueda</a>
+  <a href="#f-personal">&nbsp;&nbsp;Favoritos · Subrayados · Escritos</a>
+  <a href="#f-daily">&nbsp;&nbsp;Lectura diaria y progreso</a>
+  <a href="#f-ia">&nbsp;&nbsp;Chat IA y offline</a>
+  <a href="#backoffice" class="h">4 · Backoffice y AdminController</a>
+  <a href="#api" class="h">5 · API REST (catálogo)</a>
+  <a href="#seguridad" class="h">6 · Seguridad y JWT</a>
+  <a href="#bd" class="h">7 · Base de datos desde cero</a>
+  <a href="#bd-conceptos">&nbsp;&nbsp;Conceptos: PK, FK, UNIQUE…</a>
+  <a href="#bd-er">&nbsp;&nbsp;Diagramas ER completos</a>
+  <a href="#bd-tablas">&nbsp;&nbsp;Las 14 tablas al detalle</a>
+  <a href="#rag" class="h">8 · Sistema RAG de IA</a>
+  <a href="#suscripciones" class="h">9 · Suscripciones y trial</a>
+  <a href="#emails" class="h">10 · Emails (Resend)</a>
+  <a href="#app" class="h">11 · App móvil (Expo)</a>
+  <a href="#offline" class="h">12 · Offline y sync</a>
+  <a href="#webs" class="h">13 · Web pública</a>
+  <a href="#infra" class="h">14 · Infraestructura</a>
+  <a href="#correcciones" class="h">15 · Correcciones doc antigua</a>
+  <a href="#deuda" class="h">16 · Deuda técnica</a>
+  <a href="#defensa" class="h">17 · Q&A defensa</a>
+</nav>
+<main>
+
+<div class="hero">
+  <h2>📖 CatholicVerse — Explicación completa del sistema</h2>
+  <p>Plataforma de lectura de la Biblia Católica con asistente teológico de IA (RAG), modo offline, suscripciones y panel de administración. Todo verificado contra el código fuente real.</p>
+  <div class="grid">
+    <div class="stat"><div class="n">4</div><div class="l">proyectos</div></div>
+    <div class="stat"><div class="n">29</div><div class="l">pantallas app</div></div>
+    <div class="stat"><div class="n">10</div><div class="l">controladores REST</div></div>
+    <div class="stat"><div class="n">14</div><div class="l">tablas en BD</div></div>
+    <div class="stat"><div class="n">11</div><div class="l">migraciones Flyway</div></div>
+    <div class="stat"><div class="n">73</div><div class="l">libros bíblicos</div></div>
+  </div>
+</div>
+
+<h2 id="vision">1 · Visión general del ecosistema</h2>
+<table>
+<tr><th>Pieza</th><th>Tecnología</th><th>Carpeta</th><th>Dónde corre</th></tr>
+<tr><td>📱 App móvil</td><td>React Native 0.81.5 + Expo SDK 54 + TS</td><td><code>BibliaAppExpo/</code></td><td>iOS / Android (EAS Build)</td></tr>
+<tr><td>⚙️ Backend API</td><td>Java 21 + Spring Boot 3.2.5</td><td><code>BibliaBackend/</code></td><td>DigitalOcean (Docker)</td></tr>
+<tr><td>🌐 Web pública</td><td>HTML/JS estático</td><td><code>CatholicVerseWeb/</code></td><td>Cloudflare Pages</td></tr>
+<tr><td>🛠️ Backoffice</td><td>React 19 + Vite + TS</td><td><code>CatholicVerseBackoffice/</code></td><td>Cloudflare Pages</td></tr>
+</table>
+<p>Servicios externos: <b>PostgreSQL 16</b> (Docker, misma máquina), <b>Cloudflare Workers AI</b> (Llama 3.1 8B), <b>Resend</b> (emails), <b>RevenueCat</b> (pagos), <b>Cloudflare</b> (DNS + proxy SSL).</p>
+<div class="mermaid">
+graph TB
+    subgraph Clientes
+        APP[📱 App Expo]
+        WEB[🌐 Web pública]
+        BO[🛠️ Backoffice]
+    end
+    CF[Cloudflare DNS + Proxy<br/>SSL Flexible]
+    subgraph DO ["DigitalOcean Droplet 137.184.139.1"]
+        API[Spring Boot :8080<br/>expuesto en :80]
+        PG[(PostgreSQL 16)]
+    end
+    CFAI[Cloudflare Workers AI<br/>Llama 3.1 8B]
+    RC[RevenueCat]
+    RESEND[Resend]
+    APP -->|HTTPS| CF
+    BO -->|HTTPS| CF
+    CF -->|HTTP :80| API
+    API --> PG
+    API --> CFAI
+    API --> RESEND
+    APP -->|SDK| RC
+    RC --> STORES[App Store / Play]
+</div>
+<p>API de producción: <code>https://api.getcatholicverse.com/api/v1</code> (context-path <code>/api/v1</code>).</p>
+<h2 id="backend">2 · Arquitectura hexagonal: cómo se conectan las clases</h2>
+<p>El backend se organiza en <b>capas</b> y cada clase pertenece a una. La regla: <b>las dependencias siempre apuntan al centro (dominio)</b>; el dominio no conoce Spring, JPA ni HTTP — solo define <b>interfaces</b> que las capas externas implementan.</p>
+<p>Colores que usaremos en TODA la documentación para identificar a qué capa pertenece cada clase:</p>
+<div class="legend">
+  <span class="pill p-cli">📱 Cliente (app/web)</span>
+  <span class="pill p-inf">🔴 Infraestructura (controladores, JPA, email)</span>
+  <span class="pill p-dom">🔵 Dominio (interfaces y modelos puros)</span>
+  <span class="pill p-app">🟡 Aplicación (servicios que implementan casos de uso)</span>
+  <span class="pill p-db">🗄️ PostgreSQL</span>
+  <span class="pill p-ext">☁️ Servicio externo</span>
+</div>
+<div class="mermaid">
+flowchart LR
+    classDef infra fill:#fbe5e4,stroke:#b3403f,color:#222;
+    classDef dom fill:#e3ecfa,stroke:#2456a6,color:#222;
+    classDef app fill:#fdf3d7,stroke:#9a6b00,color:#222;
+    CLIENT["📱 Cliente<br/>App / Web / Backoffice"]
+    subgraph IN ["🔴 INFRAESTRUCTURA · adaptadores de ENTRADA (adapter/in/rest)"]
+        CTRL["Controlador REST<br/>ej. BibleController"]:::infra
+        DTO["DTOs (records)<br/>ej. BibleDto"]:::infra
+        CTRL --- DTO
+    end
+    subgraph DOM ["🔵 DOMINIO · núcleo puro, sin Spring (domain/)"]
+        UC["port/in · interfaz del caso de uso<br/>ej. BibleUseCase"]:::dom
+        MODEL["model · modelos puros<br/>ej. Book, Chapter, Verse"]:::dom
+        PORT["port/out · interfaz de repositorio<br/>ej. BibleRepositoryPort"]:::dom
+    end
+    subgraph APP ["🟡 APLICACIÓN (application/service)"]
+        SVC["Servicio · implementa el caso de uso<br/>ej. BibleService"]:::app
+    end
+    subgraph OUT ["🔴 INFRAESTRUCTURA · adaptadores de SALIDA (adapter/out/persistence)"]
+        ADAPT["Adapter · implementa el puerto<br/>ej. BiblePersistenceAdapter"]:::infra
+        ENT["Entidades JPA<br/>ej. VerseEntity"]:::infra
+        JPA["Repositorio Spring Data<br/>ej. JpaVerseRepository"]:::infra
+        ADAPT --- ENT
+    end
+    DB[(PostgreSQL)]
+    CLIENT -- "1 · petición HTTP JSON" --> CTRL
+    CTRL -- "2 · invoca la INTERFAZ" --> UC
+    SVC -. "3 · implementa la interfaz" .-> UC
+    SVC -- "4 · usa modelos puros" --> MODEL
+    SVC -- "5 · llama a la INTERFAZ de salida" --> PORT
+    ADAPT -. "6 · implementa el puerto" .-> PORT
+    ADAPT -- "7 · delega en" --> JPA
+    JPA -- "8 · SQL" --> DB
+</div>
+<p><b>Camino de vuelta:</b> filas SQL → entidades JPA → el adapter las convierte a <b>modelos de dominio</b> (Book, Verse) → el servicio los devuelve → el controlador los convierte a <b>DTOs JSON</b>. Ninguna capa se salta a su vecina y el dominio solo expone interfaces.</p>
+
+<h3 id="anatomia">Anatomía de UNA petición autenticada (el patrón que repiten TODOS los flujos)</h3>
+<p>Antes de ver los flujos uno a uno, entiende el esqueleto común. Toda petición con JWT pasa por estas piezas <b>en este orden exacto</b>:</p>
+<div class="chain">
+  <span class="pill p-cli">📱 Pantalla (ej. FavoritesScreen)</span><span class="ar">→</span>
+  <span class="pill p-cli">servicio TS (favorites.service.ts)</span><span class="ar">→</span>
+  <span class="pill p-cli">api.client.ts añade "Bearer token"</span><span class="ar">→</span>
+  <span class="pill p-inf">JwtAuthenticationFilter</span><span class="ar">→</span>
+  <span class="pill p-inf">Controlador REST</span><span class="ar">→</span>
+  <span class="pill p-dom">UseCase (interfaz)</span><span class="ar">→</span>
+  <span class="pill p-app">Service</span><span class="ar">→</span>
+  <span class="pill p-dom">RepositoryPort (interfaz)</span><span class="ar">→</span>
+  <span class="pill p-inf">PersistenceAdapter</span><span class="ar">→</span>
+  <span class="pill p-inf">JpaRepository</span><span class="ar">→</span>
+  <span class="pill p-db">🗄️ PostgreSQL</span>
+</div>
+<p>Y el detalle clave que el tribunal puede preguntar: <b>¿cómo sabe el backend QUIÉN eres?</b></p>
+<ol>
+<li><code>api.client.ts</code> (app) lee el <code>accessToken</code> de AsyncStorage y lo mete en la cabecera <code>Authorization: Bearer eyJhbG…</code>.</li>
+<li><code>JwtAuthenticationFilter.doFilterInternal()</code> intercepta la petición ANTES de llegar al controlador: extrae el token de la cabecera, lo valida con <code>JwtTokenProvider.validateToken()</code> (firma + expiración + blacklist) y saca el <b>email</b> del claim.</li>
+<li>Con ese email llama a <code>CustomUserDetailsService.loadUserByUsername(email)</code> → que usa <code>UserRepositoryPort.findByEmail()</code> → carga el usuario de BD.</li>
+<li>Crea un <code>UsernamePasswordAuthenticationToken</code> y lo guarda en el <code>SecurityContextHolder</code>: a partir de aquí "hay sesión" durante esa petición.</li>
+<li>El controlador recibe el usuario con <code>@AuthenticationPrincipal UserDetails userDetails</code> y resuelve su UUID con el helper <code>getUserId(userDetails)</code> → <code>userRepository.findByEmail(email).getId()</code>.</li>
+<li>Ese <code>UUID userId</code> se pasa al caso de uso: <b>cada query filtra por user_id</b>, así un usuario jamás ve datos de otro.</li>
+</ol>
+<div class="card tip"><b>Para la defensa:</b> si te preguntan "¿y si yo te mando un favorito con el id de otro usuario?" → imposible: el userId NUNCA viene del JSON del cliente, siempre se deriva del token firmado. Modificar el token rompe la firma HMAC y el filtro lo rechaza con 401.</div>
+<h2 id="flujos">3 · Flujos clase a clase (todos)</h2>
+<p>Cada flujo muestra la cadena EXACTA de clases reales que se tocan, con el color de su capa. Las clases son las que existen en el código — puedes abrirlas y seguir el camino.</p>
+
+<h3 id="f-auth">3.1 Autenticación</h3>
+
+<div class="flow-title"><span class="num">F1</span> Registro de usuario</div>
+<div class="chain">
+  <span class="pill p-cli">RegisterScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">auth.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /auth/register</span><span class="ar">→</span>
+  <span class="pill p-inf">AuthController.register()</span><span class="ar">→</span>
+  <span class="pill p-dom">AuthenticationUseCase</span><span class="ar">→</span>
+  <span class="pill p-app">AuthenticationService.register()</span><span class="ar">→</span>
+  <span class="pill p-dom">UserRepositoryPort + UserTrialRepositoryPort</span><span class="ar">→</span>
+  <span class="pill p-inf">UserPersistenceAdapter / UserTrialRepositoryAdapter</span><span class="ar">→</span>
+  <span class="pill p-inf">JpaUserRepository / JpaUserTrialRepository</span><span class="ar">→</span>
+  <span class="pill p-db">users + user_trials</span>
+</div>
+<ol>
+<li><code>existsByEmail()</code> → si ya existe: <code>DuplicateResourceException</code> → el <code>GlobalExceptionHandler</code> lo convierte en <b>409</b>.</li>
+<li>Busca el trial en <code>user_trials</code> por email; si no hay, guarda <code>NOW()</code> (por eso re-registrarse no reinicia los 7 días).</li>
+<li><code>passwordEncoder.encode()</code> → BCrypt hash (nunca se guarda la contraseña en claro).</li>
+<li><code>userRepository.save()</code> → INSERT en <code>users</code> con provider=LOCAL.</li>
+<li><span class="pill p-ext">☁️ ResendEmailService.sendWelcomeEmail()</span> envía el email de bienvenida.</li>
+<li><code>JwtTokenProvider.generateAccessToken() + generateRefreshToken()</code> → la app queda logueada al instante.</li>
+</ol>
+
+<div class="flow-title"><span class="num">F2</span> Login con email y contraseña</div>
+<div class="chain">
+  <span class="pill p-cli">LoginScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">auth.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /auth/login</span><span class="ar">→</span>
+  <span class="pill p-inf">AuthController.login()</span><span class="ar">→</span>
+  <span class="pill p-app">AuthenticationService.login()</span><span class="ar">→</span>
+  <span class="pill p-dom">UserRepositoryPort.findByEmail()</span><span class="ar">→</span>
+  <span class="pill p-db">users</span>
+</div>
+<div class="mermaid">
+sequenceDiagram
+    participant S as LoginScreen
+    participant AC as AuthController
+    participant AS as AuthenticationService
+    participant UR as UserRepositoryPort
+    participant JT as JwtTokenProvider
+    S->>AC: POST /auth/login {email, password}
+    AC->>AS: login(LoginCommand)
+    AS->>UR: findByEmail(email)
+    UR-->>AS: User (o vacío → 401)
+    AS->>AS: ¿provider == LOCAL? (si es GOOGLE/APPLE → error con aviso)
+    AS->>AS: BCrypt passwordEncoder.matches(password, hash)
+    AS->>AS: ¿user.isActive()?
+    AS->>JT: generateAccessToken(user) + generateRefreshToken(user)
+    AS-->>AC: AuthResult(user, tokens, expiresIn)
+    AC-->>S: 200 {user, accessToken, refreshToken}
+    Note over S: AuthContext guarda todo en AsyncStorage
+</div>
+
+<div class="flow-title"><span class="num">F3</span> Login con Google</div>
+<div class="chain">
+  <span class="pill p-cli">LoginScreen (botón Google · expo-auth-session)</span><span class="ar">→</span>
+  <span class="pill p-ext">☁️ Google devuelve idToken</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /auth/google {idToken}</span><span class="ar">→</span>
+  <span class="pill p-inf">AuthController</span><span class="ar">→</span>
+  <span class="pill p-app">AuthenticationService.loginWithGoogle()</span><span class="ar">→</span>
+  <span class="pill p-ext">☁️ GoogleIdTokenVerifier (verifica firma contra Google)</span><span class="ar">→</span>
+  <span class="pill p-app">processSocialLogin(email, name, "GOOGLE")</span><span class="ar">→</span>
+  <span class="pill p-db">users (crea o actualiza provider)</span>
+</div>
+<p><code>processSocialLogin</code>: si el email no existe crea el usuario con contraseña aleatoria bloqueada (UUID + BCrypt) y trial persistente; si existe con otro provider, lo actualiza. Devuelve <b>tokens JWT propios</b> — el token de Google solo se usa una vez, para identificarte.</p>
+
+<div class="flow-title"><span class="num">F4</span> Login con Apple</div>
+<div class="chain">
+  <span class="pill p-cli">expo-apple-authentication</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /auth/apple {identityToken}</span><span class="ar">→</span>
+  <span class="pill p-app">AuthenticationService.loginWithApple()</span><span class="ar">→</span>
+  <span class="pill p-app">decodifica JWT SIN verificar firma ⚠️</span><span class="ar">→</span>
+  <span class="pill p-app">processSocialLogin(email, name, "APPLE")</span>
+</div>
+<p>Diferencia con Google: se parte el token en header.payload y se lee el email sin validar la firma (limitación conocida, documentada en el código y en la sección de deuda técnica).</p>
+
+<div class="flow-title"><span class="num">F5</span> Refresh de tokens (sesión que no caduca cada 24 h)</div>
+<div class="chain">
+  <span class="pill p-cli">api.client.ts detecta 401 / expiración</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /auth/refresh {refreshToken}</span><span class="ar">→</span>
+  <span class="pill p-app">AuthenticationService.refreshToken()</span><span class="ar">→</span>
+  <span class="pill p-inf">JwtTokenProvider.validateToken() + getUserIdFromToken()</span><span class="ar">→</span>
+  <span class="pill p-dom">UserRepositoryPort.findById()</span><span class="ar">→</span>
+  <span class="pill p-cli">nuevo par access+refresh</span>
+</div>
+
+<div class="flow-title"><span class="num">F6</span> Recuperar contraseña (3 pasos)</div>
+<div class="chain">
+  <span class="pill p-cli">ForgotPasswordScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /auth/forgot-password</span><span class="ar">→</span>
+  <span class="pill p-app">AuthenticationService.forgotPassword()</span><span class="ar">→</span>
+  <span class="pill p-app">código 6 dígitos → ConcurrentHashMap</span><span class="ar">→</span>
+  <span class="pill p-ext">☁️ ResendEmailService (email con el código)</span>
+</div>
+<p>Después: <code>POST /auth/verify-reset-code</code> (compara con el mapa) y <code>POST /auth/reset-password</code> (re-verifica, BCrypt del nuevo password, <code>userRepository.update()</code>, borra el código). Si el email no existe <b>no se devuelve error</b> (anti-enumeración de usuarios).</p>
+
+<div class="flow-title"><span class="num">F7</span> Logout y /auth/me</div>
+<p><b>Logout</b>: <code>POST /auth/logout</code> → <code>jwtTokenProvider.invalidateToken(token)</code> → añade el token a la blacklist en memoria; la app borra AsyncStorage. <b>/auth/me</b>: valida el token, extrae el userId, devuelve el usuario con <code>isPremium</code>, <code>isTrialActive</code> (calculado: ¿NOW &lt; trialStart + 7 días?) y <code>trialStartDate</code> — es la fuente de verdad que consume <code>SubscriptionContext</code> al arrancar.</p>
+<h3 id="f-biblia">3.2 Biblia y búsqueda</h3>
+
+<div class="flow-title"><span class="num">F8</span> Leer un capítulo</div>
+<div class="chain">
+  <span class="pill p-cli">BibleSearchScreen → OldTestament/NewTestament → BookChapters → ChapterReadingScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">bible.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">GET /bible/books/{id}/chapters/{n}</span><span class="ar">→</span>
+  <span class="pill p-inf">BibleController.getChapter()</span><span class="ar">→</span>
+  <span class="pill p-dom">BibleUseCase</span><span class="ar">→</span>
+  <span class="pill p-app">BibleService</span><span class="ar">→</span>
+  <span class="pill p-dom">BibleRepositoryPort</span><span class="ar">→</span>
+  <span class="pill p-inf">BiblePersistenceAdapter → JpaChapterRepository/JpaVerseRepository</span><span class="ar">→</span>
+  <span class="pill p-db">chapters → sections → verses</span>
+</div>
+<p>El capítulo vuelve con sus <b>secciones</b> ordenadas (order_index) y dentro los versículos. En la pantalla se pintan los subrayados (cruzando con <code>GET /highlights/chapter</code>) y se permite TTS con <code>audio.service.ts</code> (expo-speech).</p>
+
+<div class="flow-title"><span class="num">F9</span> Buscar versículos</div>
+<div class="chain">
+  <span class="pill p-cli">BibleSearchScreen / smart-search.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">GET /bible/search?query=amor&page=0</span><span class="ar">→</span>
+  <span class="pill p-inf">BibleController.searchVerses()</span><span class="ar">→</span>
+  <span class="pill p-app">BibleService.searchVerses()</span><span class="ar">→</span>
+  <span class="pill p-inf">JpaVerseRepository.searchByText() — SQL nativo LIKE</span><span class="ar">→</span>
+  <span class="pill p-db">verses (LIMIT/OFFSET = paginación)</span>
+</div>
+
+<h3 id="f-personal">3.3 Favoritos · Subrayados · Escritos</h3>
+
+<div class="flow-title"><span class="num">F10</span> Añadir un favorito (el flujo 🔐 modelo)</div>
+<div class="chain">
+  <span class="pill p-cli">ChapterReadingScreen (long-press en versículo)</span><span class="ar">→</span>
+  <span class="pill p-cli">favorites.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /favorites + Bearer</span><span class="ar">→</span>
+  <span class="pill p-inf">JwtAuthenticationFilter (identifica al usuario)</span><span class="ar">→</span>
+  <span class="pill p-inf">FavoriteController.addFavorite()</span><span class="ar">→</span>
+  <span class="pill p-dom">FavoriteUseCase</span><span class="ar">→</span>
+  <span class="pill p-app">FavoriteService.addFavorite()</span><span class="ar">→</span>
+  <span class="pill p-dom">BibleRepositoryPort + FavoriteRepositoryPort</span><span class="ar">→</span>
+  <span class="pill p-inf">FavoritePersistenceAdapter → JpaFavoriteRepository</span><span class="ar">→</span>
+  <span class="pill p-db">favorites</span>
+</div>
+<div class="mermaid">
+sequenceDiagram
+    participant S as ChapterReadingScreen
+    participant F as JwtAuthenticationFilter
+    participant FC as FavoriteController
+    participant FS as FavoriteService
+    participant BR as BibleRepositoryPort
+    participant FR as FavoriteRepositoryPort
+    S->>F: POST /favorites {bookId, chapter, verse, tags?, note?}
+    F->>FC: SecurityContext con el usuario
+    FC->>FC: getUserId(userDetails) → UUID
+    FC->>FS: addFavorite(userId, command)
+    FS->>BR: findVerse(bookId, chapter, verse)
+    BR-->>FS: Verse (texto real) — si no existe → 404
+    FS->>BR: findBookById(bookId) → nombre del libro
+    FS->>FR: save(Favorite con verse_text y book_name DESNORMALIZADOS)
+    FR-->>FS: Favorite guardado
+    FS-->>FC: Favorite
+    FC-->>S: 201 FavoriteResponse
+</div>
+<div class="card tip"><b>Detalle de diseño:</b> el servicio NO confía en el texto que mande el cliente: busca el versículo real en BD y guarda su texto y el nombre del libro <b>desnormalizados</b> en <code>favorites</code> → la pantalla Favoritos lista sin hacer JOINs. Listar = <code>GET /favorites</code> (con filtros testament/bookId/search). Borrar = <code>DELETE /favorites/{id}</code>.</div>
+
+<div class="flow-title"><span class="num">F11</span> Subrayar un versículo</div>
+<div class="chain">
+  <span class="pill p-cli">ChapterReadingScreen (selector de color)</span><span class="ar">→</span>
+  <span class="pill p-cli">highlights.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /highlights {bookId, chapter, verse, color}</span><span class="ar">→</span>
+  <span class="pill p-inf">HighlightController</span><span class="ar">→</span>
+  <span class="pill p-app">HighlightService</span><span class="ar">→</span>
+  <span class="pill p-dom">HighlightRepositoryPort</span><span class="ar">→</span>
+  <span class="pill p-db">highlights (UNIQUE user+book+cap+verso = 1 color por versículo)</span>
+</div>
+<p>Al abrir un capítulo, <code>GET /highlights/chapter?bookId=&chapterNumber=</code> devuelve los subrayados de ese capítulo y la pantalla pinta el fondo de cada versículo. El color es un enum del dominio (<code>HighlightColor</code>).</p>
+
+<div class="flow-title"><span class="num">F12</span> Escritos / notas personales (CRUD completo)</div>
+<div class="chain">
+  <span class="pill p-cli">WritingsScreen / EditWritingScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">writings.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">POST · PUT · PATCH /favorite · DELETE /writings</span><span class="ar">→</span>
+  <span class="pill p-inf">WritingController</span><span class="ar">→</span>
+  <span class="pill p-app">WritingService</span><span class="ar">→</span>
+  <span class="pill p-dom">WritingRepositoryPort (+ BibleRepositoryPort si referencia versículo)</span><span class="ar">→</span>
+  <span class="pill p-db">writings (verse_reference JSONB, tags TEXT[])</span>
+</div>
+<p>Cada operación verifica que el escrito pertenece al userId del token (si pides el writing de otro → 404). <code>PATCH /writings/{id}/favorite</code> = toggle del booleano <code>is_favorite</code>.</p>
+
+<h3 id="f-daily">3.4 Lectura diaria y progreso</h3>
+
+<div class="flow-title"><span class="num">F13</span> Lectura del día + marcar como leída</div>
+<div class="chain">
+  <span class="pill p-cli">DailyReadingScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">daily-reading.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">GET /daily-reading/today</span><span class="ar">→</span>
+  <span class="pill p-inf">DailyReadingController</span><span class="ar">→</span>
+  <span class="pill p-app">DailyReadingService.getTodayReading()</span><span class="ar">→</span>
+  <span class="pill p-dom">DailyReadingRepositoryPort</span><span class="ar">→</span>
+  <span class="pill p-db">daily_readings (UNIQUE por fecha — la que sembró V11 o editó el admin)</span>
+</div>
+<p>Al terminar: <code>POST /daily-reading/{readingId}/mark-read</code> → <code>DailyReadingService.markAsRead(userId, readingId)</code> → inserta en <code>reading_history</code> (UNIQUE user+reading evita duplicados). La reflexión personal va a <code>POST /{id}/reflection</code> → columna <code>user_reflection</code> de esa misma fila.</p>
+
+<div class="flow-title"><span class="num">F14</span> Calendario de constancia y racha</div>
+<div class="chain">
+  <span class="pill p-cli">ReadingCalendarScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">reading-progress.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /reading-progress · GET /reading-progress?month · GET /streak</span><span class="ar">→</span>
+  <span class="pill p-inf">ReadingProgressController</span><span class="ar">→</span>
+  <span class="pill p-dom">ReadingProgressService (¡vive en domain/service: lógica pura!)</span><span class="ar">→</span>
+  <span class="pill p-dom">ReadingProgressRepositoryPort</span><span class="ar">→</span>
+  <span class="pill p-inf">ReadingProgressPersistenceAdapter</span><span class="ar">→</span>
+  <span class="pill p-db">reading_progress (UNIQUE user+date = un check por día)</span>
+</div>
+<p><code>/streak</code> calcula la racha: cuenta hacia atrás desde hoy cuántos días consecutivos tienen fila en <code>reading_progress</code>. Nota arquitectónica defendible: este servicio está en <code>domain/service</code> (no en application) porque su lógica (calcular rachas) es de negocio puro, sin dependencias.</p>
+
+<h3 id="f-ia">3.5 IA, descarga offline y cuenta</h3>
+
+<div class="flow-title"><span class="num">F15</span> Preguntar al asistente de IA</div>
+<div class="chain">
+  <span class="pill p-cli">AIAssistantScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">ai.service.ts (timeout ∞)</span><span class="ar">→</span>
+  <span class="pill p-cli">POST /chat {message}</span><span class="ar">→</span>
+  <span class="pill p-inf">AIChatController</span><span class="ar">→</span>
+  <span class="pill p-dom">BibleRagUseCase</span><span class="ar">→</span>
+  <span class="pill p-app">BibleRagService (pasos 0→3 del RAG)</span><span class="ar">→</span>
+  <span class="pill p-app">CloudflareAiClient</span><span class="ar">→</span>
+  <span class="pill p-ext">☁️ Cloudflare Workers AI (Llama 3.1 8B)</span><span class="ar">→</span>
+  <span class="pill p-cli">MessageParser.tsx convierte [[Mateo 5:3]] en enlaces</span>
+</div>
+<p>El detalle del RAG (extracción de keyword, retrieval de 15 versículos, augmentation, generation) está en la <a href="#rag">sección 8</a>. Al tocar un enlace <code>[[...]]</code> la app navega a ChapterReadingScreen del pasaje citado.</p>
+
+<div class="flow-title"><span class="num">F16</span> Descargar la Biblia para offline</div>
+<div class="chain">
+  <span class="pill p-cli">ManageDownloadsScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">english-bible-download.service.ts</span><span class="ar">→</span>
+  <span class="pill p-cli">GET /bible/english/download</span><span class="ar">→</span>
+  <span class="pill p-inf">BibleController.downloadFullBible() — itera los 73 libros × todos sus capítulos</span><span class="ar">→</span>
+  <span class="pill p-cli">bible_offline.json → expo-file-system (documentDirectory)</span><span class="ar">→</span>
+  <span class="pill p-cli">flag en AsyncStorage + useOfflineBible lo lee sin conexión</span>
+</div>
+
+<div class="flow-title"><span class="num">F17</span> Perfil, contraseña y borrar cuenta</div>
+<div class="chain">
+  <span class="pill p-cli">ProfileScreen / AccountScreen / ChangePasswordScreen</span><span class="ar">→</span>
+  <span class="pill p-cli">PUT /users/me · PUT /users/me/password · DELETE /users/me</span><span class="ar">→</span>
+  <span class="pill p-inf">UserController</span><span class="ar">→</span>
+  <span class="pill p-dom">UserUseCase → UserService (domain/service)</span><span class="ar">→</span>
+  <span class="pill p-dom">UserRepositoryPort</span><span class="ar">→</span>
+  <span class="pill p-db">users (DELETE dispara CASCADE → borra favoritos, escritos, subrayados, historial)</span>
+</div>
+<div class="card ok"><b>Resumen del patrón:</b> los 17 flujos repiten el mismo esqueleto de la sección 2. Lo único que cambia es: qué controlador, qué caso de uso, qué puerto y qué tabla. Si entiendes F10 (favoritos), entiendes todos.</div>
+<h2 id="backoffice">4 · Backoffice y AdminController: qué es y cómo se conectan</h2>
+<p><b>Respuesta corta a tu pregunta: sí.</b> <code>AdminController</code> es la "API privada" que existe <b>exclusivamente para servir al backoffice</b>. El backoffice (React en Cloudflare Pages) no tiene base de datos propia ni backend propio: <b>cada página hace <code>fetch()</code> contra <code>/admin/*</code> del mismo Spring Boot</b> que usa la app móvil.</p>
+<div class="mermaid">
+flowchart LR
+    classDef pg fill:#e3ecfa,stroke:#2456a6,color:#222;
+    classDef ep fill:#fbe5e4,stroke:#b3403f,color:#222;
+    subgraph BO ["🛠️ Backoffice React (catholic-verse-admin.pages.dev)"]
+        L[Login.tsx<br/>admin / catholicadmin<br/>solo en el cliente ⚠️]:::pg
+        D[Dashboard.tsx]:::pg
+        US[Users.tsx]:::pg
+        CO[Content.tsx]:::pg
+        LO[Logs.tsx]:::pg
+        SE[Settings.tsx<br/>URL del backend en localStorage]:::pg
+    end
+    subgraph AC ["⚙️ AdminController (/admin) en Spring Boot"]
+        E1["GET /admin/dashboard-stats"]:::ep
+        E2["GET /admin/users<br/>PUT /admin/users/{id}/plan<br/>DELETE /admin/users/{id}"]:::ep
+        E3["GET/POST /admin/daily-readings<br/>DELETE /admin/daily-readings/{date}<br/>PUT /admin/bible/verses"]:::ep
+        E4["GET /admin/audit-logs"]:::ep
+    end
+    D --> E1
+    US --> E2
+    CO --> E3
+    LO --> E4
+    AC --> DB[(PostgreSQL)]
+</div>
+
+<h3>Qué hace cada endpoint por dentro (clase a clase)</h3>
+<table>
+<tr><th>Página → Endpoint</th><th>Cadena interna real</th><th>Qué pasa</th></tr>
+<tr><td>Users → <code>GET /admin/users</code></td><td>AdminController → <span class="badge b-jwt">UserRepositoryPort.findAll()</span> → users</td><td>Lista CRM: nombre, email, plan (Premium/Free según <code>is_premium</code>), fecha de alta</td></tr>
+<tr><td>Users → <code>PUT /admin/users/{id}/plan</code></td><td>AdminController → findById → <code>user.withPremium(true/false)</code> → update</td><td>Cambia el plan <b>sin pasarela de pago</b>: es el "modo manual" de dar premium. La app lo ve en el siguiente <code>/auth/me</code></td></tr>
+<tr><td>Users → <code>DELETE /admin/users/{id}</code></td><td>AdminController → <code>userRepository.deleteById()</code></td><td>Borrado GDPR: el <code>ON DELETE CASCADE</code> de la BD arrastra favoritos, escritos, subrayados e historial</td></tr>
+<tr><td>Content → <code>GET/POST/DELETE /admin/daily-readings</code></td><td>AdminController → <span class="badge b-jwt">DailyReadingUseCase</span> → DailyReadingService → daily_readings</td><td>El CMS litúrgico: programar la lectura de cualquier fecha (título, badge, imagen, libro, capítulo, versículos, texto, reflexión oficial)</td></tr>
+<tr><td>Content → <code>PUT /admin/bible/verses</code></td><td>AdminController → <span class="badge b-jwt">BibleUseCase.updateVerseText()</span> → verses</td><td>Corregir una errata de un versículo directamente en BD sin crear una migración Flyway</td></tr>
+<tr><td>Dashboard → <code>GET /admin/dashboard-stats</code></td><td>AdminController → <span class="badge b-fix">JpaUserRepository / JpaWritingRepository / JpaFavoriteRepository directos</span></td><td>totalUsers y premiumUsers son <b>reales</b> (count de BD); activeNow y aiQueriesCount son <b>estimadores calculados</b> con fórmulas; distribución por países = TLD del email (.es, .mx…)</td></tr>
+<tr><td>Logs → <code>GET /admin/audit-logs</code></td><td>AdminController → Jpa repos directos</td><td>No hay tabla de logs: se <b>construyen</b> al vuelo desde registros reales (altas de usuarios, escritos, favoritos), se ordenan por fecha y se limitan a 50</td></tr>
+</table>
+<div class="card warn"><b>Dos cosas que debes saber explicar:</b><br>
+1) <b>AdminController rompe parcialmente la arquitectura hexagonal a propósito</b>: además de usar puertos (UserRepositoryPort, DailyReadingUseCase), inyecta <code>JpaUserRepository</code>, <code>JpaWritingRepository</code> y <code>JpaFavoriteRepository</code> directamente para las estadísticas. Defensa: "es un controlador interno de back-office con consultas de agregación; crear puertos y casos de uso para cada métrica habría sido sobre-ingeniería. Lo asumo como trade-off consciente y lo aislaría si el panel creciera".<br>
+2) <b>Seguridad</b>: <code>/admin/**</code> está en <code>permitAll</code> y el login del backoffice es una comprobación en el cliente (admin/catholicadmin en Login.tsx). Preséntalo tú como limitación conocida (sección 16) con plan: rol ADMIN en el JWT + <code>@PreAuthorize("hasRole('ADMIN')")</code>.</div>
+<h2 id="api">5 · API REST — Catálogo completo</h2>
+<p><span class="badge b-pub">PÚBLICO</span> sin token · <span class="badge b-jwt">JWT</span> requiere <code>Authorization: Bearer</code></p>
+<table>
+<tr><th>Controlador</th><th>Base</th><th>Endpoints</th><th>Acceso</th></tr>
+<tr><td>AuthController</td><td><code>/auth</code></td><td>register · login · refresh · logout · me · forgot-password · verify-reset-code · reset-password · google · apple</td><td><span class="badge b-pub">PÚBLICO</span></td></tr>
+<tr><td>BibleController</td><td><code>/bible</code></td><td>books · books/old-testament · books/new-testament · books/{id} · books/{id}/chapters/{n} · search · <b>english/download</b></td><td><span class="badge b-pub">PÚBLICO</span> (GET)</td></tr>
+<tr><td>AIChatController</td><td><code>/chat</code></td><td>POST /chat → respuesta RAG con enlaces <code>[[Libro C:V]]</code></td><td><span class="badge b-pub">PÚBLICO</span> ⚠️</td></tr>
+<tr><td>DailyReadingController</td><td><code>/daily-reading</code></td><td>today · {date} · week · history · status · {id}/mark-read · {id}/reflection</td><td>GET <span class="badge b-pub">PÚBLICO</span> / POST <span class="badge b-jwt">JWT</span></td></tr>
+<tr><td>FavoriteController</td><td><code>/favorites</code></td><td>GET · POST · PUT/{id} · DELETE/{id} · GET /check</td><td><span class="badge b-jwt">JWT</span></td></tr>
+<tr><td>HighlightController</td><td><code>/highlights</code></td><td>GET · GET /chapter · POST · DELETE/{id} · DELETE</td><td><span class="badge b-jwt">JWT</span></td></tr>
+<tr><td>WritingController</td><td><code>/writings</code></td><td>GET · GET/{id} · POST · PUT/{id} · PATCH/{id}/favorite · DELETE/{id}</td><td><span class="badge b-jwt">JWT</span></td></tr>
+<tr><td>ReadingProgressController</td><td><code>/reading-progress</code></td><td>POST · DELETE · GET · GET /streak · GET /check</td><td><span class="badge b-jwt">JWT</span></td></tr>
+<tr><td>UserController</td><td><code>/users</code></td><td>PUT /me · PUT /me/password · DELETE /me</td><td><span class="badge b-jwt">JWT</span></td></tr>
+<tr><td>AdminController</td><td><code>/admin</code></td><td>ver <a href="#backoffice">sección 4</a></td><td><span class="badge b-pub">PÚBLICO</span> ⚠️</td></tr>
+</table>
+<div class="card"><b>Errores:</b> <code>GlobalExceptionHandler</code> (@RestControllerAdvice) traduce las excepciones de dominio a HTTP: AuthenticationException→<b>401</b> · ResourceNotFound→<b>404</b> · DuplicateResource→<b>409</b> · BusinessRule→<b>400</b>. Los controladores nunca devuelven stacktraces.</div>
+
+<h2 id="seguridad">6 · Seguridad: JWT y Spring Security</h2>
+<ul>
+<li>CSRF off, sesiones <b>STATELESS</b> (el servidor no guarda sesión: todo va en el token), BCrypt para contraseñas.</li>
+<li><code>JwtAuthenticationFilter</code> corre antes que el filtro estándar de Spring: Bearer → validar → email → cargar usuario → SecurityContext (detallado en la <a href="#anatomia">anatomía de una petición</a>).</li>
+<li><b>AccessToken 24 h</b> (claims: sub=userId, email, name, type=access) · <b>RefreshToken 7 días</b> (sub, type=refresh). Firma HMAC-SHA con <code>JWT_SECRET</code> (Base64).</li>
+<li>Logout: blacklist de tokens <b>en memoria</b> (Set) — se pierde al reiniciar (mejora: Redis/BD).</li>
+<li>Rutas públicas en SecurityConfig: <code>/auth/**</code>, swagger, <code>/actuator/health</code>, <code>POST /chat</code>, <code>/admin/**</code>, GETs de biblia y lectura diaria. Todo lo demás autenticado.</li>
+</ul>
+<div class="mermaid">
+sequenceDiagram
+    participant App
+    participant API
+    App->>API: POST /auth/login
+    API->>API: BCrypt.matches · provider LOCAL · activo
+    API-->>App: accessToken (24h) + refreshToken (7d)
+    Note over App: AsyncStorage
+    App->>API: GET /favorites + Bearer
+    API-->>App: 200
+    App->>API: POST /auth/refresh (cuando expira)
+    API-->>App: nuevo par de tokens
+</div>
+<h2 id="bd">7 · Base de datos desde cero</h2>
+<p>Esta sección asume que <b>no sabes nada de bases de datos</b> y te lleva hasta poder explicar cada tabla del proyecto.</p>
+
+<h3 id="bd-conceptos">7.1 Conceptos básicos, explicados con ejemplos DE ESTE proyecto</h3>
+
+<h4>¿Qué es una tabla, una fila y una columna?</h4>
+<p>Una <b>tabla</b> es como una hoja de Excel: las <b>columnas</b> definen qué datos guardas (email, nombre…) y cada <b>fila</b> es un registro concreto (un usuario, un versículo). La tabla <code>users</code> tiene una fila por cada persona registrada; la tabla <code>verses</code> tiene una fila por cada versículo de la Biblia (¡decenas de miles!).</p>
+
+<h4>Tipos de datos que usa CatholicVerse</h4>
+<table class="dict">
+<tr><th>Tipo</th><th>Qué es</th><th>Ejemplo en el proyecto</th></tr>
+<tr><td><code>UUID</code></td><td>Identificador único universal de 128 bits, ej. <code>a3f1…-…</code>. Se genera con <code>gen_random_uuid()</code></td><td><code>users.id</code>, <code>verses.id</code></td></tr>
+<tr><td><code>VARCHAR(n)</code></td><td>Texto con longitud máxima n</td><td><code>email VARCHAR(255)</code>, <code>provider VARCHAR(20)</code></td></tr>
+<tr><td><code>TEXT</code></td><td>Texto sin límite</td><td><code>verses.text</code>, <code>writings.content</code></td></tr>
+<tr><td><code>INTEGER</code></td><td>Número entero</td><td><code>chapter_number</code>, <code>verse_number</code></td></tr>
+<tr><td><code>BOOLEAN</code></td><td>true / false</td><td><code>is_premium</code>, <code>active</code></td></tr>
+<tr><td><code>TIMESTAMP</code></td><td>Fecha y hora</td><td><code>created_at</code>, <code>trial_start_date</code></td></tr>
+<tr><td><code>DATE</code></td><td>Solo fecha, sin hora</td><td><code>daily_readings.date</code>, <code>reading_progress.date</code></td></tr>
+<tr><td><code>TEXT[]</code> / <code>INTEGER[]</code></td><td>Array de Postgres: varios valores en una columna</td><td><code>favorites.tags</code>, <code>daily_readings.verse_numbers</code></td></tr>
+<tr><td><code>JSONB</code></td><td>JSON binario consultable</td><td><code>writings.verse_reference</code> (ej. {"bookId":"genesis","chapter":2})</td></tr>
+</table>
+
+<h4>PRIMARY KEY (PK) — el DNI de cada fila</h4>
+<p>La <b>clave primaria</b> identifica de forma única cada fila: no puede repetirse ni ser nula. Casi todas las tablas usan <code>id UUID PRIMARY KEY DEFAULT gen_random_uuid()</code>: Postgres genera el UUID solo al insertar. Excepción interesante: <code>books.id</code> es un <code>VARCHAR(50)</code> legible (<code>'genesis'</code>, <code>'matthew'</code>) — una <b>clave natural</b>, elegida porque la app construye URLs como <code>/bible/books/genesis</code>.</p>
+<div class="card tip"><b>¿Por qué UUID y no 1, 2, 3 (autoincremento)?</b> (1) No son adivinables: con ids 1,2,3 cualquiera podría iterar <code>/users/1</code>, <code>/users/2</code>… (2) Se pueden generar en el código Java (<code>UUID.randomUUID()</code>) sin preguntar a la BD — útil para el modo offline con IDs temporales. (3) No chocan si algún día hay varias bases de datos.</div>
+
+<h4>FOREIGN KEY (FK) — el pegamento entre tablas</h4>
+<p>Una <b>clave foránea</b> es una columna que apunta a la PK de otra tabla. Es lo que "conecta" las tablas. Ejemplo real:</p>
+<pre><code>CREATE TABLE verses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    section_id UUID NOT NULL REFERENCES sections(id) ON DELETE CASCADE,
+    ...
+);</code></pre>
+<p><code>verses.section_id REFERENCES sections(id)</code> significa: "cada versículo pertenece a una sección que <b>debe existir</b>". Postgres lo vigila (<b>integridad referencial</b>): si intentas insertar un versículo con un <code>section_id</code> inventado, da error; si intentas borrar una sección que aún tiene versículos, también (salvo que definas qué hacer, ↓).</p>
+
+<h4>ON DELETE … — ¿qué pasa con los hijos cuando borras al padre?</h4>
+<table>
+<tr><th>Regla</th><th>Significado</th><th>Dónde se usa y POR QUÉ</th></tr>
+<tr><td><code>ON DELETE CASCADE</code></td><td>Al borrar el padre, se borran sus hijos automáticamente</td><td>Todo lo que cuelga de <code>users</code> (favorites, highlights, writings, historial…): <b>borrar la cuenta limpia todos los datos del usuario en un solo DELETE → cumplimiento GDPR</b>. También sections→verses</td></tr>
+<tr><td><code>ON DELETE SET NULL</code></td><td>Al borrar el padre, el hijo queda con la FK a NULL pero NO se borra</td><td><code>reading_progress.daily_reading_id</code>: si el admin borra una lectura del CMS, el usuario <b>no pierde su día marcado</b> en el calendario de constancia</td></tr>
+<tr><td>(sin regla = RESTRICT)</td><td>No te deja borrar el padre si tiene hijos</td><td><code>books</code>: no se puede borrar un libro que tenga capítulos — el contenido bíblico está protegido</td></tr>
+</table>
+
+<h4>UNIQUE — prohibido repetirse</h4>
+<p>Una restricción <b>UNIQUE</b> impide dos filas con el mismo valor. Puede ser de una columna o <b>compuesta</b> (la combinación no puede repetirse):</p>
+<ul>
+<li><code>users.email UNIQUE</code> → no puede haber dos cuentas con el mismo email (por eso el registro devuelve 409).</li>
+<li><code>chapters UNIQUE(book_id, chapter_number, version)</code> → "Génesis capítulo 1 en versión Jerusalem Bible" solo puede existir una vez, pero permite un futuro "Génesis 1 versión Vulgata".</li>
+<li><code>highlights UNIQUE(user_id, book_id, chapter_number, verse_number)</code> → un usuario solo tiene UN color por versículo (re-subrayar = reemplazar).</li>
+<li><code>reading_history UNIQUE(user_id, daily_reading_id)</code> → no puedes marcar la misma lectura como leída dos veces.</li>
+<li><code>reading_progress UNIQUE(user_id, date)</code> → un solo check de constancia por día.</li>
+<li><code>daily_readings.date UNIQUE</code> → una sola lectura litúrgica por fecha.</li>
+<li>Curiosidad con historia: <code>favorites</code> TENÍA un UNIQUE igual que highlights y la migración <b>V4 lo eliminó</b> — decisión de producto para permitir guardar el mismo versículo más de una vez (p. ej. con notas distintas).</li>
+</ul>
+
+<h4>NOT NULL y DEFAULT</h4>
+<p><code>NOT NULL</code> = la columna es obligatoria (no puede quedar vacía). <code>DEFAULT</code> = valor automático si no envías nada: <code>active BOOLEAN NOT NULL DEFAULT true</code>, <code>created_at TIMESTAMP NOT NULL DEFAULT NOW()</code>, <code>is_premium … DEFAULT false</code> (nadie nace premium).</p>
+
+<h4>INDEX — el índice del libro</h4>
+<p>Un <b>índice</b> es una estructura extra que acelera las búsquedas, como el índice alfabético de un libro: sin él, Postgres lee la tabla entera (escaneo secuencial). A cambio, ocupa espacio y ralentiza un poco los INSERT. Índices reales del proyecto:</p>
+<ul>
+<li><code>idx_users_email</code> → el login busca por email en cada petición: tiene que ser instantáneo.</li>
+<li><code>idx_favorites_user</code>, <code>idx_writings_user</code>, <code>idx_highlights_chapter (user, book, chapter)</code> → todas las pantallas filtran "lo MÍO": el índice por user_id evita recorrer los datos de todos los usuarios.</li>
+<li><code>idx_reading_progress_user_date</code> y <code>…_user_month</code> → el calendario pide "mis días de este mes".</li>
+<li><code>idx_verses_text USING gin(to_tsvector('spanish', text))</code> → índice <b>GIN full-text</b> pensado para búsqueda lingüística. Honestidad técnica: la búsqueda actual usa <code>LIKE</code> y no lo aprovecha (y quedó configurado en 'spanish' cuando V6 pasó el contenido a inglés) — está en deuda técnica.</li>
+</ul>
+
+<h4>Cómo se traduce todo esto a Java (JPA)</h4>
+<div class="chain">
+  <span class="pill p-db">tabla users</span><span class="ar">↔</span>
+  <span class="pill p-inf">UserEntity.java (@Entity, @Table, @Column)</span><span class="ar">↔</span>
+  <span class="pill p-inf">UserPersistenceAdapter (convierte)</span><span class="ar">↔</span>
+  <span class="pill p-dom">User.java (modelo puro, sin anotaciones)</span>
+</div>
+<p>Cada tabla tiene su espejo <code>*Entity</code> en infraestructura con anotaciones JPA; el adapter convierte Entity↔Modelo de dominio. Así el dominio no sabe ni que existe SQL. Y el esquema NO lo crea Hibernate (<code>ddl-auto: validate</code>): lo crean las <b>migraciones Flyway V1–V11</b>, scripts SQL versionados e inmutables que se ejecutan en orden al arrancar.</p>
+<h3 id="bd-er">7.2 Diagramas ER completos (todas las columnas)</h3>
+<p>Cómo leerlos: <code>||--o{</code> significa relación 1 a N ("un libro tiene muchos capítulos"). PK = clave primaria, FK = foránea, UK = unique.</p>
+<h4>A · Contenido bíblico y litúrgico</h4>
+<div class="mermaid">
+erDiagram
+    books ||--o{ chapters : "1 libro - N capitulos"
+    chapters ||--o{ sections : "1 capitulo - N secciones"
+    sections ||--o{ verses : "1 seccion - N versiculos"
+    books ||--o{ daily_readings : "lectura referencia un libro"
+    books {
+        varchar_50 id PK "ej. genesis"
+        varchar_100 name
+        varchar_10 abbreviation
+        varchar_10 testament "old | new"
+        varchar_50 category
+        int total_chapters
+        int order_index
+        text description
+        varchar_100 author
+        text historical_context
+    }
+    chapters {
+        UUID id PK
+        varchar_50 book_id FK
+        int chapter_number
+        varchar_50 version "UNIQUE book+chapter+version"
+    }
+    sections {
+        UUID id PK
+        UUID chapter_id FK "ON DELETE CASCADE"
+        varchar_255 title
+        int order_index
+    }
+    verses {
+        UUID id PK
+        UUID section_id FK "ON DELETE CASCADE"
+        int verse_number
+        text text "indice GIN full-text"
+        boolean has_note "default false"
+        text note_text
+    }
+    daily_readings {
+        UUID id PK
+        date date UK "una lectura por dia"
+        varchar_255 title
+        varchar_50 badge "GOSPEL, PSALM..."
+        text image_url
+        varchar_50 book_id FK
+        varchar_100 book_name
+        int chapter_number
+        int_array verse_numbers
+        text reading_text
+        text official_reflection
+    }
+</div>
+<h4>B · Usuarios y actividad</h4>
+<div class="mermaid">
+erDiagram
+    users ||--o{ favorites : "guarda"
+    users ||--o{ highlights : "subraya"
+    users ||--o{ writings : "escribe"
+    users ||--o{ reading_history : "lee"
+    users ||--o{ reading_progress : "constancia diaria"
+    users ||--o{ user_progress : "progreso por capitulo"
+    users ||--o{ search_history : "busca"
+    daily_readings ||--o{ reading_history : "referenciada"
+    daily_readings ||--o{ reading_progress : "referenciada (nullable)"
+    users {
+        UUID id PK
+        varchar_255 email UK
+        varchar_255 password_hash "BCrypt"
+        varchar_255 full_name
+        boolean email_verified "default false"
+        boolean active "default true"
+        boolean is_premium "V8 - default false"
+        timestamp trial_start_date "V8"
+        timestamp subscription_end_date "V8"
+        varchar_255 revenuecat_user_id UK "V8"
+        varchar_20 provider "V10 - LOCAL|GOOGLE|APPLE"
+        timestamp created_at
+        timestamp updated_at
+    }
+    user_trials {
+        UUID id PK
+        varchar_255 email UK "clave de negocio"
+        timestamp trial_start_date "default NOW"
+        timestamp created_at
+    }
+    favorites {
+        UUID id PK
+        UUID user_id FK "CASCADE"
+        varchar_50 book_id FK
+        varchar_100 book_name "desnormalizado"
+        int chapter_number
+        int verse_number
+        text verse_text "desnormalizado"
+        text_array tags
+        text note
+        timestamp created_at "UNIQUE quitada en V4"
+    }
+    highlights {
+        UUID id PK
+        UUID user_id FK "CASCADE"
+        varchar_50 book_id FK
+        int chapter_number
+        int verse_number
+        varchar_20 color
+        timestamp created_at "UNIQUE user+book+cap+vers"
+    }
+    writings {
+        UUID id PK
+        UUID user_id FK "CASCADE"
+        varchar_255 title
+        text content
+        jsonb verse_reference
+        text_array tags
+        boolean is_favorite "default false"
+        timestamp created_at
+        timestamp updated_at
+    }
+    reading_history {
+        UUID id PK
+        UUID user_id FK "CASCADE"
+        UUID daily_reading_id FK "CASCADE"
+        text user_reflection
+        timestamp read_at "UNIQUE user+reading"
+    }
+    reading_progress {
+        UUID id PK "V5 - calendario"
+        UUID user_id FK "CASCADE"
+        date date "UNIQUE user+date"
+        UUID daily_reading_id FK "SET NULL"
+        timestamp completed_at
+        timestamp created_at
+    }
+    user_progress {
+        UUID id PK
+        UUID user_id FK "CASCADE"
+        varchar_50 book_id FK
+        int chapter_number
+        boolean completed "UNIQUE user+book+cap"
+        timestamp last_read_at
+    }
+    search_history {
+        UUID id PK
+        UUID user_id FK "CASCADE"
+        text query
+        int results_count
+        timestamp searched_at
+    }
+</div>
+
+<h3 id="bd-tablas">7.3 Las 14 tablas, columna a columna</h3>
+<p>Haz clic en cada tabla para desplegarla. Para cada columna: tipo, restricciones y <b>para qué sirve de verdad</b>.</p>
+
+<details open><summary>👤 users — los usuarios registrados</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>Identidad del usuario; viaja dentro del JWT (claim sub) y es la FK de todas sus cosas</td></tr>
+<tr><td><code>email</code></td><td>VARCHAR(255) · <b>UNIQUE</b>, NOT NULL</td><td>Login y comunicación; el índice idx_users_email hace el login instantáneo</td></tr>
+<tr><td><code>password_hash</code></td><td>VARCHAR(255) · NOT NULL</td><td>Hash BCrypt — NUNCA la contraseña en claro. En cuentas Google/Apple es un UUID aleatorio encriptado (contraseña "bloqueada")</td></tr>
+<tr><td><code>full_name</code></td><td>VARCHAR(255) · NOT NULL</td><td>Nombre mostrado en Perfil y en el claim name del JWT</td></tr>
+<tr><td><code>email_verified</code></td><td>BOOLEAN · DEFAULT false</td><td>Preparado para verificación por email; hoy se pone a true al registrar (sin verificación real)</td></tr>
+<tr><td><code>active</code></td><td>BOOLEAN · DEFAULT true</td><td>Baneo suave: si es false, el login se rechaza ("Usuario inactivo") sin borrar datos</td></tr>
+<tr><td><code>is_premium</code></td><td>BOOLEAN · DEFAULT false · (V8)</td><td>Flag premium del backend; lo cambia el backoffice (PUT /admin/users/{id}/plan) y lo lee /auth/me</td></tr>
+<tr><td><code>trial_start_date</code></td><td>TIMESTAMP · (V8)</td><td>Copia de la fecha de inicio del trial; la fuente canónica es user_trials</td></tr>
+<tr><td><code>subscription_end_date</code></td><td>TIMESTAMP · (V8)</td><td>Reservada para la futura integración server-side con RevenueCat (aún sin uso)</td></tr>
+<tr><td><code>revenuecat_user_id</code></td><td>VARCHAR(255) · UNIQUE · (V8)</td><td>Reservada para enlazar el usuario con RevenueCat desde el servidor</td></tr>
+<tr><td><code>provider</code></td><td>VARCHAR(20) · DEFAULT 'LOCAL' · (V10)</td><td>LOCAL / GOOGLE / APPLE — decide qué flujo de login es válido para esa cuenta</td></tr>
+<tr><td><code>created_at</code> / <code>updated_at</code></td><td>TIMESTAMP · DEFAULT NOW()</td><td>Auditoría: cuándo se creó/modificó (el backoffice muestra created_at como "joined")</td></tr>
+</table>
+</details>
+
+<details><summary>🎁 user_trials — la memoria del trial (anti-trampas)</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>Identificador técnico</td></tr>
+<tr><td><code>email</code></td><td>VARCHAR(255) · <b>UNIQUE</b>, NOT NULL</td><td>La clave REAL de negocio. Es una tabla separada de users a propósito: si borras tu cuenta, tu fila de users desaparece (CASCADE) pero ESTA sobrevive → al re-registrarte con el mismo email, el trial continúa donde estaba</td></tr>
+<tr><td><code>trial_start_date</code></td><td>TIMESTAMP · DEFAULT NOW()</td><td>Cuándo empezó la prueba; User.isTrialActive() = ¿NOW &lt; esta fecha + 7 días?</td></tr>
+<tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>Auditoría</td></tr>
+</table>
+</details>
+
+<details><summary>📚 books — los 73 libros (sembrados en V2)</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>VARCHAR(50) · <b>PK natural</b></td><td>'genesis', 'matthew'… legible y usado en URLs (/bible/books/genesis). No es UUID a propósito</td></tr>
+<tr><td><code>name</code></td><td>VARCHAR(100) · NOT NULL</td><td>Nombre mostrado ("Genesis" tras V6)</td></tr>
+<tr><td><code>abbreviation</code></td><td>VARCHAR(10) · NOT NULL</td><td>"Gn", "Mt" — para referencias cortas</td></tr>
+<tr><td><code>testament</code></td><td>VARCHAR(10) · CHECK ('old'|'new')</td><td>El CHECK es otra restricción: solo admite esos 2 valores. Alimenta las pantallas AT (46) / NT (27)</td></tr>
+<tr><td><code>category</code></td><td>VARCHAR(50) · NOT NULL</td><td>Pentateuco, Evangelios, Cartas… para agrupar en la UI</td></tr>
+<tr><td><code>total_chapters</code></td><td>INTEGER · NOT NULL</td><td>Cuántos capítulos tiene; la descarga offline itera de 1 a este número</td></tr>
+<tr><td><code>order_index</code></td><td>INTEGER · NOT NULL</td><td>Orden canónico de los libros en la UI (no alfabético)</td></tr>
+<tr><td><code>description</code> / <code>author</code> / <code>historical_context</code></td><td>TEXT / VARCHAR / TEXT</td><td>Ficha del libro que muestra la pantalla de detalle</td></tr>
+</table>
+</details>
+
+<details><summary>📑 chapters — capítulos (con soporte multi-versión)</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>Identificador del capítulo</td></tr>
+<tr><td><code>book_id</code></td><td>VARCHAR(50) · <b>FK → books.id</b></td><td>A qué libro pertenece (sin CASCADE: el contenido bíblico está protegido)</td></tr>
+<tr><td><code>chapter_number</code></td><td>INTEGER · NOT NULL</td><td>Número humano (Génesis 1, 2, 3…)</td></tr>
+<tr><td><code>version</code></td><td>VARCHAR(50) · <b>UNIQUE(book_id, chapter_number, version)</b></td><td>Traducción ('Jerusalem Bible' tras V7). El UNIQUE compuesto permite añadir otras versiones del MISMO capítulo en el futuro</td></tr>
+</table>
+</details>
+
+<details><summary>📄 sections — subdivisiones temáticas de un capítulo</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>chapter_id</code></td><td>UUID · <b>FK → chapters.id · ON DELETE CASCADE</b></td><td>Capítulo al que pertenece; si se borra el capítulo, caen sus secciones (y por cascada, sus versículos)</td></tr>
+<tr><td><code>title</code></td><td>VARCHAR(255) · NOT NULL</td><td>Título temático ("La creación del mundo") que se ve como encabezado al leer</td></tr>
+<tr><td><code>order_index</code></td><td>INTEGER · NOT NULL</td><td>Orden de las secciones dentro del capítulo</td></tr>
+</table>
+<p><b>¿Por qué existe esta capa intermedia?</b> Las Biblias reales agrupan versículos bajo epígrafes. Sin sections, el capítulo sería una lista plana de versículos sin estructura visual.</p>
+</details>
+
+<details><summary>📜 verses — el corazón: cada versículo</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>section_id</code></td><td>UUID · <b>FK → sections.id · CASCADE</b></td><td>Sección a la que pertenece. Nota: el versículo NO apunta directo al capítulo; la cadena es verses→sections→chapters→books</td></tr>
+<tr><td><code>verse_number</code></td><td>INTEGER · NOT NULL</td><td>Número dentro del capítulo (Génesis 1:<b>3</b>)</td></tr>
+<tr><td><code>text</code></td><td>TEXT · NOT NULL · índice GIN</td><td>El texto (en inglés CPDV tras V6 — por eso el RAG traduce la keyword). La búsqueda y el RAG buscan aquí</td></tr>
+<tr><td><code>has_note</code> / <code>note_text</code></td><td>BOOLEAN DEFAULT false / TEXT</td><td>Notas editoriales del texto (preparadas en el esquema)</td></tr>
+</table>
+</details>
+
+<details><summary>🔖 favorites — versículos guardados</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>user_id</code></td><td>UUID · <b>FK → users.id · CASCADE</b></td><td>Dueño; todas las queries filtran por él (índice idx_favorites_user)</td></tr>
+<tr><td><code>book_id</code></td><td>VARCHAR(50) · <b>FK → books.id</b></td><td>Libro del versículo (para navegar de vuelta y filtrar por testamento)</td></tr>
+<tr><td><code>book_name</code></td><td>VARCHAR(100) · <b>desnormalizado</b></td><td>Copia del nombre del libro → la lista de favoritos se pinta SIN hacer JOIN con books</td></tr>
+<tr><td><code>chapter_number</code> / <code>verse_number</code></td><td>INTEGER · NOT NULL</td><td>Posición exacta del versículo</td></tr>
+<tr><td><code>verse_text</code></td><td>TEXT · <b>desnormalizado</b></td><td>Copia del texto (el servidor lo busca en verses al guardar, no se fía del cliente)</td></tr>
+<tr><td><code>tags</code></td><td>TEXT[] (array)</td><td>Etiquetas libres del usuario ("esperanza", "funeral"…)</td></tr>
+<tr><td><code>note</code></td><td>TEXT</td><td>Nota personal opcional</td></tr>
+<tr><td><code>created_at</code></td><td>TIMESTAMP · DEFAULT NOW()</td><td>Orden cronológico. El UNIQUE original se quitó en V4 (decisión de producto: permitir duplicados)</td></tr>
+</table>
+</details>
+
+<details><summary>🖍️ highlights — subrayados de colores</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>user_id</code></td><td>UUID · <b>FK CASCADE</b></td><td>Dueño del subrayado</td></tr>
+<tr><td><code>book_id</code> + <code>chapter_number</code> + <code>verse_number</code></td><td>FK + INTEGER + INTEGER · <b>UNIQUE los 4 con user_id</b></td><td>Identifican el versículo subrayado; el UNIQUE garantiza UN color por versículo y usuario</td></tr>
+<tr><td><code>color</code></td><td>VARCHAR(20) · NOT NULL</td><td>Color elegido (enum HighlightColor en el dominio)</td></tr>
+<tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>—. Índice idx_highlights_chapter (user+book+chapter): al abrir un capítulo se piden SOLO sus subrayados</td></tr>
+</table>
+</details>
+
+<details><summary>✍️ writings — notas y reflexiones largas</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>user_id</code></td><td>UUID · <b>FK CASCADE</b></td><td>Autor</td></tr>
+<tr><td><code>title</code> / <code>content</code></td><td>VARCHAR(255) / TEXT · NOT NULL</td><td>La nota en sí (WritingsScreen / EditWritingScreen)</td></tr>
+<tr><td><code>verse_reference</code></td><td><b>JSONB</b></td><td>Referencia opcional a un pasaje como JSON flexible ({"bookId":…,"chapter":…}) — JSONB en vez de 3 columnas para no rigidizar el esquema</td></tr>
+<tr><td><code>tags</code></td><td>TEXT[]</td><td>Etiquetas</td></tr>
+<tr><td><code>is_favorite</code></td><td>BOOLEAN · DEFAULT false</td><td>El toggle del PATCH /writings/{id}/favorite (índice compuesto user+is_favorite)</td></tr>
+<tr><td><code>created_at</code> / <code>updated_at</code></td><td>TIMESTAMP</td><td>updated_at cambia en cada PUT</td></tr>
+</table>
+</details>
+
+<details><summary>📖 daily_readings — el calendario litúrgico (CMS)</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>date</code></td><td>DATE · <b>UNIQUE</b>, NOT NULL</td><td>UNA lectura por día del año; V11 sembró 365 y el backoffice puede editarlas</td></tr>
+<tr><td><code>title</code> / <code>badge</code></td><td>VARCHAR · NOT NULL</td><td>Título y etiqueta (GOSPEL, PSALM… traducidas en V7)</td></tr>
+<tr><td><code>image_url</code></td><td>TEXT</td><td>Imagen de cabecera de DailyReadingScreen (Unsplash por defecto)</td></tr>
+<tr><td><code>book_id</code> (FK) / <code>book_name</code> / <code>chapter_number</code> / <code>verse_numbers</code> INTEGER[]</td><td>—</td><td>Qué pasaje toca ese día; verse_numbers es un ARRAY (lecturas con versículos salteados)</td></tr>
+<tr><td><code>reading_text</code></td><td>TEXT · NOT NULL</td><td>El texto completo a mostrar (desnormalizado: no se reconstruye desde verses)</td></tr>
+<tr><td><code>official_reflection</code></td><td>TEXT</td><td>Reflexión editorial que escribe el admin en el CMS</td></tr>
+</table>
+</details>
+
+<details><summary>✅ reading_history — qué lecturas diarias completó cada usuario</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>user_id</code></td><td>UUID · <b>FK CASCADE</b></td><td>—</td></tr>
+<tr><td><code>daily_reading_id</code></td><td>UUID · <b>FK → daily_readings · CASCADE · UNIQUE con user_id</b></td><td>Qué lectura completó; el UNIQUE impide marcarla dos veces</td></tr>
+<tr><td><code>user_reflection</code></td><td>TEXT</td><td>La reflexión personal del usuario (POST /{id}/reflection)</td></tr>
+<tr><td><code>read_at</code></td><td>TIMESTAMP · DEFAULT NOW()</td><td>Cuándo la leyó</td></tr>
+</table>
+</details>
+
+<details><summary>📅 reading_progress — el calendario de constancia (V5)</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>user_id</code></td><td>UUID · <b>FK CASCADE</b></td><td>—</td></tr>
+<tr><td><code>date</code></td><td>DATE · <b>UNIQUE(user_id, date)</b></td><td>El "check" del día: máximo uno por usuario y fecha → de aquí sale la racha (streak)</td></tr>
+<tr><td><code>daily_reading_id</code></td><td>UUID · <b>FK · ON DELETE SET NULL</b></td><td>Lectura asociada; SET NULL = si el admin la borra, el día sigue contando para la racha</td></tr>
+<tr><td><code>completed_at</code> / <code>created_at</code></td><td>TIMESTAMP</td><td>Momento exacto. Índices por (user,date) y por (user,año,mes) para el calendario mensual</td></tr>
+</table>
+</details>
+
+<details><summary>📊 user_progress — capítulos de la Biblia leídos</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>user_id</code> / <code>book_id</code> / <code>chapter_number</code></td><td>FK CASCADE / FK / INTEGER · <b>UNIQUE los 3</b></td><td>"Este usuario leyó Génesis 3": una fila por capítulo completado</td></tr>
+<tr><td><code>completed</code></td><td>BOOLEAN · DEFAULT false</td><td>Estado del capítulo</td></tr>
+<tr><td><code>last_read_at</code></td><td>TIMESTAMP</td><td>Última vez que lo abrió</td></tr>
+</table>
+<p>⚠️ No confundir: <code>user_progress</code> = progreso POR CAPÍTULO de la Biblia; <code>reading_progress</code> = días con la LECTURA DIARIA completada.</p>
+</details>
+
+<details><summary>🔍 search_history — búsquedas del usuario</summary>
+<table class="dict">
+<tr><th>Columna</th><th>Tipo y claves</th><th>Para qué sirve</th></tr>
+<tr><td><code>id</code></td><td>UUID · <b>PK</b></td><td>—</td></tr>
+<tr><td><code>user_id</code></td><td>UUID · <b>FK CASCADE</b></td><td>—</td></tr>
+<tr><td><code>query</code> / <code>results_count</code> / <code>searched_at</code></td><td>TEXT / INTEGER / TIMESTAMP</td><td>Qué buscó, cuántos resultados y cuándo (preparada para "búsquedas recientes")</td></tr>
+</table>
+</details>
+
+<h3>7.4 Las 11 migraciones Flyway (la historia del esquema)</h3>
+<table>
+<tr><th>V</th><th>Qué hizo</th></tr>
+<tr><td>V1</td><td>Las 12 tablas iniciales + índices (incluido el GIN full-text)</td></tr>
+<tr><td>V2</td><td>Seed de los 73 libros católicos</td></tr>
+<tr><td>V3</td><td>Lecturas diarias iniciales</td></tr>
+<tr><td>V4</td><td>Quita el UNIQUE de favorites (permitir duplicados)</td></tr>
+<tr><td>V5</td><td>Crea reading_progress (calendario de constancia)</td></tr>
+<tr><td>V6</td><td>Traduce el contenido al inglés (CPDV) para el RAG</td></tr>
+<tr><td>V7</td><td>version → 'Jerusalem Bible' y badges al inglés (GOSPEL, PSALM…)</td></tr>
+<tr><td>V8</td><td>Añade is_premium, trial_start_date, subscription_end_date, revenuecat_user_id a users</td></tr>
+<tr><td>V9</td><td>Crea user_trials y migra las fechas existentes</td></tr>
+<tr><td>V10</td><td>Añade provider (LOCAL/GOOGLE/APPLE)</td></tr>
+<tr><td>V11</td><td>Siembra las 365 lecturas del año litúrgico</td></tr>
+</table>
+<div class="card tip"><b>Regla de Flyway:</b> una migración aplicada NUNCA se edita; los cambios siempre son una migración nueva. Flyway lleva la cuenta en su tabla <code>flyway_schema_history</code> y aplica solo las pendientes al arrancar. Hibernate va en <code>validate</code>: comprueba que las entidades JPA encajan con el esquema, pero jamás lo modifica.</div>
+<h2 id="rag">8 · Sistema RAG de IA</h2>
+<div class="mermaid">
+flowchart TD
+    Q["Usuario: ¿Qué dice la Biblia sobre el amor?"] --> S0["PASO 0 · Keyword (LLM)<br/>corrige typos y traduce al inglés: love<br/>(la BD bíblica está en inglés CPDV)"]
+    S0 --> S1["PASO 1 · RETRIEVAL<br/>searchVerses(keyword, 15, 0)<br/>SQL LIKE en tabla verses"]
+    S1 --> D{¿Resultados?}
+    D -- Sí --> S2["PASO 2 · AUGMENTATION<br/>15 versículos inyectados en el system prompt"]
+    D -- No --> FB["Fallback: responder con conocimiento<br/>teológico general citando ((Libro C:V))"]
+    FB --> S2
+    S2 --> S3["PASO 3 · GENERATION<br/>callLLM(systemPrompt, pregunta)"]
+    S3 --> R["Markdown: Explicación Bíblica ·<br/>Tradición y Magisterio · Reflexión<br/>+ enlaces ((Génesis 2:1)) navegables en la app"]
+</div>
+<h3>Reglas reales del system prompt</h3>
+<ul>
+<li>Responde en el idioma del usuario; tono pastoral y riguroso; nunca habla como Dios/sacerdote.</li>
+<li>Estructura fija en 3 secciones markdown: <b>Explicación Bíblica · Tradición y Magisterio Católico · Reflexión para la Vida</b>.</li>
+<li><b>Obligatorio:</b> toda referencia bíblica entre dobles corchetes <code>[[Mateo 5:3]]</code> → <code>MessageParser.tsx</code> las convierte en enlaces que navegan al capítulo.</li>
+</ul>
+<table>
+<tr><th></th><th>Cloudflare Workers AI (producción)</th><th>Ollama (desarrollo)</th></tr>
+<tr><td>Modelo</td><td><code>@cf/meta/llama-3.1-8b-instruct</code></td><td><code>llama3.2:1b</code></td></tr>
+<tr><td>Vía</td><td>CloudflareAiClient → REST api.cloudflare.com</td><td>Spring AI ChatClient → biblia-ollama:11434</td></tr>
+<tr><td>Selector</td><td colspan="2"><code>SPRING_AI_PROVIDER</code> (defecto: cloudflare). El contenedor Ollama está <b>comentado</b> en docker-compose para ahorrar RAM.</td></tr>
+</table>
+<p>Si el LLM falla, el servicio devuelve un mensaje controlado ("AI server issue, try again later") en vez de un 500.</p>
+
+<h2 id="suscripciones">9 · Suscripciones, trial y RevenueCat</h2>
+<div class="card warn"><b>Importante (corrige la doc antigua):</b> NO existe webhook de RevenueCat en el backend. El premium es: entitlement del SDK en el cliente ∨ flag <code>users.is_premium</code> (editable desde el backoffice). <code>revenuecat_user_id</code> y <code>subscription_end_date</code> están reservados para esa integración futura.</div>
+<pre><code>hasAccess     = isPremium OR isTrialActive
+isPremium     = users.is_premium (backend)  OR  entitlement "CatholicVerse Premium" (SDK RevenueCat)
+isTrialActive = NOW() &lt; trial_start_date + 7 días     ← User.isTrialActive() en el dominio Java</code></pre>
+<div class="mermaid">
+flowchart TD
+    U[Abrir app] --> ME["GET /auth/me → isPremium, isTrialActive"]
+    ME --> RC["SDK RevenueCat: logIn(user.id)<br/>entitlements.active['CatholicVerse Premium']"]
+    RC --> C{hasAccess}
+    C -- sí --> OK[Acceso completo]
+    C -- no --> PW[PaywallScreen]
+    PW -->|purchasePackage| ST[App Store / Play]
+    ST --> RCS[RevenueCat procesa el recibo]
+    RCS -->|listener customerInfo| RC
+    AD["Backoffice PUT /admin/users/id/plan"] -.->|users.is_premium| ME
+</div>
+<p>El trial (7 días) se persiste <b>por email</b> en <code>user_trials</code>: borrar la cuenta y volver a registrarse no lo reinicia. Keys del SDK por <code>EXPO_PUBLIC_REVENUECAT_APPLE_KEY/_GOOGLE_KEY</code>.</p>
+
+<h2 id="emails">10 · Emails transaccionales (Resend)</h2>
+<div class="chain">
+  <span class="pill p-app">AuthenticationService</span><span class="ar">→</span>
+  <span class="pill p-inf">ResendEmailService (adapter/out/email)</span><span class="ar">→</span>
+  <span class="pill p-ext">☁️ POST api.resend.com/emails (Bearer RESEND_API_KEY)</span>
+</div>
+<p>Remitente <code>CatholicVerse &lt;catholicverse@getcatholicverse.com&gt;</code>. Dos plantillas HTML inline con branding dorado: <b>bienvenida</b> ("Welcome to CatholicVerse ✝") al registrarse y <b>código de reset</b> de 6 dígitos para recuperar contraseña.</p>
+
+<h2 id="app">11 · App móvil React Native (Expo)</h2>
+<p><b>Stack:</b> Expo SDK 54 · RN 0.81.5 · React 19.1 · TypeScript · React Navigation 7 · AsyncStorage · react-native-purchases 10 · expo-speech (TTS) · expo-speech-recognition · expo-file-system · expo-apple-authentication / expo-auth-session · i18n propio ES/EN · EAS Build · bundle <code>com.catholicverse.app</code>.</p>
+<div class="mermaid">
+flowchart TD
+    Splash --> A{¿Autenticado?}
+    A -- no --> AUTH[AuthNavigator<br/>Login · Register · ForgotPassword]
+    A -- sí --> H{¿hasAccess?}
+    H -- no --> PAY[PaywallScreen]
+    H -- sí --> TABS[MainTabs]
+    TABS --> T1[📖 DailyReading] & T2[🔍 BibleSearch] & T3[✍️ Writings] & T4[🔖 Favorites]
+    TABS -.-> ST["Stack: Profile · Account · ChangePassword · ReadingSettings<br/>OldTestament · NewTestament · BookChapters · ChapterReading<br/>WritingDetail · EditWriting · ReadingCalendar · AIAssistant<br/>ManageDownloads · pantallas de ayuda · Paywall (modal)"]
+</div>
+<h3>Las 29 pantallas</h3>
+<table>
+<tr><th>Grupo</th><th>Pantallas</th></tr>
+<tr><td>Auth</td><td>Login, Register, ForgotPassword, Splash</td></tr>
+<tr><td>Lectura</td><td>DailyReading, ReadingCalendar, OldTestament, NewTestament, BookChapters, GenesisChapters, MatthewChapters, ChapterReading, GenesisReading</td></tr>
+<tr><td>Personal</td><td>Writings, WritingDetail, EditWriting, Favorites</td></tr>
+<tr><td>IA</td><td>AIAssistant (chat RAG, enlaces [[...]] navegables)</td></tr>
+<tr><td>Cuenta</td><td>Profile, Account, ChangePassword, ReadingSettings</td></tr>
+<tr><td>Ayuda</td><td>HelpSupport, WritingsHelp, FavoritesHelp, OfflineHelp</td></tr>
+<tr><td>Offline / Pago</td><td>ManageDownloads · Paywall</td></tr>
+</table>
+<h3>Servicios (18) y contextos (5)</h3>
+<table>
+<tr><th>Capa</th><th>Piezas</th></tr>
+<tr><td>HTTP</td><td><code>api.client.ts</code> (singleton: Bearer desde AsyncStorage, timeout 4 s y ∞ para IA) · <code>config.ts</code> (URL por entorno)</td></tr>
+<tr><td>Dominio</td><td>auth · bible · ai · daily-reading · favorites · highlights · writings · reading-progress · reading-history · smart-search · share</td></tr>
+<tr><td>Offline</td><td>cache.service (caché + cola PENDING_SYNC) · sync.service · english-bible-download.service · useOfflineBible</td></tr>
+<tr><td>Otros</td><td>audio.service (TTS expo-speech) · revenuecatConfig</td></tr>
+<tr><td>Contextos</td><td>AuthContext · SubscriptionContext (hasAccess) · ThemeContext (claro/oscuro) · NetworkContext (online/offline) · TextSettingsContext (fuente)</td></tr>
+</table>
+
+<h2 id="offline">12 · Modo offline y sincronización</h2>
+<div class="mermaid">
+flowchart LR
+    subgraph Descarga
+        MD[ManageDownloads] -->|GET /bible/english/download| API1[API]
+        API1 -->|bible_offline.json| FS[FileSystem<br/>documentDirectory]
+    end
+    subgraph Offline
+        NET[NetworkContext: offline] --> HOOK[useOfflineBible → lee el JSON]
+        NET --> CA[cache.service sirve writings,<br/>favorites y daily readings]
+        OPW[Escrituras offline] --> Q[cola PENDING_SYNC<br/>IDs temporales]
+    end
+    subgraph Reconexión
+        NET2[online de nuevo] --> SY[sync.service.syncAll]
+        SY --> API2[API]
+        SY --> FIX[IDs temporales → reales]
+    end
+</div>
+<ul>
+<li>Biblia completa como <b>archivo JSON</b> (no AsyncStorage, por tamaño); flag <code>@english_bible_offline_downloaded</code>.</li>
+<li>Lecturas diarias cacheadas con expiración y limpieza a los 7 días.</li>
+<li>Operaciones fallidas se re-encolan; el contador de pendientes se muestra en la UI (OfflineBanner).</li>
+</ul>
+
+<h2 id="webs">13 · Web pública</h2>
+<p><code>CatholicVerseWeb/</code>: HTML/CSS/JS estático sin framework — landing de marketing + <code>privacy.html</code> + <code>terms.html</code> (requisito de las stores). Cloudflare Pages: deploy con git push, CDN y HTTPS gratis. Dominio <code>getcatholicverse.com</code>. (El backoffice está explicado en la <a href="#backoffice">sección 4</a>.)</p>
+
+<h2 id="infra">14 · Infraestructura, red y despliegue</h2>
+<div class="mermaid">
+flowchart TD
+    U[Usuario] -->|HTTPS 443 · candado verde| CF[Cloudflare Proxy<br/>SSL Flexible]
+    CF -->|HTTP :80 sin cifrar| D[Droplet DigitalOcean<br/>137.184.139.1<br/>firewall: 22 y 80]
+    subgraph Docker [docker-compose]
+        A[biblia-api · temurin 21 JRE alpine<br/>:80→:8080]
+        P[(biblia-postgres · postgres:16-alpine<br/>volumen postgres_data)]
+        G[biblia-pgadmin :5050<br/>solo profile dev]
+        O[ollama — comentado<br/>ahorro de RAM]
+    end
+    D --> A --> P
+    A -->|HTTPS| WAI[Cloudflare Workers AI]
+    A -->|HTTPS| RE[Resend]
+</div>
+<ul>
+<li><b>Sin Nginx:</b> Docker publica 80→8080 directamente; el TLS lo termina Cloudflare (SSL Flexible). Plan futuro: certificado de origen → Full Strict.</li>
+<li><b>Despliegue backend</b> (<code>prod-start.sh</code>): compilar JAR local (<code>mvnw clean install -DskipTests</code>) → scp del JAR + docker-compose (+.env) al droplet → docker build/up remoto.</li>
+<li><b>Webs:</b> git push → Cloudflare Pages. <b>App:</b> EAS Build → stores.</li>
+<li>Scripts: dev-start/stop, dev-reload-*, prod-start/stop/reload, prod-logs, grep-prod-logs, prod-inspect.</li>
+</ul>
+<table>
+<tr><th>Variable de entorno</th><th>Uso</th></tr>
+<tr><td>POSTGRES_USER / POSTGRES_PASSWORD</td><td>BD</td></tr>
+<tr><td>JWT_SECRET</td><td>Firma de tokens</td></tr>
+<tr><td>RESEND_API_KEY</td><td>Emails</td></tr>
+<tr><td>SPRING_AI_PROVIDER · CLOUDFLARE_ACCOUNT_ID · CLOUDFLARE_API_TOKEN · CLOUDFLARE_AI_MODEL</td><td>IA</td></tr>
+<tr><td>EXPO_PUBLIC_REVENUECAT_APPLE_KEY / _GOOGLE_KEY</td><td>(app) RevenueCat</td></tr>
+</table>
+
+<h2 id="correcciones">15 · Correcciones a la documentación antigua</h2>
+<table>
+<tr><th>La doc antigua decía…</th><th>El código real dice…</th></tr>
+<tr><td>Endpoint IA en <code>/ai</code></td><td><span class="badge b-fix">FIX</span> Es <code>POST /chat</code></td></tr>
+<tr><td>"RevenueCat envía webhook a /admin/revenuecat-webhook"</td><td><span class="badge b-fix">FIX</span> No existe. Premium = SDK en cliente + flag is_premium (backoffice)</td></tr>
+<tr><td>"Nginx como proxy inverso en el droplet"</td><td><span class="badge b-fix">FIX</span> No hay Nginx; Docker mapea 80→8080 y Cloudflare termina el TLS</td></tr>
+<tr><td>"Swagger desactivado en prod con perfil prod"</td><td><span class="badge b-fix">FIX</span> No existe application-prod.yml; las rutas swagger están en permitAll (verificar en servidor antes de afirmarlo)</td></tr>
+<tr><td>Apple "idéntico a Google"</td><td><span class="badge b-fix">FIX</span> Google verifica firma; Apple no</td></tr>
+<tr><td>Esquema V1 sin mencionar sections/user_progress/search_history</td><td><span class="badge b-fix">FIX</span> V1 crea 12 tablas, incluidas esas tres</td></tr>
+<tr><td>Trial sin duración</td><td><span class="badge b-fix">FIX</span> 7 días (User.isTrialActive)</td></tr>
+<tr><td>"Backoffice protegido por CORS"</td><td><span class="badge b-fix">FIX</span> CORS por defecto * y /admin/** permitAll; la única barrera es el login del cliente</td></tr>
+</table>
+
+<h2 id="deuda">16 · Deuda técnica y riesgos conocidos</h2>
+<div class="card warn"><b>1. /admin/** sin auth de servidor</b> + login del backoffice hardcodeado en el cliente. Propuesta: rol ADMIN con JWT o API key.</div>
+<div class="card warn"><b>2. POST /chat público</b> → riesgo de abuso/coste del LLM. Propuesta: JWT + rate limiting.</div>
+<div class="card warn"><b>3. Estado en memoria:</b> blacklist de tokens y códigos de reset (sin TTL) se pierden al reiniciar. Propuesta: Redis o tabla con expiración.</div>
+<div class="card warn"><b>4. Apple Sign-In sin verificación de firma.</b></div>
+<div class="card warn"><b>5. Búsqueda LIKE</b> que no usa el índice GIN (y el índice es 'spanish' con contenido en inglés tras V6).</div>
+<div class="card warn"><b>6. SSL Flexible</b> (tramo Cloudflare→Droplet en claro) · <b>7. CORS *</b> por defecto · <b>8. JWT_SECRET con default</b> en el yml · <b>9.</b> dashboard-stats/audit-logs hacen findAll() en memoria (no escala) · <b>10.</b> activeNow/aiQueries del dashboard son estimadores, no contadores.</div>
+<div class="card ok">Presentar estos puntos proactivamente en la defensa demuestra criterio: "limitaciones conocidas y plan de evolución".</div>
+
+<h2 id="defensa">17 · Preguntas y respuestas para la defensa</h2>
+<details open><summary>¿Por qué arquitectura hexagonal?</summary><p>Aísla el dominio de los detalles técnicos. <code>BibleService</code> depende de la interfaz <code>BibleRepositoryPort</code>, no de JPA: cambiar PostgreSQL por MongoDB solo toca los adaptadores de salida. El dominio se testea sin BD.</p></details>
+<details><summary>¿Por qué no hay DTOs/mappers de aplicación?</summary><p>Evitar el triple mapeo Domain↔AppDTO↔RestDTO sin valor en este tamaño de proyecto. El mapeo vive en la periferia: records en controladores y builders en persistence adapters. Menos clases, menos GC, más legible.</p></details>
+<details><summary>¿Qué es RAG y por qué lo usaste?</summary><p>Retrieval-Augmented Generation: recupero 15 versículos reales de PostgreSQL y los inyecto en el prompt antes de generar; la IA cita escritura real y alucina menos. Paso 0 propio: un LLM extrae la keyword, corrige typos y la traduce al inglés porque el texto de la BD está en inglés (CPDV).</p></details>
+<details><summary>¿Cómo sabe el backend quién soy en cada petición?</summary><p>El JwtAuthenticationFilter valida el Bearer, saca el email del claim, carga el usuario vía CustomUserDetailsService y lo pone en el SecurityContext; el controlador resuelve el UUID y toda query filtra por user_id. El userId nunca viene del JSON del cliente.</p></details>
+<details><summary>¿Cómo funciona el premium y el trial?</summary><p>hasAccess = premium ∨ trial(7 días). Premium: entitlement de RevenueCat (SDK) o flag en BD desde el backoffice. Trial persistido por email en user_trials: borrar la cuenta no lo reinicia.</p></details>
+<details><summary>¿Por qué UUID en vez de ids autoincrementales?</summary><p>No son adivinables/enumerables, se generan en el código sin ir a la BD (clave para el modo offline con IDs temporales) y no chocan entre entornos.</p></details>
+<details><summary>¿Cómo funciona el offline?</summary><p>Biblia completa en un JSON descargado a FileSystem; caché de datos personales en AsyncStorage; cola de operaciones pendientes con IDs temporales que sync.service reconcilia al volver la conexión.</p></details>
+<details><summary>¿Cómo gestionas el esquema de BD?</summary><p>Flyway con 11 migraciones inmutables y versionadas; Hibernate en validate. Cualquier entorno converge al mismo esquema de forma reproducible.</p></details>
+<details><summary>¿Por qué Expo y no React Native puro?</summary><p>Velocidad: dev client + QR para probar en físico, EAS Build para compilar iOS/Android sin mantener toolchains nativos, y módulos (speech, filesystem, apple-auth) de primera mano.</p></details>
+<details><summary>¿Dónde está desplegado?</summary><p>Backend en un droplet de DigitalOcean con Docker Compose (API + PostgreSQL), TLS terminado en Cloudflare (SSL Flexible, sin Nginx). Webs en Cloudflare Pages. IA serverless en Cloudflare Workers AI. Despliegue por scp del JAR + docker build remoto.</p></details>
+<details><summary>¿Qué mejorarías con más tiempo?</summary><p>Proteger /admin y /chat (roles + rate limiting), verificar la firma de Apple, full-text search con GIN en inglés, Redis para blacklist/códigos, SSL Full Strict y webhook de RevenueCat para premium 100 % server-side.</p></details>
+
+<p style="color:var(--muted);font-size:12px;margin-top:50px">Generado el 10/06/2026 · verificado contra el código de BibliaBackend, BibliaAppExpo, CatholicVerseWeb y CatholicVerseBackoffice.</p>
+</main>
+<script>
+  mermaid.initialize({startOnLoad:true, theme:'neutral', securityLevel:'loose'});
+  function filterNav(q){
+    q=q.toLowerCase();
+    document.querySelectorAll('nav a').forEach(a=>{a.style.display=a.textContent.toLowerCase().includes(q)?'block':'none';});
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,2654 @@
+{
+  "info": {
+    "name": "Biblia Católica API - Backend Completo",
+    "_postman_id": "5c8d402c-59cd-4134-bf2d-53dade2b57a3",
+    "description": "Colección de pruebas para todo el backend de Biblia Católica (Spring Boot). Base URL: http://localhost:8080/api/v1. Autenticación JWT Bearer: ejecuta 'Auth > Login' (o Register) primero; el accessToken se guarda automáticamente y se inyecta en las peticiones protegidas. Endpoints públicos (auth, bible/books, daily-reading, chat, admin) no requieren token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"fullName\": \"Test User\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Registra un nuevo usuario. Guarda accessToken y refreshToken automáticamente.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200/201', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                  "});",
+                  "var json = {};",
+                  "try { json = pm.response.json(); } catch(e) {}",
+                  "if (json.accessToken) { pm.collectionVariables.set('accessToken', json.accessToken); console.log('accessToken saved'); }",
+                  "if (json.refreshToken) { pm.collectionVariables.set('refreshToken', json.refreshToken); }",
+                  "if (json.user && json.user.id) { pm.collectionVariables.set('userId', json.user.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Inicia sesión. Guarda accessToken/refreshToken/userId en variables de colección.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200/201', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                  "});",
+                  "var json = {};",
+                  "try { json = pm.response.json(); } catch(e) {}",
+                  "if (json.accessToken) { pm.collectionVariables.set('accessToken', json.accessToken); console.log('accessToken saved'); }",
+                  "if (json.refreshToken) { pm.collectionVariables.set('refreshToken', json.refreshToken); }",
+                  "if (json.user && json.user.id) { pm.collectionVariables.set('userId', json.user.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current User (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Devuelve el usuario autenticado a partir del Bearer token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Renueva el accessToken usando el refreshToken.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200/201', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                  "});",
+                  "var json = {};",
+                  "try { json = pm.response.json(); } catch(e) {}",
+                  "if (json.accessToken) { pm.collectionVariables.set('accessToken', json.accessToken); console.log('accessToken saved'); }",
+                  "if (json.refreshToken) { pm.collectionVariables.set('refreshToken', json.refreshToken); }",
+                  "if (json.user && json.user.id) { pm.collectionVariables.set('userId', json.user.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Invalida la sesión actual."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Envía un código de recuperación al email.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Reset Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-reset-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-reset-code"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"code\": \"{{resetCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Verifica el código de recuperación recibido por email.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"code\": \"{{resetCode}}\",\n  \"newPassword\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Restablece la contraseña con el código verificado.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with Google",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "google"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"GOOGLE_ID_TOKEN_HERE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Login social con token de Google.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200/201', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                  "});",
+                  "var json = {};",
+                  "try { json = pm.response.json(); } catch(e) {}",
+                  "if (json.accessToken) { pm.collectionVariables.set('accessToken', json.accessToken); console.log('accessToken saved'); }",
+                  "if (json.refreshToken) { pm.collectionVariables.set('refreshToken', json.refreshToken); }",
+                  "if (json.user && json.user.id) { pm.collectionVariables.set('userId', json.user.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with Apple",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/apple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "apple"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identityToken\": \"APPLE_IDENTITY_TOKEN_HERE\",\n  \"fullName\": \"Test User\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Login social con token de Apple.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200/201', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                  "});",
+                  "var json = {};",
+                  "try { json = pm.response.json(); } catch(e) {}",
+                  "if (json.accessToken) { pm.collectionVariables.set('accessToken', json.accessToken); console.log('accessToken saved'); }",
+                  "if (json.refreshToken) { pm.collectionVariables.set('refreshToken', json.refreshToken); }",
+                  "if (json.user && json.user.id) { pm.collectionVariables.set('userId', json.user.id); }"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Registro, login, tokens y recuperación de contraseña."
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nombre Actualizado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Actualiza el nombre del usuario autenticado."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{testPassword}}\",\n  \"newPassword\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Cambia la contraseña del usuario autenticado."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Elimina la cuenta del usuario autenticado."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Perfil del usuario autenticado."
+    },
+    {
+      "name": "Bible",
+      "item": [
+        {
+          "name": "Get All Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bible/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bible",
+                "books"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Old Testament Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bible/books/old-testament",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bible",
+                "books",
+                "old-testament"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get New Testament Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bible/books/new-testament",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bible",
+                "books",
+                "new-testament"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Download Full Bible (English)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bible/english/download",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bible",
+                "english",
+                "download"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Book by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bible/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bible",
+                "books",
+                "{{bookId}}"
+              ]
+            },
+            "description": "Detalle de un libro. Usa la variable bookId (ej. 'genesis').",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Chapter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bible/books/{{bookId}}/chapters/{{chapterNumber}}?version=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bible",
+                "books",
+                "{{bookId}}",
+                "chapters",
+                "{{chapterNumber}}"
+              ],
+              "query": [
+                {
+                  "key": "version",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Capítulo de un libro. 'version' es opcional.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Verses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bible/search?query=amor&testament=&bookIds=&page=0&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bible",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "amor"
+                },
+                {
+                  "key": "testament",
+                  "value": ""
+                },
+                {
+                  "key": "bookIds",
+                  "value": ""
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Búsqueda de versículos. 'query' es obligatorio."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Libros, capítulos y búsqueda (mayormente público)."
+    },
+    {
+      "name": "Daily Reading",
+      "item": [
+        {
+          "name": "Get Today Reading",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/daily-reading/today",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "daily-reading",
+                "today"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Reading by Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/daily-reading/{{readingDate}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "daily-reading",
+                "{{readingDate}}"
+              ]
+            },
+            "description": "Fecha en formato yyyy-MM-dd (variable readingDate).",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Week Readings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/daily-reading/week?startDate=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "daily-reading",
+                "week"
+              ],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": ""
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark Reading as Read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/daily-reading/{{readingId}}/mark-read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "daily-reading",
+                "{{readingId}}",
+                "mark-read"
+              ]
+            },
+            "description": "Marca como leída la lectura diaria (readingId)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save Reflection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/daily-reading/{{readingId}}/reflection",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "daily-reading",
+                "{{readingId}}",
+                "reflection"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reflection\": \"Mi reflexión sobre la lectura de hoy.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Reading History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/daily-reading/history?year=2026&month=6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "daily-reading",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                },
+                {
+                  "key": "month",
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Reading Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/daily-reading/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "daily-reading",
+                "status"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Lectura diaria y reflexiones."
+    },
+    {
+      "name": "Reading Progress",
+      "item": [
+        {
+          "name": "Mark Date as Complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reading-progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reading-progress"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-06-09\",\n  \"dailyReadingId\": \"{{readingId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Marca una fecha como completada. dailyReadingId es opcional."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unmark Date",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reading-progress?date=2026-06-09",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reading-progress"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-06-09"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Month Progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reading-progress?year=2026&month=6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reading-progress"
+              ],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026"
+                },
+                {
+                  "key": "month",
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current Streak",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reading-progress/streak",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reading-progress",
+                "streak"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check Date Completed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reading-progress/check?date=2026-06-09",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reading-progress",
+                "check"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-06-09"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Calendario de constancia / racha."
+    },
+    {
+      "name": "Favorites",
+      "item": [
+        {
+          "name": "Get Favorites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/favorites?testament=&bookId=&search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites"
+              ],
+              "query": [
+                {
+                  "key": "testament",
+                  "value": ""
+                },
+                {
+                  "key": "bookId",
+                  "value": ""
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Favorite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favorites",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"chapterNumber\": 1,\n  \"verseNumber\": 1,\n  \"tags\": [\n    \"fe\",\n    \"esperanza\"\n  ],\n  \"note\": \"Versículo favorito\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Crea un favorito y guarda favoriteId."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try { var j = pm.response.json(); if (j.id) pm.collectionVariables.set('favoriteId', j.id); } catch(e){}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Favorite",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favorites/{{favoriteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites",
+                "{{favoriteId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tags\": [\n    \"actualizado\"\n  ],\n  \"note\": \"Nota actualizada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check is Favorite",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/favorites/check?bookId={{bookId}}&chapter=1&verse=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites",
+                "check"
+              ],
+              "query": [
+                {
+                  "key": "bookId",
+                  "value": "{{bookId}}"
+                },
+                {
+                  "key": "chapter",
+                  "value": "1"
+                },
+                {
+                  "key": "verse",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove Favorite",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/favorites/{{favoriteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favorites",
+                "{{favoriteId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Versículos favoritos."
+    },
+    {
+      "name": "Highlights",
+      "item": [
+        {
+          "name": "Get Highlights",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/highlights?color=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "highlights"
+              ],
+              "query": [
+                {
+                  "key": "color",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Chapter Highlights",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/highlights/chapter?bookId={{bookId}}&chapter=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "highlights",
+                "chapter"
+              ],
+              "query": [
+                {
+                  "key": "bookId",
+                  "value": "{{bookId}}"
+                },
+                {
+                  "key": "chapter",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Highlight Verse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/highlights",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "highlights"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": \"{{bookId}}\",\n  \"chapterNumber\": 1,\n  \"verseNumber\": 1,\n  \"color\": \"yellow\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Resalta un versículo y guarda highlightId."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try { var j = pm.response.json(); if (j.id) pm.collectionVariables.set('highlightId', j.id); } catch(e){}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove Highlight by Id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/highlights/{{highlightId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "highlights",
+                "{{highlightId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Remove Highlight by Verse",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/highlights?bookId={{bookId}}&chapter=1&verse=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "highlights"
+              ],
+              "query": [
+                {
+                  "key": "bookId",
+                  "value": "{{bookId}}"
+                },
+                {
+                  "key": "chapter",
+                  "value": "1"
+                },
+                {
+                  "key": "verse",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Resaltado de versículos."
+    },
+    {
+      "name": "Writings",
+      "item": [
+        {
+          "name": "Get Writings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/writings?sortBy=recent&bookId=&favoritesOnly=false&search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "writings"
+              ],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "recent"
+                },
+                {
+                  "key": "bookId",
+                  "value": ""
+                },
+                {
+                  "key": "favoritesOnly",
+                  "value": "false"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Writing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/writings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "writings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Mi reflexión\",\n  \"content\": \"Contenido del escrito...\",\n  \"bookId\": \"{{bookId}}\",\n  \"chapter\": 1,\n  \"verse\": 1,\n  \"tags\": [\n    \"oración\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Crea un escrito y guarda writingId."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try { var j = pm.response.json(); if (j.id) pm.collectionVariables.set('writingId', j.id); } catch(e){}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Writing by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/writings/{{writingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "writings",
+                "{{writingId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Writing",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/writings/{{writingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "writings",
+                "{{writingId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Título actualizado\",\n  \"content\": \"Contenido actualizado\",\n  \"tags\": [\n    \"fe\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Toggle Favorite",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/writings/{{writingId}}/favorite",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "writings",
+                "{{writingId}}",
+                "favorite"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Writing",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/writings/{{writingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "writings",
+                "{{writingId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Escritos y reflexiones del usuario."
+    },
+    {
+      "name": "AI Chat",
+      "item": [
+        {
+          "name": "Ask AI (Bible RAG)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chat"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"¿Qué dice la Biblia sobre el amor al prójimo?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Asistente de IA basado en RAG. Campo obligatorio: 'query'.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Asistente de IA (RAG bíblico)."
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update User Plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}/plan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{userId}}",
+                "plan"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Scheduled Daily Readings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/daily-readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "daily-readings"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save Daily Reading",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/daily-readings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "daily-readings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-06-10\",\n  \"title\": \"Lectura del día\",\n  \"badge\": \"Evangelio\",\n  \"imageUrl\": \"https://example.com/img.jpg\",\n  \"bookId\": \"juan\",\n  \"bookName\": \"Juan\",\n  \"chapterNumber\": 3,\n  \"verseNumbers\": [\n    16,\n    17\n  ],\n  \"readingText\": \"Porque tanto amó Dios al mundo...\",\n  \"officialReflection\": \"Reflexión oficial...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Daily Reading",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/daily-readings/{{readingDate}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "daily-readings",
+                "{{readingDate}}"
+              ]
+            },
+            "description": "Fecha en formato yyyy-MM-dd.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Verse Text",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/bible/verses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "bible",
+                "verses"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": \"juan\",\n  \"chapterNumber\": 3,\n  \"verseNumber\": 16,\n  \"text\": \"Texto corregido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard-stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard-stats"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/audit-logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "audit-logs"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is success (2xx)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200,201,202,204]);",
+                  "});",
+                  "pm.test('Response time < 5s', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Backoffice: usuarios, lecturas, versículos, estadísticas."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "testEmail",
+      "value": "test@biblia.com"
+    },
+    {
+      "key": "testPassword",
+      "value": "password123"
+    },
+    {
+      "key": "bookId",
+      "value": "genesis"
+    },
+    {
+      "key": "chapterNumber",
+      "value": "1"
+    },
+    {
+      "key": "readingDate",
+      "value": "2026-06-09"
+    },
+    {
+      "key": "readingId",
+      "value": ""
+    },
+    {
+      "key": "resetCode",
+      "value": "123456"
+    },
+    {
+      "key": "favoriteId",
+      "value": ""
+    },
+    {
+      "key": "highlightId",
+      "value": ""
+    },
+    {
+      "key": "writingId",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+#!/bin/bash
+echo "🔍 INSPECTING PRODUCTION SERVER..."
+echo "----------------------------------------"
+echo "1. Checking remote .env file..."
+ssh root@137.184.139.1 "cat /root/BibliaBackend/.env | sed 's/CLOUDFLARE_API_TOKEN=.*/CLOUDFLARE_API_TOKEN=***[HIDDEN]***/g' | sed 's/RESEND_API_KEY=.*/RESEND_API_KEY=***[HIDDEN]***/g' | sed 's/JWT_SECRET=.*/JWT_SECRET=***[HIDDEN]***/g'"
+echo "----------------------------------------"
+echo "2. Checking env variables inside running 'biblia-api' container..."
+ssh root@137.184.139.1 "docker exec biblia-api env | grep -E 'SPRING_AI|CLOUDFLARE|JWT|RESEND' | sed 's/CLOUDFLARE_API_TOKEN=.*/CLOUDFLARE_API_TOKEN=***[HIDDEN]***/g' | sed 's/RESEND_API_KEY=.*/RESEND_API_KEY=***[HIDDEN]***/g' | sed 's/JWT_SECRET=.*/JWT_SECRET=***[HIDDEN]***/g'"
+echo "----------------------------------------"
+echo "3. Checking database size and tables..."
+ssh root@137.184.139.1 "docker exec -i biblia-postgres psql -U biblia_prod_user -d biblia_db -c '\dt'"
