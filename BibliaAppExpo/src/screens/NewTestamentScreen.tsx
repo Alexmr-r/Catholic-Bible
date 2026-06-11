@@ -32,28 +32,55 @@ type Book = {
 };
 
 // Mapeo de categorías de la API a nuestras categorías locales
+const getOfflineNewTestamentCategory = (bookId: string): BookCategory => {
+  const id = bookId.toLowerCase();
+  if (['matthew', 'mark', 'luke', 'john'].includes(id)) {
+    return 'Evangelios';
+  }
+  if (id === 'acts') {
+    return 'Hechos';
+  }
+  if ([
+    'romans', '1corinthians', '2corinthians', 'galatians', 'ephesians',
+    'philippians', 'colossians', '1thessalonians', '2thessalonians',
+    '1timothy', '2timothy', 'titus', 'philemon'
+  ].includes(id)) {
+    return 'Cartas de Pablo';
+  }
+  if ([
+    'hebrews', 'james', '1peter', '2peter', '1john', '2john', '3john', 'jude'
+  ].includes(id)) {
+    return 'Cartas Católicas';
+  }
+  return 'Apocalipsis';
+};
+
 const mapCategory = (apiCategory: string): BookCategory => {
+  if (!apiCategory) return 'Evangelios';
+  const normalized = apiCategory.toUpperCase().trim().replace(/[\s_]+/g, '_');
   const categoryMap: Record<string, BookCategory> = {
-    'Evangelios': 'Evangelios',
+    'EVANGELIOS': 'Evangelios',
     'GOSPELS': 'Evangelios',
-    'Hechos': 'Hechos',
+    'HECHOS': 'Hechos',
     'ACTS': 'Hechos',
-    'HISTORY': 'Hechos', // ✅ Añadido - del backend
+    'HISTORY': 'Hechos',
     'HISTORICAL': 'Hechos',
-    'Historia': 'Hechos', // ✅ Añadido - display name del backend
-    'Cartas de Pablo': 'Cartas de Pablo',
+    'HISTORIA': 'Hechos',
+    'CARTAS_DE_PABLO': 'Cartas de Pablo',
     'PAULINE_EPISTLES': 'Cartas de Pablo',
-    'PAULINE_LETTERS': 'Cartas de Pablo', // ✅ Añadido - del backend
-    'Cartas de San Pablo': 'Cartas de Pablo', // ✅ Añadido - display name del backend
-    'Cartas Católicas': 'Cartas Católicas',
+    'PAULINE_LETTERS': 'Cartas de Pablo',
+    'CARTAS_DE_SAN_PABLO': 'Cartas de Pablo',
+    'CARTAS_CATOLICAS': 'Cartas Católicas',
+    'CARTAS_CATÓLICAS': 'Cartas Católicas',
     'CATHOLIC_EPISTLES': 'Cartas Católicas',
-    'CATHOLIC_LETTERS': 'Cartas Católicas', // ✅ Añadido - del backend
-    'Apocalipsis': 'Apocalipsis',
+    'CATHOLIC_LETTERS': 'Cartas Católicas',
+    'APOCALIPSIS': 'Apocalipsis',
     'REVELATION': 'Apocalipsis',
-    'PROPHETIC': 'Apocalipsis', // ✅ Añadido - del backend
-    'Profético': 'Apocalipsis', // ✅ Añadido - display name del backend
+    'PROPHETIC': 'Apocalipsis',
+    'PROFETICO': 'Apocalipsis',
+    'PROFÉTICO': 'Apocalipsis',
   };
-  return categoryMap[apiCategory] || 'Cartas de Pablo';
+  return categoryMap[normalized] || 'Cartas de Pablo';
 };
 
 // Mapeo de colores por categoría
@@ -91,7 +118,7 @@ const loadNewTestamentOffline = async (): Promise<ApiBook[]> => {
         name: book.name || book.id,
         abbreviation: (book.name || book.id).substring(0, 3).toUpperCase(),
         testament: 'new' as const,
-        category: 'Evangelios',
+        category: getOfflineNewTestamentCategory(book.id),
         totalChapters: book.chapters?.length || 0,
         description: '',
       }));
@@ -193,7 +220,28 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
     }
   };
 
-  const categories = ['Todo', 'Evangelios', 'Hechos', 'Cartas de Pablo', 'Cartas Católicas', 'Apocalipsis'];
+  const activeCategories = React.useMemo(() => {
+    if (books.length === 0) return ['Todo'];
+    const hasEvangelios = books.some(b => b.category === 'Evangelios');
+    const hasHechos = books.some(b => b.category === 'Hechos');
+    const hasPablo = books.some(b => b.category === 'Cartas de Pablo');
+    const hasCatolicas = books.some(b => b.category === 'Cartas Católicas');
+    const hasApocalipsis = books.some(b => b.category === 'Apocalipsis');
+
+    const result = ['Todo'];
+    if (hasEvangelios) result.push('Evangelios');
+    if (hasHechos) result.push('Hechos');
+    if (hasPablo) result.push('Cartas de Pablo');
+    if (hasCatolicas) result.push('Cartas Católicas');
+    if (hasApocalipsis) result.push('Apocalipsis');
+    return result;
+  }, [books]);
+
+  React.useEffect(() => {
+    if (activeCategories.length > 0 && !activeCategories.includes(selectedCategory)) {
+      setSelectedCategory('Todo');
+    }
+  }, [activeCategories, selectedCategory]);
 
   const filteredBooks = books.filter(book => {
     const matchesCategory = selectedCategory === 'Todo' || book.category === selectedCategory;
@@ -336,7 +384,7 @@ const NewTestamentScreen: React.FC<NewTestamentScreenProps> = ({navigation}) => 
           showsHorizontalScrollIndicator={false}
           style={styles.chipsScroll}
           contentContainerStyle={styles.chipsContainer}>
-          {categories.map((category) => (
+          {activeCategories.map((category) => (
             <TouchableOpacity
               key={category}
               style={[
@@ -539,10 +587,9 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   searchInput: {
     flex: 1,
-    height: 22,
-    paddingVertical: 0,
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
+    paddingVertical: 0,
     textAlignVertical: 'center',
     includeFontPadding: false,
   },

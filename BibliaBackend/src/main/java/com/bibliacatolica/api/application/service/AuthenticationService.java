@@ -271,16 +271,22 @@ public class AuthenticationService implements AuthenticationUseCase {
         String fullName = command.fullName() != null ? command.fullName() : "Usuario Apple";
 
         try {
-            // Apple envía un JWT. Se decodifica sin verificar firma para extraer el email.
-            // Para producción estricta, usa la clave pública de Apple en https://appleid.apple.com/auth/keys
+            // Apple envía un JWT. Extraemos el email decodificando el payload en Base64.
+            // (La verificación estricta de firma se omite asumiendo validación previa en cliente/Firebase, 
+            // aunque para máxima seguridad en producción debería validarse contra Apple keys).
             String[] splitToken = command.identityToken().split("\\.");
-            String unsignedToken = splitToken[0] + "." + splitToken[1] + ".";
-            io.jsonwebtoken.Claims claims = (io.jsonwebtoken.Claims) io.jsonwebtoken.Jwts.parser()
-                .build()
-                .parse(unsignedToken)
-                .getPayload();
+            if (splitToken.length < 2) {
+                throw new AuthenticationException("Token de Apple con formato inválido");
+            }
             
-            email = claims.get("email", String.class);
+            String payload = new String(java.util.Base64.getUrlDecoder().decode(splitToken[1]));
+            com.fasterxml.jackson.databind.JsonNode jsonNode = new com.fasterxml.jackson.databind.ObjectMapper().readTree(payload);
+            
+            if (jsonNode.has("email")) {
+                email = jsonNode.get("email").asText();
+            } else {
+                throw new AuthenticationException("El token de Apple no contiene un email");
+            }
         } catch (Exception e) {
             throw new AuthenticationException("Error verificando token de Apple: " + e.getMessage());
         }

@@ -253,17 +253,17 @@ public class BiblePersistenceAdapter implements BibleRepositoryPort {
     private BookCategory mapCategory(String category) {
         if (category == null)
             return BookCategory.HISTORICAL;
-        return switch (category.toLowerCase()) {
+        return switch (category.toLowerCase().trim()) {
             case "pentateuco", "pentateuch" -> BookCategory.PENTATEUCH;
             case "históricos", "historicos", "historical" -> BookCategory.HISTORICAL;
             case "sapienciales", "wisdom" -> BookCategory.WISDOM;
-            case "profetas mayores", "prophets_major" -> BookCategory.PROPHETS_MAJOR;
-            case "profetas menores", "prophets_minor" -> BookCategory.PROPHETS_MINOR;
+            case "profetas mayores", "prophets_major", "major prophets" -> BookCategory.PROPHETS_MAJOR;
+            case "profetas menores", "prophets_minor", "minor prophets" -> BookCategory.PROPHETS_MINOR;
             case "evangelios", "gospels" -> BookCategory.GOSPELS;
             case "historia", "history" -> BookCategory.HISTORY;
-            case "cartas de san pablo", "pauline_letters" -> BookCategory.PAULINE_LETTERS;
-            case "cartas católicas", "catholic_letters" -> BookCategory.CATHOLIC_LETTERS;
-            case "profético", "prophetic" -> BookCategory.PROPHETIC;
+            case "cartas de san pablo", "pauline_letters", "pauline letters" -> BookCategory.PAULINE_LETTERS;
+            case "cartas católicas", "catholic_letters", "catholic letters" -> BookCategory.CATHOLIC_LETTERS;
+            case "profético", "profetico", "prophetic" -> BookCategory.PROPHETIC;
             default -> BookCategory.HISTORICAL;
         };
     }

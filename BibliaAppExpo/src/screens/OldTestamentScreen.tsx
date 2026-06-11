@@ -32,20 +32,51 @@ type Book = {
 };
 
 // Mapeo de categorías de la API a nuestras categorías locales
+const getOfflineOldTestamentCategory = (bookId: string): BookCategory => {
+  const id = bookId.toLowerCase();
+  if (['genesis', 'exodus', 'leviticus', 'numbers', 'deuteronomy'].includes(id)) {
+    return 'Pentateuco';
+  }
+  if ([
+    'joshua', 'judges', 'ruth', '1samuel', '2samuel', '1kings', '2kings',
+    '1chronicles', '2chronicles', 'ezra', 'nehemiah', 'tobit', 'judith',
+    'esther', '1maccabees', '2maccabees'
+  ].includes(id)) {
+    return 'Históricos';
+  }
+  if ([
+    'job', 'psalms', 'proverbs', 'ecclesiastes', 'song', 'songofsolomon',
+    'wisdom', 'sirach'
+  ].includes(id)) {
+    return 'Sapienciales';
+  }
+  if ([
+    'isaiah', 'jeremiah', 'lamentations', 'baruch', 'ezekiel', 'daniel'
+  ].includes(id)) {
+    return 'Profetas Mayores';
+  }
+  return 'Profetas Menores';
+};
+
 const mapCategory = (apiCategory: string): BookCategory => {
+  if (!apiCategory) return 'Pentateuco';
+  const normalized = apiCategory.toUpperCase().trim().replace(/[\s_]+/g, '_');
   const categoryMap: Record<string, BookCategory> = {
-    'Pentateuco': 'Pentateuco',
+    'PENTATEUCO': 'Pentateuco',
     'PENTATEUCH': 'Pentateuco',
-    'Históricos': 'Históricos',
+    'HISTORICOS': 'Históricos',
+    'HISTÓRICOS': 'Históricos',
     'HISTORICAL': 'Históricos',
-    'Sapienciales': 'Sapienciales',
+    'SAPIENCIALES': 'Sapienciales',
     'WISDOM': 'Sapienciales',
-    'Profetas Mayores': 'Profetas Mayores',
+    'PROFETAS_MAYORES': 'Profetas Mayores',
     'PROPHETS_MAJOR': 'Profetas Mayores',
-    'Profetas Menores': 'Profetas Menores',
+    'MAJOR_PROPHETS': 'Profetas Mayores',
+    'PROFETAS_MENORES': 'Profetas Menores',
     'PROPHETS_MINOR': 'Profetas Menores',
+    'MINOR_PROPHETS': 'Profetas Menores',
   };
-  return categoryMap[apiCategory] || 'Pentateuco';
+  return categoryMap[normalized] || 'Pentateuco';
 };
 
 // Mapeo de colores por categoría
@@ -63,7 +94,6 @@ const getCategoryColor = (category: BookCategory, colors: ThemeColors): string =
 const loadOldTestamentOffline = async (): Promise<ApiBook[]> => {
   try {
     const offlineData = await BibleOfflineService.loadData();
-    // ...
 
     if (!offlineData || !offlineData.books) {
       console.error('[OldTestament] Offline data is empty or invalid');
@@ -88,7 +118,7 @@ const loadOldTestamentOffline = async (): Promise<ApiBook[]> => {
         name: book.name || book.id,
         abbreviation: (book.name || book.id).substring(0, 3).toUpperCase(),
         testament: 'old' as const,
-        category: 'Pentateuco',
+        category: getOfflineOldTestamentCategory(book.id),
         totalChapters: book.chapters?.length || 0,
         description: '',
       }));
@@ -191,7 +221,28 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
     }
   };
 
-  const categories = ['Todo', 'Pentateuco', 'Históricos', 'Sapienciales', 'Profetas Mayores', 'Profetas Menores'];
+  const activeCategories = React.useMemo(() => {
+    if (books.length === 0) return ['Todo'];
+    const hasPentateuco = books.some(b => b.category === 'Pentateuco');
+    const hasHistoricos = books.some(b => b.category === 'Históricos');
+    const hasSapienciales = books.some(b => b.category === 'Sapienciales');
+    const hasMayores = books.some(b => b.category === 'Profetas Mayores');
+    const hasMenores = books.some(b => b.category === 'Profetas Menores');
+
+    const result = ['Todo'];
+    if (hasPentateuco) result.push('Pentateuco');
+    if (hasHistoricos) result.push('Históricos');
+    if (hasSapienciales) result.push('Sapienciales');
+    if (hasMayores) result.push('Profetas Mayores');
+    if (hasMenores) result.push('Profetas Menores');
+    return result;
+  }, [books]);
+
+  React.useEffect(() => {
+    if (activeCategories.length > 0 && !activeCategories.includes(selectedCategory)) {
+      setSelectedCategory('Todo');
+    }
+  }, [activeCategories, selectedCategory]);
 
   const filteredBooks = books.filter(book => {
     const matchesCategory = selectedCategory === 'Todo' || book.category === selectedCategory;
@@ -335,7 +386,7 @@ const OldTestamentScreen: React.FC<OldTestamentScreenProps> = ({navigation}) => 
           showsHorizontalScrollIndicator={false}
           style={styles.chipsScroll}
           contentContainerStyle={styles.chipsContainer}>
-          {categories.map((category) => (
+          {activeCategories.map((category) => (
             <TouchableOpacity
               key={category}
               style={[
@@ -539,10 +590,9 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   searchInput: {
     flex: 1,
-    height: 22,
-    paddingVertical: 0,
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
+    paddingVertical: 0,
     textAlignVertical: 'center',
     includeFontPadding: false,
   },
