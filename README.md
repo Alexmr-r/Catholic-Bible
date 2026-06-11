@@ -1,343 +1,161 @@
-# 📖 Biblia Católica - Full Stack Application
+# 📖 CatholicVerse
 
-## 🚀 Inicio Rápido
+**CatholicVerse** es una plataforma móvil premium para la comunidad católica: lectura completa de la Biblia (CPDV), lecturas litúrgicas diarias, asistente de IA bíblico, notas personales, favoritos, narración por voz offline y modo sin conexión — con suscripción gestionada por RevenueCat y prueba gratuita de 7 días.
 
-### Modo Desarrollo (Recomendado para programar):
+🌐 Web oficial: [getcatholicverse.com](https://getcatholicverse.com)
+
+---
+
+## ✨ Características
+
+- 📖 **Biblia Católica completa** — 73 libros, 1.189 capítulos, 31.102 versículos (CPDV), con búsqueda por texto y voz
+- 🗓️ **Lectura litúrgica diaria** — año litúrgico completo, calendario de constancia y rachas de lectura
+- 🤖 **Asistente de IA (RAG)** — responde preguntas citando versículos reales de la base de datos, con enlaces navegables al pasaje
+- ✍️ **Escritos y favoritos** — notas personales vinculadas a versículos, etiquetas, subrayados por colores y reflexiones privadas
+- 🔊 **Narrador con voz neuronal offline** — síntesis de voz local (sherpa-onnx + Piper), sin consumir datos
+- ✈️ **Modo offline completo** — descarga de la Biblia entera y cola de sincronización automática al recuperar conexión
+- 🔐 **Autenticación** — email/contraseña, Google Sign-In y Apple Sign-In, con JWT propio
+- 💎 **Suscripción Premium** — App Store y Google Play vía RevenueCat, con trial de 7 días antifraude
+- 🌗 **Modo claro/oscuro**, tipografía ajustable e interfaz bilingüe (ES/EN)
+
+---
+
+## 🏗️ Arquitectura del monorepo
+
+| Proyecto | Qué es | Tecnología | Dónde corre |
+|---|---|---|---|
+| `BibliaAppExpo/` | App móvil | React Native 0.81 + Expo SDK 54 + TypeScript | iOS / Android (EAS Build) |
+| `BibliaBackend/` | API REST | Java 21 + Spring Boot 3.2 (arquitectura hexagonal) + PostgreSQL 16 + Flyway | VPS DigitalOcean (Docker) |
+| `CatholicVerseWeb/` | Web pública | HTML/CSS/JS estático | Cloudflare Pages |
+| `CatholicVerseBackoffice/` | Panel de administración | React 19 + Vite + TypeScript | Cloudflare Pages |
+
+```mermaid
+graph LR
+    APP[📱 App móvil<br/>Expo / React Native] -->|HTTPS| CF[☁️ Cloudflare<br/>DNS + SSL]
+    BO[🛠️ Backoffice<br/>React + Vite] -->|HTTPS| CF
+    CF --> API[☕ API Spring Boot<br/>Docker en DigitalOcean]
+    API --> PG[(🐘 PostgreSQL 16)]
+    API --> AI[🤖 Cloudflare Workers AI<br/>Llama 3.1 8B]
+    API --> MAIL[✉️ Resend]
+    APP --> RC[💳 RevenueCat]
+    RC --> STORES[App Store / Google Play]
+```
+
+Servicios externos: **Cloudflare Workers AI** (LLM para el asistente RAG), **RevenueCat** (suscripciones), **Resend** (emails transaccionales) y **Cloudflare** (DNS, SSL y Pages).
+
+---
+
+## 🚀 Inicio rápido
+
+### Requisitos
+
+Docker 20+, Java 21, Node.js 18+, Python 3.8+ (y Xcode / Android Studio para la app).
+
+### Levantar el entorno de desarrollo
+
 ```bash
-./dev-start.sh
-```
-**Resultado:** PostgreSQL en Docker + API local con hot-reload + Frontend Expo
+chmod +x *.sh        # solo la primera vez
 
-### Modo Producción (Para testing/deploy):
+./dev-start.sh       # PostgreSQL en Docker + API con hot-reload + Expo
+./dev-stop.sh        # parar todo
+```
+
+La primera ejecución tarda unos minutos: Flyway crea el esquema (V1–V11) y un script de Python importa los 31.102 versículos automáticamente (no se repite).
+
+### App móvil
+
 ```bash
-./prod-start.sh
+cd BibliaAppExpo
+npm install
+npm run ios          # o: npm run android
 ```
-**Resultado:** Todo en Docker (PostgreSQL + API)
 
----
+> Usa módulos nativos (RevenueCat, TTS, Google Sign-In), así que requiere *development build* (`npx expo prebuild`) — no funciona en Expo Go.
 
-## 📚 Documentación Completa
+### Desplegar a producción
 
-### 🎯 Empezar aquí:
-1. **[SCRIPTS_README.md](./SCRIPTS_README.md)** - Guía de todos los scripts disponibles
-2. **[DIAGRAMA_SCRIPTS.md](./DIAGRAMA_SCRIPTS.md)** - Diagramas visuales de qué hace cada script
-3. **[IMPORTACION_BIBLIA_COMPLETA.md](./IMPORTACION_BIBLIA_COMPLETA.md)** - Cómo se importan los 31,102 versículos
-
-### 📖 Backend:
-- **[BibliaBackend/docs/INDICE_DOCUMENTACION.md](./BibliaBackend/docs/INDICE_DOCUMENTACION.md)** - Índice completo de documentación
-- **[BibliaBackend/docs/ARQUITECTURA_BACKEND.md](./BibliaBackend/docs/ARQUITECTURA_BACKEND.md)** - Arquitectura Hexagonal explicada
-- **[BibliaBackend/docs/CLASES_DETALLADAS.md](./BibliaBackend/docs/CLASES_DETALLADAS.md)** - Explicación de cada clase Java
-- **[BibliaBackend/docs/EXPLICACION_DOCKERIZACION.md](./BibliaBackend/docs/EXPLICACION_DOCKERIZACION.md)** - Docker explicado desde cero
-- **[BibliaBackend/docs/FAQ_SWAGGER_Y_DATOS.md](./BibliaBackend/docs/FAQ_SWAGGER_Y_DATOS.md)** - Preguntas frecuentes
-- **[BibliaBackend/docs/CHEAT_SHEET.md](./BibliaBackend/docs/CHEAT_SHEET.md)** - Hoja de referencia rápida
-
----
-
-## 🎯 Scripts Disponibles
-
-| Script | ¿Para qué? | Tiempo |
-|--------|-----------|--------|
-| `./dev-start.sh` | Desarrollo: DB Docker + API local + Frontend | 30 seg |
-| `./dev-reload-api.sh` | Recargar API (cambios de código) | 30 seg |
-| `./dev-stop.sh` | Detener desarrollo | Instantáneo |
-| `./prod-start.sh` | Producción: Todo en Docker | 2-3 min |
-| `./prod-reload-api.sh` | Recargar API en Docker | 2-3 min |
-| `./prod-stop.sh` | Detener producción | Instantáneo |
-
----
-
-## 📊 Estructura del Proyecto
-
+```bash
+cd BibliaBackend && ./mvnw clean install -DskipTests && cd ..
+./prod-start.sh      # sube el JAR por scp al servidor y reinicia los contenedores
 ```
+
+---
+
+## 🛠️ Scripts de operación
+
+| Script | ¿Para qué? |
+|---|---|
+| `dev-start.sh` / `dev-stop.sh` | Levantar / parar el entorno local |
+| `dev-reload-api.sh` / `dev-reload-backend.sh` | Recargar la API tras cambios |
+| `prod-start.sh` / `prod-stop.sh` | Desplegar / parar producción |
+| `prod-reload-api.sh` / `prod-reload-backend.sh` | Recarga remota |
+| `prod-logs.sh` / `grep-prod-logs.sh` / `prod-inspect*.sh` | Logs y diagnóstico remoto |
+
+**URLs locales:** API `http://localhost:8080/api/v1` · Swagger `http://localhost:8080/api/v1/swagger-ui.html` · Health `http://localhost:8080/api/v1/actuator/health` · pgAdmin (dev) `http://localhost:5050`
+
+**Producción:** API `https://api.getcatholicverse.com/api/v1` · Web `https://getcatholicverse.com`
+
+---
+
+## 📊 Estructura del proyecto
+
+```text
 Biblia/
-├── 📜 Scripts de gestión
-│   ├── dev-start.sh          ← Iniciar desarrollo
-│   ├── dev-reload-api.sh     ← Recargar API (desarrollo)
-│   ├── dev-stop.sh           ← Detener desarrollo
-│   ├── prod-start.sh         ← Iniciar producción
-│   ├── prod-reload-api.sh    ← Recargar API (producción)
-│   └── prod-stop.sh          ← Detener producción
 │
-├── 📖 Documentación
-│   ├── SCRIPTS_README.md     ← Guía de scripts
-│   ├── DIAGRAMA_SCRIPTS.md   ← Diagramas visuales
-│   └── IMPORTACION_BIBLIA_COMPLETA.md
+├── BibliaBackend/                  # API REST (Spring Boot)
+│   ├── src/main/java/              #   código en arquitectura hexagonal
+│   ├── src/main/resources/db/      #   migraciones Flyway (V1-V11)
+│   ├── scripts/                    #   importación de los 31.102 versículos
+│   └── docker-compose.yml          #   PostgreSQL + API (+ pgAdmin en dev)
 │
-├── 🔧 BibliaBackend/         ← API Spring Boot
-│   ├── docker-compose.yml    ← Configuración Docker
-│   ├── Dockerfile            ← Imagen de la API
-│   ├── pom.xml               ← Dependencias Maven
-│   ├── src/
-│   │   └── main/
-│   │       ├── java/         ← Código Java
-│   │       └── resources/
-│   │           ├── application.yml
-│   │           └── db/migration/
-│   │               ├── V1__initial_schema.sql
-│   │               └── V2__seed_books.sql
-│   └── scripts/
-│       └── import_bible_data.py  ← Importa 31,102 versículos
+├── BibliaAppExpo/                  # App móvil (React Native + Expo)
+│   ├── src/screens/                #   29 pantallas
+│   ├── src/services/               #   18 servicios (API, caché, sync, TTS...)
+│   ├── src/contexts/               #   estado global (auth, tema, red...)
+│   └── src/navigation/             #   navegación tipada
 │
-└── 📱 BibliaAppExpo/         ← Frontend React Native
-    ├── package.json
-    ├── App.tsx
-    ├── bible_raw.json        ← 73 libros, 31,102 versículos
-    └── src/
-        ├── components/
-        ├── screens/
-        ├── navigation/
-        └── services/
-
-📁 .dev-state/                ← Estado de desarrollo (ignorado por git)
-📁 .prod-state/               ← Estado de producción (ignorado por git)
+├── CatholicVerseWeb/               # Web pública (landing, privacy, terms)
+│
+├── CatholicVerseBackoffice/        # Panel de administración (React + Vite)
+│   └── src/pages/                  #   Dashboard, Users, Content, Logs, Settings
+│
+├── postman/                        # Colección Postman de la API
+│
+├── dev-start.sh ...                # scripts de desarrollo local
+└── prod-start.sh ...               # scripts de despliegue a producción
 ```
 
 ---
 
-## 🔍 ¿Qué hace cada parte?
+## 🔌 La API en 30 segundos
 
-### Backend (Spring Boot):
-- **API REST** en puerto 8080
-- **PostgreSQL** en Docker (puerto 5432)
-- **Flyway** para migraciones automáticas
-- **JWT** para autenticación
-- **Swagger** para documentación
-
-### Frontend (React Native + Expo):
-- **Expo Go** para desarrollo móvil
-- **React Navigation** para navegación
-- **Conexión a API** en localhost:8080
-
-### Base de Datos:
-- **73 libros** de la Biblia Católica
-- **1,189 capítulos**
-- **31,102 versículos**
-- **Persistencia** en volumen Docker
-
----
-
-## 📖 Datos de la Biblia
-
-### ¿De dónde vienen?
-
-**Archivo:** `BibliaAppExpo/bible_raw.json` (10 MB)
-
-**Contenido:**
-- Traducción: Biblia de Jerusalén
-- 73 libros completos
-- Todos los capítulos y versículos
-
-### ¿Cómo se importan?
-
-**Automáticamente** la primera vez que ejecutas `dev-start.sh` o `prod-start.sh`
-
-**Proceso:**
-1. Flyway crea las tablas (V1)
-2. Flyway inserta los 73 libros (V2)
-3. Script Python importa los 31,102 versículos
-4. Se marca como completado (no se repite)
-
-**Ver más:** [IMPORTACION_BIBLIA_COMPLETA.md](./IMPORTACION_BIBLIA_COMPLETA.md)
-
----
-
-## 🧪 Primeros pasos
-
-### 1. Verificar dependencias
+API REST con context-path `/api/v1`, autenticación JWT (access 24 h / refresh 7 días) y Swagger integrado. Recursos principales: `auth` (registro, login, social, recuperación), `bible` (libros, capítulos, búsqueda, descarga offline), `chat` (asistente IA), `daily-reading`, `favorites`, `highlights`, `writings`, `reading-progress`, `users` y `admin`.
 
 ```bash
-# Necesitas tener instalado:
-docker --version          # Docker 20+
-docker-compose --version  # Docker Compose 2+
-java -version             # Java 21
-node --version            # Node.js 18+
-python3 --version         # Python 3.8+
-```
-
-### 2. Iniciar en modo desarrollo
-
-```bash
-# Dar permisos (solo primera vez)
-chmod +x *.sh
-
-# Iniciar todo
-./dev-start.sh
-```
-
-**Espera 3-4 minutos la primera vez** (compilación + importación de datos)
-
-### 3. Verificar que funciona
-
-**URLs disponibles:**
-- API: http://localhost:8080/api/v1
-- Swagger: http://localhost:8080/api/v1/swagger-ui.html
-- Health: http://localhost:8080/api/v1/actuator/health
-
-**Probar:**
-```bash
-# Health check
+# Probar en local
 curl http://localhost:8080/api/v1/actuator/health
-
-# Obtener libros
-curl http://localhost:8080/api/v1/books
-
-# Registrar usuario
-curl -X POST http://localhost:8080/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "Password123!",
-    "fullName": "Test User"
-  }'
-```
-
-### 4. Abrir frontend
-
-```bash
-# El frontend ya está corriendo (Expo)
-# Abre la app "Expo Go" en tu móvil
-# Escanea el QR que aparece en la terminal
+curl http://localhost:8080/api/v1/bible/books
 ```
 
 ---
 
-## 🔄 Workflow de desarrollo
-
-### Día a día:
+## 🆘 Problemas comunes
 
 ```bash
-# Inicio del día
-./dev-start.sh
+# Puerto 8080 ocupado
+lsof -i :8080 && kill -9 <PID>
 
-# Desarrollar:
-# - Editas código en IntelliJ
-# - Guardas (Cmd+S)
-# - Spring Boot recarga automáticamente ✅
+# Puerto 5432 ocupado (PostgreSQL local vs Docker)
+docker-compose down
 
-# Fin del día
-./dev-stop.sh
-```
-
-### Si cambias mucho código:
-
-```bash
-# Si hot-reload no funciona bien
-./dev-reload-api.sh
-```
-
-### Para probar como en producción:
-
-```bash
-./prod-start.sh
-```
-
----
-
-## 🆘 Solución de problemas
-
-### Puerto 8080 ya en uso
-```bash
-lsof -i :8080
-kill -9 <PID>
-```
-
-### No veo Swagger
-```bash
-# 1. Verificar que la API está corriendo
-curl http://localhost:8080/api/v1/actuator/health
-
-# 2. Abrir navegador
-open http://localhost:8080/api/v1/swagger-ui.html
-```
-
-### Los datos no persisten
-```bash
-# Verificar volumen de PostgreSQL
-docker volume ls | grep postgres
-
-# Si eliminaste el volumen por error:
-./prod-start.sh  # Reimporta todo
-```
-
-### Script Python falla
-```bash
-# Instalar dependencia
+# El script de importación falla
 pip3 install psycopg2-binary
 
-# Ejecutar manualmente
-cd BibliaBackend/scripts
-python3 import_bible_data.py
-```
-
-### Resetear todo desde cero
-```bash
-# Detener servicios
-./dev-stop.sh
-./prod-stop.sh
-
-# Eliminar estado
-rm -rf .dev-state .prod-state
-
-# Eliminar volumen Docker
-cd BibliaBackend
-docker-compose down -v
-
-# Iniciar de nuevo
-cd ..
-./dev-start.sh
+# Resetear todo desde cero
+./dev-stop.sh && rm -rf .dev-state .prod-state
+cd BibliaBackend && docker-compose down -v && cd .. && ./dev-start.sh
 ```
 
 ---
 
-## 📚 Documentación adicional
-
-### General:
-- [SCRIPTS_README.md](./SCRIPTS_README.md) - Guía completa de scripts
-- [DIAGRAMA_SCRIPTS.md](./DIAGRAMA_SCRIPTS.md) - Diagramas visuales
-- [IMPORTACION_BIBLIA_COMPLETA.md](./IMPORTACION_BIBLIA_COMPLETA.md) - Importación de datos
-
-### Backend:
-- [BibliaBackend/docs/INDICE_DOCUMENTACION.md](./BibliaBackend/docs/INDICE_DOCUMENTACION.md) - Índice completo
-- [BibliaBackend/docs/ARQUITECTURA_BACKEND.md](./BibliaBackend/docs/ARQUITECTURA_BACKEND.md) - Arquitectura Hexagonal
-- [BibliaBackend/docs/CLASES_DETALLADAS.md](./BibliaBackend/docs/CLASES_DETALLADAS.md) - Cada clase explicada
-- [BibliaBackend/docs/EXPLICACION_DOCKERIZACION.md](./BibliaBackend/docs/EXPLICACION_DOCKERIZACION.md) - Docker desde cero
-- [BibliaBackend/docs/FAQ_SWAGGER_Y_DATOS.md](./BibliaBackend/docs/FAQ_SWAGGER_Y_DATOS.md) - FAQ
-- [BibliaBackend/docs/CHEAT_SHEET.md](./BibliaBackend/docs/CHEAT_SHEET.md) - Referencia rápida
-
----
-
-## 🎯 Resumen
-
-```
-✅ Script Python importa TODO el JSON (31,102 versículos)
-✅ V3 (datos de prueba) eliminado
-✅ Migraciones automáticas (Flyway)
-✅ Hot-reload en desarrollo
-✅ Persistencia de datos
-✅ Documentación completa
-```
-
----
-
-## 💡 Tips
-
-1. **Usa modo desarrollo** para programar (más rápido)
-2. **Deja PostgreSQL corriendo** entre sesiones
-3. **Swagger** solo funciona con API corriendo
-4. **Datos persisten** automáticamente
-5. **Rebuild** solo cuando cambias código, no datos
-
----
-
-## 📞 Enlaces útiles
-
-- **Swagger:** http://localhost:8080/api/v1/swagger-ui.html
-- **Health Check:** http://localhost:8080/api/v1/actuator/health
-- **pgAdmin (dev):** http://localhost:5050
-
----
-
-¡Listo para desarrollar! 🚀
-
-**Última actualización:** 17 de enero, 2026
-
+**Licencia:** propietaria · **Bundle:** `com.catholicverse.app` · **Última actualización:** junio de 2026

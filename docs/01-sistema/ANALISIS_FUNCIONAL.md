@@ -118,10 +118,13 @@ flowchart LR
 - Seed de lecturas diarias para 365 dias (V11).
 
 ### Diseño de interfaces de usuario
+
+> 📷 **Nota:** las "imágenes referenciales" citadas a continuación (`./images/*.png`) son marcadores de posición: las capturas aún no se han añadido al repositorio. Para incluirlas, crear la carpeta `docs/01-sistema/images/` con los nombres indicados.
+
 El diseño de interfaces en CatholicVerse sigue una filosofía de **estética litúrgica y sobria**, orientada a facilitar la meditación y lectura prolongada sin fatiga visual. A continuación se detallan las pantallas clave de la aplicación, analizando su paleta de colores, componentes de UI, comportamiento UX y su relación con los casos de uso.
 
 #### 1. Pantalla de Inicio de Sesión (Sign In / Autenticación)
-*   **Imagen Referencial**: `![Pantalla de Sign In](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/01_signin_screen.png)`
+*   **Imagen Referencial**: `![Pantalla de Sign In](./images/01_signin_screen.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**: 
     *   **Fondo de Pantalla**: Color marfil sutil (`colors.ivory.DEFAULT`, `#FAF9F6`) con una textura suave de papel que transmite calma.
     *   **Estilo del Logotipo**: En la parte superior central, se presenta una cruz latina dorada superpuesta sobre una Biblia abierta (`colors.gold.DEFAULT`, `#D4AF37`), aportando una identidad espiritual e institucional clara.
@@ -137,7 +140,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Transiciones suaves de entrada en los campos y validación en tiempo real para correos electrónicos mal formateados.
 
 #### 2. Pantalla de Registro (Create Account / Registro de Usuarios)
-*   **Imagen Referencial**: `![Pantalla de Create Account](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/02_signup_screen.png)`
+*   **Imagen Referencial**: `![Pantalla de Create Account](./images/02_signup_screen.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Mantiene la consistencia del fondo marfil (`colors.ivory.DEFAULT`).
     *   El logotipo se desplaza de manera armoniosa a la esquina superior izquierda en tamaño reducido, dando espacio al encabezado principal "Create Account" en tipografía Sans-Serif negrita en color carbón oscuro (`colors.charcoal.dark`, `#1F2937`).
@@ -150,7 +153,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Bloqueo de botón "Create Account" en estado deshabilitado (opacidad reducida) hasta que se marquen los términos y condiciones y las contraseñas coincidan.
 
 #### 3. Pantalla de Bienvenida y Activación de Trial (Trial Popup / Modal)
-*   **Imagen Referencial**: `![Modal de Bienvenida y Trial](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/03_welcome_trial_modal.png)`
+*   **Imagen Referencial**: `![Modal de Bienvenida y Trial](./images/03_welcome_trial_modal.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   **Fondo**: Superposición translúcida oscura (`colors.charcoal.dark` con 80% de opacidad) que aísla visualmente la ventana modal y centra la atención del usuario.
     *   **Modal**: Tarjeta flotante con esquinas muy redondeadas y fondo crema puro (`colors.cream`, `#FAFAF5`).
@@ -164,7 +167,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Acceso inmediato y transparente al período de prueba premium al presionar "Start Exploring", almacenando localmente el estado en base de datos (`user_trials`) para evitar abusos o reseteos fraudulentos.
 
 #### 4. Pantalla de Lectura Diaria (Home / "Daily Bread")
-*   **Imagen Referencial**: `![Pantalla de Lectura Diaria](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/04_daily_reading.png)`
+*   **Imagen Referencial**: `![Pantalla de Lectura Diaria](./images/04_daily_reading.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   **Cabecera Superior**: Texto litúrgico en la parte superior en rojo borgoña ("TODAY'S READING") con la fecha actual del día en color carbón destacado.
     *   **Ilustración Hero**: Hermosa composición minimalista en formato panorámico que simula un paisaje montañoso espiritual y nubes con gradientes sutiles de verde salvia, turquesa pastel y crema.
@@ -182,7 +185,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   El reproductor de audio ("LISTEN") levanta un minireproductor global persistente (`AudioPlayerOverlay`).
 
 #### 5. Ajustes de Lectura (Font Customization Bottom Sheet)
-*   **Imagen Referencial**: `![Ajustes de Fuente](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/05_font_settings.png)`
+*   **Imagen Referencial**: `![Ajustes de Fuente](./images/05_font_settings.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Panel deslizable (*Bottom Sheet*) que emerge desde el borde inferior de la pantalla con bordes superiores muy redondeados, manteniendo el fondo crema y textura suave de la aplicación.
 *   **Elementos de Interfaz (UI)**:
@@ -195,7 +198,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Cambios tipográficos y de tamaño aplicados instantáneamente a la pantalla de lectura en segundo plano en tiempo real sin necesidad de guardar o recargar la vista.
 
 #### 6. Calendario Litúrgico de Lecturas (Reading Calendar)
-*   **Imagen Referencial**: `![Calendario de Lecturas](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/06_reading_calendar.png)`
+*   **Imagen Referencial**: `![Calendario de Lecturas](./images/06_reading_calendar.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   **Fondo de Pantalla**: Color marfil limpio (`colors.ivory.DEFAULT`).
     *   **Tipografía y Acentos**: Cabecera limpia en azul marino, indicador mensual destacado en un elegante color rojo borgoña litúrgico (`colors.burgundy.DEFAULT`, `#903040`) (ej. "May 2026"), y días seleccionados en un círculo perfecto de color verde salvia (`colors.primary.DEFAULT`, `#6B9080`) con el número en blanco.
@@ -208,7 +211,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Transición fluida mediante deslizamiento horizontal (*swipe gestures*) para cambiar entre meses del calendario.
 
 #### 7. Hub de Biblia y Búsqueda (Search Screen / Bible Hub)
-*   **Imagen Referencial**: `![Hub de Biblia y Búsqueda](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/07_search_hub.png)`
+*   **Imagen Referencial**: `![Hub de Biblia y Búsqueda](./images/07_search_hub.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Título de cabecera principal "Search" en negrita grande y azul carbón oscuro, acompañado del selector rápido de modo oscuro (luna) y el acceso al perfil.
 *   **Elementos de Interfaz (UI)**:
@@ -223,7 +226,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Entrada de texto dinámica que muestra búsquedas recientes y sugerencias a medida que el usuario escribe.
 
 #### 8. Asistente de Estudio de IA (AI Assistant)
-*   **Imagen Referencial**: `![Asistente de IA](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/08_ai_assistant.png)`
+*   **Imagen Referencial**: `![Asistente de IA](./images/08_ai_assistant.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Interfaz con fondo de alto contraste crema y una estructura limpia tipo mensajería instantánea.
 *   **Elementos de Interfaz (UI)**:
@@ -234,7 +237,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Scroll inteligente automático hacia el último mensaje recibido para mantener la conversación siempre visible.
 
 #### 9. Navegador de Libros (Books Screen - Old/New Testament)
-*   **Imagen Referencial**: `![Lista de Libros](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/09_books_list.png)`
+*   **Imagen Referencial**: `![Lista de Libros](./images/09_books_list.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Mantiene los fondos marfil de lectura limpia. La cabecera incluye el título del testamento activo ("Old Testament") y un input de búsqueda contextual para filtrar libros específicos.
 *   **Elementos de Interfaz (UI)**:
@@ -246,7 +249,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Filtrado instantáneo en menos de 100ms de los libros al pulsar sobre los chips de categorías litúrgicas o al teclear en el buscador superior.
 
 #### 10. Detalle de Libro y Selector de Capítulos (Chapter Selector)
-*   **Imagen Referencial**: `![Selector de Capítulos](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/10_chapter_selector.png)`
+*   **Imagen Referencial**: `![Selector de Capítulos](./images/10_chapter_selector.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Cabecera superior que indica el libro activo en azul marino y el testamento en formato pequeño grisáceo.
 *   **Elementos de Interfaz (UI)**:
@@ -257,7 +260,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Efecto de escala y cambio de color del botón numérico al mantener pulsado antes de realizar la navegación.
 
 #### 11. Pantalla de Lectura de Versículos (Bible Chapter Reading)
-*   **Imagen Referencial**: `![Lectura de Versículos](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/11_chapter_reading.png)`
+*   **Imagen Referencial**: `![Lectura de Versículos](./images/11_chapter_reading.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   **Fondo de Pantalla**: Color marfil limpio (`colors.ivory.DEFAULT`) que evita el cansancio ocular.
     *   **Tipografía y Lectura**: Tipografía Serif (de corte clásico litúrgico) para el cuerpo del texto bíblico en color azul marino casi negro, con números de versículo en formato superíndice discreto en color carbón.
@@ -271,7 +274,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Menú contextual que se desata de manera instantánea mediante una pulsación larga sobre cualquier versículo individual, sombreándolo sutilmente para indicar selección.
 
 #### 12. Barra de Herramientas de Selección y Resaltado (Verses Context Toolbar)
-*   **Imagen Referencial**: `![Barra de Herramientas de Versículos](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/12_verses_toolbar.png)`
+*   **Imagen Referencial**: `![Barra de Herramientas de Versículos](./images/12_verses_toolbar.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Barra de herramientas flotante superior (*Overlay*) de color negro carbón profundo (`colors.charcoal.dark`, `#1F2937`) con bordes sumamente redondeados, creando una separación visual limpia y premium sobre el texto sagrado.
 *   **Elementos de Interfaz (UI)**:
@@ -283,7 +286,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Aplicación en caliente e instantánea de los resaltados de color con transiciones suaves de opacidad al pulsar sobre la paleta de colores flotante.
 
 #### 13. Menú de Opciones del Capítulo (Chapter Options Popover)
-*   **Imagen Referencial**: `![Menú de Opciones del Capítulo](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/13_chapter_options_menu.png)`
+*   **Imagen Referencial**: `![Menú de Opciones del Capítulo](./images/13_chapter_options_menu.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Diálogo modal flotante en la esquina superior derecha con fondo crema (`colors.cream`) y bordes muy redondeados. Posee una sombra sutil perimetral que aporta profundidad y un acabado de alta gama.
 *   **Elementos de Interfaz (UI)**:
@@ -295,7 +298,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Animación elegante de escalado desde el punto de anclaje (cabecera). Un leve oscurecimiento táctil fuera del menú permite cerrarlo con facilidad.
 
 #### 14. Pantalla de Favoritos y Resaltados (Favorites Screen)
-*   **Imagen Referencial**: `![Pantalla de Favoritos](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/14_favorites_screen.png)`
+*   **Imagen Referencial**: `![Pantalla de Favoritos](./images/14_favorites_screen.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Fondo marfil e interfaz minimalista muy espaciada que destaca el texto bíblico preferido del usuario.
 *   **Elementos de Interfaz (UI)**:
@@ -306,7 +309,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Pulsación directa sobre la tarjeta que ejecuta una redirección rápida a la pantalla de lectura con el versículo enfocado en su contexto completo del capítulo.
 
 #### 15. Pantalla de Escritos Personales (Personal Writings Screen)
-*   **Imagen Referencial**: `![Pantalla de Escritos Personales](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/15_personal_writings.png)`
+*   **Imagen Referencial**: `![Pantalla de Escritos Personales](./images/15_personal_writings.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Consistencia cromática absoluta con la pantalla de favoritos, favoreciendo una experiencia de usuario integrada.
 *   **Elementos de Interfaz (UI)**:
@@ -321,7 +324,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Filtrado inteligente en tiempo real que busca términos tanto en los títulos como en el contenido de las reflexiones.
 
 #### 16. Pantalla de Detalle de Escrito (Writing Detail Screen)
-*   **Imagen Referencial**: `![Detalle de Escrito](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/16_writing_detail.png)`
+*   **Imagen Referencial**: `![Detalle de Escrito](./images/16_writing_detail.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   **Fondo de Pantalla**: Color marfil limpio (`colors.ivory.DEFAULT`).
     *   **Tipografía y Acentos**: Título principal del escrito en azul marino muy oscuro y negrita de gran escala (`colors.charcoal.dark`), cuerpo de la nota en Serif carbón y badge de fecha con icono de calendario verde en la parte superior izquierda en crema suave.
@@ -334,7 +337,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Transición lateral fluida con efecto *slide-in* desde la derecha al pulsar "Edit Writing" para acceder a la pantalla de edición.
 
 #### 17. Pantalla de Edición de Escrito (Editing Writing Screen)
-*   **Imagen Referencial**: `![Edición de Escrito](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/17_writing_editing.png)`
+*   **Imagen Referencial**: `![Edición de Escrito](./images/17_writing_editing.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Entorno de edición con fondo marfil y una distribución sumamente clara que facilita la redacción espiritual.
 *   **Elementos de Interfaz (UI)**:
@@ -347,7 +350,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Lógica asíncrona que actualiza el registro en el backend (`writings`) y refresca la vista de detalle con los nuevos datos al presionar "Save".
 
 #### 18. Pantalla de Perfil de Usuario (User Profile / My Profile Screen)
-*   **Imagen Referencial**: `![Pantalla de Perfil](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/18_user_profile.png)`
+*   **Imagen Referencial**: `![Pantalla de Perfil](./images/18_user_profile.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Fondo marfil claro y organización modular estructurada en tarjetas redondeadas individuales.
 *   **Elementos de Interfaz (UI)**:
@@ -364,7 +367,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Transición fluida del switch de modo offline con cambio de color reactivo a verde salvia al activarse.
 
 #### 19. Pantalla de Suscripción Premium (Paywall - Premium Subscription Screen)
-*   **Imagen Referencial**: `![Paywall de Suscripción](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/19_premium_paywall.png)`
+*   **Imagen Referencial**: `![Paywall de Suscripción](./images/19_premium_paywall.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Estética premium de alto nivel, solemne e institucional. Utiliza un fondo crema suave para realzar la propuesta de valor espiritual de la suscripción.
 *   **Elementos de Interfaz (UI)**:
@@ -381,7 +384,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Integración nativa con la pasarela de pagos mediante RevenueCat que levanta los modales del sistema (Google Play Billing / Apple In-App Purchase) de forma segura y transparente.
 
 #### 20. Ajustes de Lectura Avanzados (Reading Settings Screen)
-*   **Imagen Referencial**: `![Ajustes de Lectura Avanzados](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/20_reading_settings.png)`
+*   **Imagen Referencial**: `![Ajustes de Lectura Avanzados](./images/20_reading_settings.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Layout estructurado y limpio que actúa como el centro de control del motor tipográfico de la aplicación.
 *   **Elementos de Interfaz (UI)**:
@@ -395,7 +398,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Persistencia automática de las preferencias tipográficas en el almacenamiento persistente local (`AsyncStorage`) para conservarlas en futuros arranques de la app.
 
 #### 21. Pantalla de Detalle de Cuenta (My Account Screen)
-*   **Imagen Referencial**: `![Detalle de Cuenta](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/21_my_account.png)`
+*   **Imagen Referencial**: `![Detalle de Cuenta](./images/21_my_account.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   **Fondo de Pantalla**: Color marfil limpio (`colors.ivory.DEFAULT`) con una diagramación vertical muy cuidada.
     *   **Elementos de Entrada**: Inputs redondeados independientes con etiquetas en mayúsculas grises de bajo contraste y tipografía clara.
@@ -410,7 +413,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Lógica asíncrona de actualización del perfil contra la API del backend al pulsar "Save" con mensaje de confirmación flotante (*toast*).
 
 #### 22. Pantalla de Ayuda y Soporte (Help & Support Screen)
-*   **Imagen Referencial**: `![Ayuda y Soporte](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/22_help_support.png)`
+*   **Imagen Referencial**: `![Ayuda y Soporte](./images/22_help_support.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Fondo marfil y una clara división modular que separa los temas de asistencia frecuente y los canales directos de contacto.
 *   **Elementos de Interfaz (UI)**:
@@ -424,7 +427,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Integración nativa con el cliente de correo del dispositivo móvil al presionar el botón de contacto directo.
 
 #### 23. Guía de Uso Offline (Offline Use Screen)
-*   **Imagen Referencial**: `![Guía de Uso Offline](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/23_offline_use_guide.png)`
+*   **Imagen Referencial**: `![Guía de Uso Offline](./images/23_offline_use_guide.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Layout pedagógico paso a paso coherente con el sistema de diseño litúrgico de la aplicación.
 *   **Elementos de Interfaz (UI)**:
@@ -439,7 +442,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Redirección directa a la pantalla del administrador de descargas al presionar el botón de acción de la tarjeta inferior.
 
 #### 24. Administrador de Descargas (Manage Downloads Screen)
-*   **Imagen Referencial**: `![Administrador de Descargas](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/24_manage_downloads.png)`
+*   **Imagen Referencial**: `![Administrador de Descargas](./images/24_manage_downloads.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Interfaz sumamente depurada e intuitiva dedicada a la descarga local de la base de datos bíblica.
 *   **Elementos de Interfaz (UI)**:
@@ -451,7 +454,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Actualización reactiva al finalizar el proceso, cambiando el badge a `DOWNLOADED` en color verde y habilitando el modo offline inmediato.
 
 #### 25. Guía de Favoritos (Your Favorites Onboarding Screen)
-*   **Imagen Referencial**: `![Guía de Favoritos](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/25_favorites_guide.png)`
+*   **Imagen Referencial**: `![Guía de Favoritos](./images/25_favorites_guide.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Esquema pedagógico idéntico al del onboarding de uso offline, garantizando coherencia metodológica en los flujos educativos de la app.
 *   **Elementos de Interfaz (UI)**:
@@ -465,7 +468,7 @@ El diseño de interfaces en CatholicVerse sigue una filosofía de **estética li
     *   Aporta un entendimiento inmediato de las capacidades de favoritos, reduciendo la curva de aprendizaje de la aplicación de forma notable.
 
 #### 26. Guía del Flujo de Escritos (Writings Flow Screen)
-*   **Imagen Referencial**: `![Flujo de Escritos](file:///Users/mrrobot/IdeaProjects/Biblia/docs/images/26_writings_flow.png)`
+*   **Imagen Referencial**: `![Flujo de Escritos](./images/26_writings_flow.png)`
 *   **Identidad Visual y Diseño (Colores y Estilo)**:
     *   Sigue el mismo patrón pedagógico y de onboarding que las guías de Offline y Favoritos, garantizando absoluta coherencia visual.
 *   **Elementos de Interfaz (UI)**:

@@ -19,15 +19,15 @@ Para que el Login funcione en la App publicada, son obligatorios estos archivos 
 - **Origen:** Firebase Console -> Configuración del proyecto -> Tus aplicaciones (iOS).
 
 ## 🛠️ Credenciales Actuales (Hardcoded)
-Actualmente, para máxima simplicidad y seguridad, los IDs están integrados en el código:
+Actualmente, para máxima simplicidad y seguridad, los IDs están integrados en el código (proyecto Firebase `catholicverse-40437`). *Verificado contra el código en junio de 2026:*
 
 ### 📱 Frontend (`LoginScreen.tsx`)
-- `webClientId`: `709014169638-qdhs9p1smr7nbgk0kmb2ca4hhts6qq53.apps.googleusercontent.com`
-- `iosClientId`: `709014169638-vndu7immjcujct3bied58opabjn5bjbf.apps.googleusercontent.com`
+- `webClientId`: `1055569033141-9l6tnmaugo5tbco40si0kc9qt887ion2.apps.googleusercontent.com`
+- `iosClientId`: `1055569033141-8ol7lvhvgn445bfgcha7l74e7kjsshcr.apps.googleusercontent.com`
 
 ### ⚙️ Backend (`AuthenticationService.java`)
 - El servidor utiliza la librería oficial de Google (`GoogleIdTokenVerifier`) para validar los tokens.
-- **Audience:** Está configurado para aceptar el `webClientId` mencionado arriba.
+- **Audience:** acepta los tres client IDs del proyecto (Web `…9l6tn…`, iOS `…8ol7l…` y Android `1055569033141-6rdge1p5ri3vbqassb9u10p11v230o97…`).
 - **Seguridad:** El Backend **NO necesita el `client_secret`** para verificar la identidad (solo usa la firma pública de Google), por lo que no es necesario configurar variables de entorno adicionales para Google Auth en el servidor.
 
 > [!IMPORTANT]

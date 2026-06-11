@@ -1,5 +1,7 @@
 # 🐳 Guía Completa de Dockerización - Biblia Católica API
 
+> ⚠️ **Nota de contexto (junio 2026):** este documento didáctico se escribió en la fase inicial del proyecto (migraciones V1–V3, Biblia de Jerusalén en español). **Los conceptos siguen siendo válidos**, pero el estado actual es: migraciones **V1–V11**, contenido bíblico **CPDV en inglés** (V6), 10 controladores REST y nuevas tablas (trials, progreso, suscripciones). El estado real verificado está en `DOCUMENTACION_MAESTRA_2026.md`.
+
 ## 📚 Índice
 1. [¿Qué es Docker? (Explicación para principiantes)](#qué-es-docker)
 2. [¿Por qué usar Docker en este proyecto?](#por-qué-usar-docker)

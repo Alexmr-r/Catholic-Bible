@@ -1,9 +1,12 @@
 # 📚 Índice de Documentación - Biblia Católica API
 
+> ℹ️ Esta carpeta contiene la documentación **didáctica** del backend. La visión global y verificada de todo el sistema (endpoints completos, BD, seguridad, IA, despliegue) está en [`../01-sistema/DOCUMENTACION_MAESTRA_2026.md`](../01-sistema/DOCUMENTACION_MAESTRA_2026.md).
+
 ## 🎯 ¿Por dónde empezar?
 
 | Si quieres... | Lee este documento |
 |---------------|-------------------|
+| Visión global verificada del sistema | [../01-sistema/DOCUMENTACION_MAESTRA_2026.md](../01-sistema/DOCUMENTACION_MAESTRA_2026.md) |
 | Entender la arquitectura | [ARQUITECTURA_BACKEND.md](./ARQUITECTURA_BACKEND.md) |
 | Ver qué hace cada clase | [CLASES_DETALLADAS.md](./CLASES_DETALLADAS.md) |
 | Entender inyección de dependencias y por qué se usan interfaces | [INYECCION_DEPENDENCIAS_Y_CONFIG.md](./INYECCION_DEPENDENCIAS_Y_CONFIG.md) |
@@ -37,7 +40,7 @@
 | Documento | Descripción |
 |-----------|-------------|
 | [GUIA_INICIO_RAPIDO.md](./GUIA_INICIO_RAPIDO.md) | Cómo levantar todo en 5 minutos |
-| [CONFIGURACION_COMPLETADA.md](./CONFIGURACION_COMPLETADA.md) | Resumen de lo que ya está configurado |
+| [GUIA_MIGRACIONES_FLYWAY.md](./GUIA_MIGRACIONES_FLYWAY.md) | Cómo evitar problemas con migraciones |
 | [README.md](./README.md) | Información general del backend |
 
 ### ❓ Preguntas y Respuestas
@@ -155,4 +158,4 @@ BibliaBackend/
 
 ---
 
-**Última actualización:** 18 de enero, 2026
+**Última actualización:** 11 de junio, 2026

@@ -188,6 +188,7 @@ Spring Boot 3.2.5, Java 21, spring-boot-starter-{web, data-jpa, security, valida
 - Flyway con `baseline-on-migrate: true`, `validate-on-migrate: false`, `out-of-order: true`.
 - JWT: expiración access 86 400 000 ms (24 h), refresh 604 800 000 ms (7 días). Secret por env `JWT_SECRET` (tiene valor por defecto en el yml — ver deuda técnica).
 - CORS: `cors.allowed-origins` (por defecto `*`).
+- **Perfiles**: el `application.yml` es multi-documento con perfiles `dev`, `docker` y `prod`. El perfil `prod` endurece todo (Swagger desactivado, CORS en lista blanca con los dominios de getcatholicverse.com y el backoffice, `JWT_SECRET` sin fallback). **Pero el docker-compose desplegado arranca con `SPRING_PROFILES_ACTIVE: docker`**, así que ese endurecimiento no está activo en el servidor a menos que se cambie la variable a `prod` (ver deuda técnica).
 - IA: `spring.ai.provider` = `cloudflare` (defecto) u `ollama`; modelo Cloudflare `@cf/meta/llama-3.1-8b-instruct`; Ollama local `llama3.2:1b`.
 - Resend: `RESEND_API_KEY`, from `catholicverse@getcatholicverse.com`.
 - Actuator: expone `health`, `info`, `metrics`.
@@ -796,7 +797,7 @@ Despliegue del backend: **JAR precompilado local → scp → Docker build remoto
 | Endpoint IA en `/ai` | Es **`POST /chat`** |
 | "RevenueCat envía webhook a POST /admin/revenuecat-webhook" | **No existe ese webhook.** Premium = SDK RevenueCat en cliente + flag `is_premium` (editable desde backoffice). Campos `revenuecat_user_id`/`subscription_end_date` preparados para el futuro |
 | "Nginx (proxy inverso → 443/80)" en el droplet | **No hay Nginx**: Docker mapea 80→8080; el TLS lo termina Cloudflare (SSL Flexible) |
-| "Swagger desactivado en producción con perfil prod" | No hay `application-prod.yml` en resources; las rutas de Swagger están en `permitAll` en SecurityConfig. (Verificar el estado real en el servidor si se afirma en la defensa) |
+| "Swagger desactivado en producción con perfil prod" | El perfil `prod` (dentro del `application.yml` multi-documento) **sí** desactiva springdoc y endurece CORS/JWT, pero el compose desplegado activa el perfil `docker`, no `prod` → en el servidor real Swagger sigue accesible y CORS es `*` hasta que se cambie `SPRING_PROFILES_ACTIVE` |
 | Tabla migraciones: "V1 crea users, books, chapters, verses, favorites..." | V1 también crea **sections** (capa intermedia capítulo→versículo), `user_progress` y `search_history` |
 | Apple Sign-In "proceso idéntico a Google" | Google verifica firma; **Apple no la verifica** (decodificación simple, limitación documentada) |
 | Trial sin duración explícita | **7 días** (`trialStartDate.plusDays(7)` en `User.java`) |
@@ -814,7 +815,7 @@ Despliegue del backend: **JAR precompilado local → scp → Docker build remoto
 5. Apple Sign-In **sin verificación de firma**.
 6. Búsqueda con `LIKE` que no aprovecha el índice GIN; además el índice es `'spanish'` y el contenido quedó en inglés tras V6.
 7. SSL Flexible: tramo Cloudflare→Droplet sin cifrar. Plan: certificado de origen (Full Strict).
-8. CORS `*` por defecto.
+8. CORS `*` por defecto. El perfil `prod` tiene la lista blanca correcta y Swagger desactivado, pero **el compose de producción arranca con el perfil `docker`** → cambiar `SPRING_PROFILES_ACTIVE` a `prod` en el servidor para activar el endurecimiento.
 9. Métricas del dashboard admin parcialmente **estimadas** (activeNow, aiQueriesCount, trending prompts) — usuarios totales y premium sí son reales.
 10. `dashboard-stats` y `audit-logs` hacen `findAll()` en memoria — no escala con muchos usuarios.
 

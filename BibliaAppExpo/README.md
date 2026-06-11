@@ -1,119 +1,39 @@
-# 📱 Biblia Católica - Demo con Expo
+# 📱 CatholicVerse — App móvil (React Native + Expo)
 
-> **Aplicación móvil para presentación a inversores**
+App de lectura de la Biblia Católica (CPDV) con asistente de IA, modo offline, TTS y suscripciones. Cliente del backend `BibliaBackend/` (`https://api.getcatholicverse.com/api/v1`).
 
-## ✨ Pantalla de Login - Completada
+**Stack:** Expo SDK 54 · React Native 0.81.5 · React 19.1 · TypeScript · React Navigation 7 · RevenueCat (`react-native-purchases`) · sherpa-onnx (TTS offline) · EAS Build · bundle `com.catholicverse.app`.
 
-✅ **Pantalla de Login** completamente funcional  
-✅ **Todo mockeado** (sin backend)  
-✅ **Expo con QR** para prueba instantánea  
-✅ **Diseño idéntico** al mockup original  
-
----
-
-## 🚀 INICIO RÁPIDO
-
-### 1️⃣ Instala Expo Go en tu móvil
-- **iOS**: App Store → "Expo Go"
-- **Android**: Play Store → "Expo Go"
-
-### 2️⃣ Ejecuta y escanea el QR
-```bash
-npx expo start
-```
-
-**¡Escanea el QR que aparece y listo!** 📱
-
----
-
-## 🎯 Para tu Inversor
-
-**Demo en 30 segundos:**
-1. Inversor descarga "Expo Go" (gratis)
-2. Ejecutas `npx expo start`
-3. Inversor escanea el QR
-4. ¡Ya tiene tu app funcionando!
-
-Ver más detalles en **[PLAN_DESARROLLO.md](./PLAN_DESARROLLO.md)**
-
----
-
-## 🎯 Para Inversores
-
-**Demo en 30 segundos:**
-1. Inversor descarga "Expo Go" (gratis)
-2. Tú ejecutas `npx expo start`
-3. Inversor escanea el QR
-4. ¡Ya tiene tu app funcionando!
-
----
-
-## 📱 Pantalla Actual: Login
-
-**Elementos implementados:**
-- ✅ Header con "Volver" y "Ayuda"
-- ✅ Logo con cruz dorada
-- ✅ Formulario de email y contraseña
-- ✅ Toggle mostrar/ocultar contraseña
-- ✅ Botón "Iniciar Sesión"
-- ✅ Login con Apple
-- ✅ Login con Google
-- ✅ Link de "Regístrate"
-
-**Todas las funciones son mockeadas** - muestran alerts informativos.
-
----
-
-## 🛠️ Tecnología
-
-- **Expo** (React Native con QR)
-- **TypeScript**
-- **@expo/vector-icons** (Material Icons)
-- **React Native 0.81**
-
----
-
-## 📂 Archivos Principales
-
-```
-BibliaAppExpo/
-├── App.tsx                     → Entry point
-├── src/screens/LoginScreen.tsx → ✅ Login completo
-├── src/theme/colors.ts         → Paleta
-└── PLAN_DESARROLLO.md          → Roadmap
-```
-
-## 🛠️ Stack
-
-- **Expo** + **TypeScript** + **@expo/vector-icons**
-
-## 🎨 Colores
-
-Ivory (#FAF9F6) • Charcoal (#374151) • Gold (#D4AF37) • Burgundy (#903040)
-
----
-
-## 🆘 Comandos Útiles
+## 🚀 Desarrollo
 
 ```bash
-# Iniciar app
-npx expo start
-
-# Limpiar cache
-npx expo start -c
-
-# Si el QR no funciona
-npx expo start --tunnel
+npm install
+npx expo start          # servidor de desarrollo
+npm run ios             # simulador iOS (requiere dev build: npx expo prebuild)
+npm run android         # emulador Android
 ```
 
----
+> La app usa módulos nativos (RevenueCat, sherpa-onnx, Google Sign-In…), por lo que **no funciona en Expo Go**: necesita un *development build* (`expo-dev-client`). Guía completa: [`../docs/03-app-movil/GUIA_DESARROLLO.md`](../docs/03-app-movil/GUIA_DESARROLLO.md).
 
-## 📞 Próxima Pantalla
+## 🏗️ Estructura
 
-Para continuar, comparte:
-1. Diseño HTML/CSS de Stitch
-2. Imagen de referencia
-3. Prioridad de la pantalla
+```
+src/
+├── navigation/AppNavigator.tsx   ← Splash → Auth → Paywall/MainTabs
+├── screens/      (29 pantallas: lectura diaria, biblia, escritos, favoritos,
+│                  IA, calendario, perfil, ajustes, ayuda, paywall…)
+├── services/     (18 servicios: api.client, auth, bible, ai, daily-reading,
+│                  favorites, highlights, writings, cache, sync, audio, share…)
+├── contexts/     (Auth, Subscription, Theme, Network, TextSettings)
+├── components/   ← Componentes transversales (OfflineBanner, MessageParser…)
+├── hooks/useOfflineBible.ts · locales/ (ES/EN) · theme/ · utils/
+```
 
-**Ver [PLAN_DESARROLLO.md](./PLAN_DESARROLLO.md) para más detalles**
+Las 4 pestañas: **DailyReading** · **BibleSearch** · **Writings** · **Favorites**. Acceso premium: `hasAccess = premium (RevenueCat/backend) ∨ trial 7 días`.
 
+## 📚 Documentación
+
+- **Visión completa y verificada:** [`../docs/01-sistema/DOCUMENTACION_MAESTRA_2026.md`](../docs/01-sistema/DOCUMENTACION_MAESTRA_2026.md) (sección 10: app)
+- **Guías del frontend:** [`../docs/03-app-movil/`](../docs/03-app-movil/)
+- **Específicas de esta carpeta:** [`../docs/03-app-movil/ANDROID_ASSETS_SPLASH.md`](../docs/03-app-movil/ANDROID_ASSETS_SPLASH.md) · [`../docs/03-app-movil/SOLUCION_CONECTIVIDAD_ANDROID.md`](../docs/03-app-movil/SOLUCION_CONECTIVIDAD_ANDROID.md)
+- **Crash TTS Android (workaround vigente):** [`../docs/03-app-movil/FIX_TTS_AND_PAYWALL_STABILITY.md`](../docs/03-app-movil/FIX_TTS_AND_PAYWALL_STABILITY.md)

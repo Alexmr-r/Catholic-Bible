@@ -9,7 +9,7 @@ Esta guía detalla la arquitectura de Inteligencia Artificial (IA) recomendada p
 Actualmente, el contenedor de **Ollama** (`biblia-ollama`) en el archivo `docker-compose.yml` está **desactivado para ahorrar RAM**.
 
 * Para una explicación detallada sobre por qué el comportamiento de nuestra IA es transparente entre proveedores de LLM y cómo proteger el servidor VPS de caídas por RAM, lee el documento de decisión de arquitectura:
-  👉 [IA_DECISION_ARQUITECTURA.md](file:///Users/mrrobot/IdeaProjects/Biblia/docs/queda_por_hacer_y_subidas/importante/IA_DECISION_ARQUITECTURA.md)
+  👉 [IA_DECISION_ARQUITECTURA.md](../07-decisiones-y-pendientes/IA_DECISION_ARQUITECTURA.md)
 
 ---
 
