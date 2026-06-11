@@ -914,8 +914,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     borderColor: colors.ivory.border,
     paddingLeft: 16,
     paddingRight: 10,
-    paddingVertical: 10,
-    height: 50,
+    height: 48,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -927,11 +926,10 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
   },
   searchInput: {
     flex: 1,
+    height: '100%',
     fontSize: 16,
     color: colors.charcoal.DEFAULT,
-    paddingVertical: 0,
-    textAlignVertical: 'center',
-    includeFontPadding: false,
+    textAlign: 'left',
   },
   micDivider: {
     width: 1,

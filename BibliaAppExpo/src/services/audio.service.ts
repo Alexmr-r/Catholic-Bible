@@ -35,6 +35,7 @@ class AudioService {
     private currentVoiceName: string = 'Narrador Premium IA';
     private onStatusChange?: (status: AudioStatus) => void;
     private engineType: 'native' | 'ai-local' = 'ai-local';
+    private currentRequestId: number = 0;
 
     private isDownloading: boolean = false;
     private downloadProgress: number = 0;
@@ -185,11 +186,14 @@ class AudioService {
     async speak(text: string, title?: string) {
         try {
             await this.stop(); // Stop any previous playback
+            
+            const reqId = Date.now();
+            this.currentRequestId = reqId;
 
             const modelExists = await this.checkModelExists();
 
             if (modelExists && SherpaTTS) {
-                await this.speakLocal(text, title);
+                await this.speakLocal(text, title, reqId);
             } else {
                 console.error('[AudioService] IA no disponible: modelo no encontrado o módulo no cargado');
                 throw new Error('MODEL_NOT_READY');
@@ -202,7 +206,7 @@ class AudioService {
         }
     }
 
-    private async speakLocal(text: string, title?: string) {
+    private async speakLocal(text: string, title?: string, reqId?: number) {
         if (!SherpaTTS) throw new Error('SHERPA_NOT_AVAILABLE');
 
         try {
@@ -217,6 +221,12 @@ class AudioService {
 
             console.log('[AudioService] Inicializando Sherpa TTS...');
             await SherpaTTS.initialize(config);
+
+            // Si el usuario le dio a 'stop()' durante la inicialización, abortamos
+            if (reqId && this.currentRequestId !== reqId) {
+                console.log('[AudioService] Lectura abortada: se detuvo durante la inicialización.');
+                return;
+            }
 
             this.engineType = 'ai-local';
             this.currentVoiceName = 'Narrador Premium IA';
@@ -284,6 +294,7 @@ class AudioService {
 
     async stop() {
         console.log('[AudioService] Deteniendo todo el audio...');
+        this.currentRequestId = Date.now(); // Invalida cualquier petición pendiente
         try {
             // Detener voz nativa
             await Speech.stop();

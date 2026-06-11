@@ -38,6 +38,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthState();
   }, []);
 
+  // Cargar automáticamente la foto de perfil cuando cambia el usuario
+  useEffect(() => {
+    if (user && !profilePhoto) {
+      AsyncStorage.getItem(`@biblia_profile_photo_${user.id}`)
+        .then(cachedPhoto => {
+          if (cachedPhoto) setProfilePhoto(cachedPhoto);
+        })
+        .catch(e => console.warn('Error loading cached photo', e));
+    }
+  }, [user]);
+
   const checkAuthState = async () => {
     try {
       setIsLoading(true);

@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import {MaterialIcons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
+import Toast from 'react-native-toast-message';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {DailyReadingScreenProps} from '../navigation/AppNavigator';
@@ -408,7 +409,11 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
         // Desmarcar
         await readingProgressService.unmarkAsComplete(dateToMark);
         setIsReadingCompleted(false);
-        Alert.alert('✅ Reading unmarked', 'It has been removed from the record.');
+        Toast.show({
+          type: 'success',
+          text1: 'Reading unmarked',
+          text2: 'It has been removed from the record.',
+        });
       } else {
         // Marcar como completada
         await readingProgressService.markAsComplete(
@@ -416,7 +421,11 @@ const DailyReadingScreen: React.FC<DailyReadingScreenProps> = ({navigation, rout
           dailyReading.id !== 'fallback' ? dailyReading.id : undefined
         );
         setIsReadingCompleted(true);
-        Alert.alert('✅ Reading completed', 'It has been registered in your writing calendar.');
+        Toast.show({
+          type: 'success',
+          text1: 'Reading completed',
+          text2: 'It has been registered in your writing calendar.',
+        });
       }
     } catch (err) {
       console.error('Error marcando lectura:', err);

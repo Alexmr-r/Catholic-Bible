@@ -99,9 +99,8 @@ const ManageDownloadsScreen: React.FC<ManageDownloadsScreenProps> = ({navigation
         text2: 'The English Bible is now available for offline use.',
       });
 
-      if (returnTo) {
-        setForcedOffline(true);
-      }
+      setForcedOffline(true);
+
       navigation.goBack();
     } catch (error: any) {
       setDownloadState(prev => ({

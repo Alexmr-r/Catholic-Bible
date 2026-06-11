@@ -10,6 +10,7 @@ import {
   Platform
 } from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
+import {useFocusEffect} from '@react-navigation/native';
 import {ThemeColors} from '../theme/colors';
 import {useTheme} from '../contexts/ThemeContext';
 import {BookChaptersScreenProps} from '../navigation/AppNavigator';
@@ -40,28 +41,37 @@ const BookChaptersScreen: React.FC<BookChaptersScreenProps> = ({navigation, rout
     loadBookInfo();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadHighlights();
+    }, [bookId])
+  );
+
+  const loadHighlights = async () => {
+    try {
+      const allHighlights = await highlightService.getHighlights();
+      const bookHighlights = allHighlights.filter(h => h.bookId === bookId);
+      const highlightsMap: Record<number, string[]> = {};
+      bookHighlights.forEach(h => {
+        if (!highlightsMap[h.chapterNumber]) {
+          highlightsMap[h.chapterNumber] = [];
+        }
+        const hex = getHighlightHex(h.color);
+        if (!highlightsMap[h.chapterNumber].includes(hex)) {
+          highlightsMap[h.chapterNumber].push(hex);
+        }
+      });
+      setChapterHighlights(highlightsMap);
+    } catch (highlightError) {
+      console.warn('[BookChapters] Error cargando highlights:', highlightError);
+    }
+  };
+
   const loadBookInfo = async () => {
     try {
       setIsLoading(true);
 
-      // Cargar subrayados
-      try {
-        const allHighlights = await highlightService.getHighlights();
-        const bookHighlights = allHighlights.filter(h => h.bookId === bookId);
-        const highlightsMap: Record<number, string[]> = {};
-        bookHighlights.forEach(h => {
-          if (!highlightsMap[h.chapterNumber]) {
-            highlightsMap[h.chapterNumber] = [];
-          }
-          const hex = getHighlightHex(h.color);
-          if (!highlightsMap[h.chapterNumber].includes(hex)) {
-            highlightsMap[h.chapterNumber].push(hex);
-          }
-        });
-        setChapterHighlights(highlightsMap);
-      } catch (highlightError) {
-        console.warn('[BookChapters] Error cargando highlights:', highlightError);
-      }
+      setIsLoading(true);
 
       if (isOnline) {
         try {

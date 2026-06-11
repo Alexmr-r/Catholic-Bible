@@ -58,6 +58,7 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
   const lastCheckTime = useRef(0);
   const isConnectedRef = useRef(true);
   const isServerAvailableRef = useRef(false);
+  const isForcedOfflineRef = useRef(false);
 
   // Cargar estado inicial de descarga
   useEffect(() => {
@@ -100,19 +101,21 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
         
         if (downloaded) {
           console.log('[Network] 🤖 Auto-activando modo offline (Biblia detectada y servidor caído)');
-          if (!isForcedOffline) setIsForcedOffline(true);
+          if (!isForcedOfflineRef.current) setForcedOffline(true);
         }
       } else if (isConnected && isServerAvailable) {
-        // ✅ AUTO-DESACTIVACIÓN: Si todo vuelve a la normalidad, volver a Online
-        if (isForcedOffline) {
-          console.log('[Network] 🚀 Restaurando modo online automáticamente');
-          setIsForcedOffline(false);
+        // ✅ AUTO-DESACTIVACIÓN: Si todo vuelve a la normalidad y estábamos desconectados,
+        // restaurar online (A menos que el usuario lo haya forzado explícitamente,
+        // pero por simplicidad asumiremos que si vuelve la red, intentamos conectarlo).
+        if (isForcedOfflineRef.current && wasOffline.current) {
+          console.log('[Network] 🚀 Restaurando modo online automáticamente tras reconexión');
+          setForcedOffline(false);
         }
       }
     };
 
     autoToggleOffline();
-  }, [isConnected, isServerAvailable, isBibleDownloaded]); // Reaccionar a cambios de red O si la biblia se descarga/elimina
+  }, [isConnected, isServerAvailable]); // Quitado isBibleDownloaded para evitar race conditions al descargar
 
   const handleNetworkChange = async (state: NetInfoState) => {
     const nowConnected = state.isConnected ?? false;
@@ -213,6 +216,7 @@ export const NetworkProvider: React.FC<NetworkProviderProps> = ({children}) => {
   }, [isConnected]);
 
   const setForcedOffline = (forced: boolean) => {
+    isForcedOfflineRef.current = forced;
     setIsForcedOffline(forced);
     if (!forced) {
       refreshServerStatus(true);

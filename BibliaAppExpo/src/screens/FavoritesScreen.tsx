@@ -514,7 +514,7 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     borderWidth: 1, 
     borderColor: colors.ivory.border, 
     paddingHorizontal: 14, 
-    height: 44, 
+    height: 48, 
     shadowColor: '#000', 
     shadowOffset: {width: 0, height: 1}, 
     shadowOpacity: 0.05, 
@@ -529,9 +529,6 @@ const getStyles = (colors: ThemeColors, isDarkMode: boolean, safeTop: number) =>
     height: '100%', 
     fontSize: 16, 
     color: colors.charcoal.DEFAULT, 
-    paddingVertical: 0, 
-    includeFontPadding: false, 
-    textAlignVertical: 'center',
     textAlign: 'left',
   },
   filtersContainer: { 

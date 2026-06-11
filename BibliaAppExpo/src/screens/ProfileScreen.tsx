@@ -7,8 +7,8 @@ import {
   ScrollView,
   Alert,
   Platform,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
@@ -213,7 +213,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = () => {
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               {profilePhoto ? (
-                <Image source={{ uri: profilePhoto }} style={{ width: '100%', height: '100%', borderRadius: 48 }} />
+                <Image 
+                  source={{ uri: profilePhoto }} 
+                  style={{ width: '100%', height: '100%', borderRadius: 48 }} 
+                  cachePolicy="memory-disk"
+                  transition={200}
+                />
               ) : (
                 <Text style={styles.avatarInitials}>
                   {(user?.fullName || 'U').split(' ').map(n => n.charAt(0).toUpperCase()).slice(0, 2).join('')}
